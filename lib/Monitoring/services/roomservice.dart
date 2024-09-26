@@ -32,7 +32,7 @@ class RoomService extends DataTableSource {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text("Editar habitación"),
-                content: Text("Se editará la información de la habitación $id"),
+                content: Text("Se modificara la información de la habitación $id"),
                 actions: <Widget>[
                   TextButton(
                     child: const Text("Aceptar"),
