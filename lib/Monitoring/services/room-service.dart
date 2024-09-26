@@ -4,7 +4,7 @@ import 'package:sweetmanager/Monitoring/models/room.dart';
 class RoomService extends DataTableSource{
   final BuildContext context;
 
-  RoomService(this.context)
+  RoomService(this.context);
 
   final List<Room> _data = <Room>[
     Room(id: 1, typeRoomId: 2, hotelId: 101, roomState: "BUSY"),
