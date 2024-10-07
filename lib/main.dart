@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sweetmanager/ResourceManagement/pages/addreport.dart';
 import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +32,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const ReportList(),
+      home: const MyApp(),
     );
   }
 }
