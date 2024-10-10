@@ -36,12 +36,12 @@ class MessageTile extends StatelessWidget {
     return InkWell(
       onTap: onSelect,
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 8),
-        padding: EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [
+          boxShadow: [ 
             BoxShadow(
               color: Colors.black12,
               blurRadius: 4,
@@ -54,7 +54,7 @@ class MessageTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
                 Text('sent to $recipient'),
               ],
             ),
@@ -134,7 +134,7 @@ class _MensajesScreenState extends State<MensajesScreen> {
       appBar: AppBar(
         title: Text(
           'Message Registry'.toUpperCase(),
-          style: TextStyle(
+          style: const TextStyle(
             color: Color(0xFF183952),
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -155,7 +155,7 @@ class _MensajesScreenState extends State<MensajesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               'Messages',
               style: TextStyle(
                 fontSize: 24,
@@ -163,7 +163,7 @@ class _MensajesScreenState extends State<MensajesScreen> {
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               onChanged: _filterMessages,
               decoration: InputDecoration(
@@ -180,7 +180,7 @@ class _MensajesScreenState extends State<MensajesScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
                 itemCount: _filteredMessages.length,
@@ -214,13 +214,13 @@ class _MensajesScreenState extends State<MensajesScreen> {
                     // Add functionality to create a new message
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF2C5282),
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    backgroundColor: const Color(0xFF2C5282),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Create message',
                     style: TextStyle(color: Colors.white),
                   ),
@@ -231,12 +231,12 @@ class _MensajesScreenState extends State<MensajesScreen> {
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Delete selected',
                     style: TextStyle(color: Colors.white),
                   ),

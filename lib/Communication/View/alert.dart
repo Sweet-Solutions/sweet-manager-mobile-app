@@ -60,8 +60,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: Row(
-          children: const [
+        title: const Row(
+          children:  [
             Icon(
               Icons.notifications,
               color: Colors.red,
@@ -109,8 +109,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: const Icon(
+                child: const Center(
+                  child:  Icon(
                     Icons.add,
                     color: Colors.black,
                     size: 24,
