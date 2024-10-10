@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
-import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
-
 
 void main() {
   runApp(const MyApp());
