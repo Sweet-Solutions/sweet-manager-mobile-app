@@ -3,6 +3,8 @@ import 'package:sweetmanager/IAM/services/auth_service.dart';
 
 // In the following line you configure or declare that SplashScreen is a Widget.
 class SplashScreen extends StatelessWidget{
+  SplashScreen({super.key});
+  
   final AuthService _authService = AuthService();
   
   // Configure the Authentication Status (isAuthenticated?)
@@ -23,11 +25,11 @@ class SplashScreen extends StatelessWidget{
             WidgetsBinding.instance.addPostFrameCallback((_){
               if(snapshot.hasData && snapshot.data == true)
               {
-                Navigator.pushReplacementNamed(context, '/home');
+                Navigator.pushReplacementNamed(context, '/dashboard');
               }
               else
               {
-                Navigator.pushReplacementNamed(context, '/login');
+                Navigator.pushReplacementNamed(context, '/home');
               }
             });
           }
