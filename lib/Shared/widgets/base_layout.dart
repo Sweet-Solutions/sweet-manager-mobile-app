@@ -8,7 +8,7 @@ class BaseLayout extends StatelessWidget{
 
   final String role; // User's role to define sidebar's lit
 
-  BaseLayout({required this.child, required this.role});
+  BaseLayout({required this.role, required this.child});
 
   @override
   Widget build(BuildContext context) {
