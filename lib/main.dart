@@ -4,7 +4,6 @@ import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
 import 'package:sweetmanager/Communication/View/message.dart';
 import 'package:sweetmanager/IAM/views/home.dart';
 import 'package:sweetmanager/IAM/views/login.dart';
-import 'package:sweetmanager/IAM/views/splash_screen.dart';
 import 'package:sweetmanager/Monitoring/views/tableroom.dart';
 import 'package:sweetmanager/Profiles/Views/ownerProfile.dart';
 import 'package:sweetmanager/Profiles/Views/providers/management_provider_page.dart';
