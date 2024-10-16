@@ -20,7 +20,6 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
 
   final TextEditingController _passwordController = TextEditingController();
 
-  String _errorMessage = '';
   // Variables: tabController and rememberMe
 
   String? _roleSelected;
