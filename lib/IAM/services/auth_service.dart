@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
@@ -10,28 +8,37 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
 class AuthService{
-  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/v1/authentication';
+  // https://sweetmanager-api.ryzeon.me/api/v1/authentication
+  final String baseUrl = 'https://localhost:44390/api/v1/authentication';
 
   final storage = const FlutterSecureStorage();
 
-  Future<bool> login(String email, String password, Int roleId) async
+  Future<bool> login(String email, String password, int roleId) async
   {
-    final response = await http.post(Uri.parse('$baseUrl/sign-in'),
-    body: {
-      'email': email,
-      'password': password,
-      'rolesId': roleId
-    });
+    try
+    {
+      final response = await http.post(Uri.parse('$baseUrl/sign-in'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': email,
+        'password': password,
+        'rolesId': roleId
+      }));
 
-    if(response.statusCode == 200){
-      final data = jsonDecode(response.body);
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body);
 
-      await storage.write(key: 'token', value: data['token']);
+        await storage.write(key: 'token', value: data['token']);
 
-      return true;
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      rethrow;
     }
-
-    return false;
   }
 
   Future<void> logout() async{
