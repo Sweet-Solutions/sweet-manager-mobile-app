@@ -21,33 +21,47 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
   final TextEditingController _passwordController = TextEditingController();
 
   String _errorMessage = '';
-
   // Variables: tabController and rememberMe
+
+  String? _roleSelected;
 
   late TabController _tabController;
 
   bool _isRememberMe = false;
+
+  bool _isTermsAccepted = false;
+
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
     super.initState();
 
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener((){
+      setState(() {
+        
+      });
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
 
+    _emailController.dispose();
+
+    _passwordController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) { // Implements design for login view.
-    return BaseLayout(role: '', childScreen: getContentView());
+    return BaseLayout(role: '', childScreen: getContentView(context));
   }
 
-  Widget getContentView()
+  Widget getContentView(BuildContext context)
   {
     return Scaffold(
       body: Stack(
@@ -56,7 +70,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/back_login.png'), // Replace with your background image URL
+                image: NetworkImage('assets/images/back_login.png'), // Replace with your background image URL
                 fit: BoxFit.cover,
               ),
             ),
@@ -82,126 +96,128 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Welcome to Sweet Manager',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'To use the application, please log in or register an organization',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Tab Bar
-                  TabBar(
-                    controller: _tabController,
-                    labelColor: Colors.black,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: Colors.blueAccent,
-                    tabs: const [
-                      Tab(text: 'Log in'),
-                      Tab(text: 'Register an organization\'s owner'),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Tab Bar View
-                  SizedBox(
-                    height: 220,
-                    child: TabBarView(
-                      controller: _tabController,
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Log in Tab
-                        Column(
-                          children: [
-                            TextField(
-                              decoration: InputDecoration(
-                                labelText: 'Email',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
+                        const Center(
+                          child: Text('Welcome to Sweet Manager',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
                             ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              obscureText: true,
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _isRememberMe,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isRememberMe = value!;
-                                    });
-                                  },
-                                ),
-                                const Text('Remember me'),
-                              ],
-                            ),
-                          ],
-                        ),
-                        // Register Tab (empty for now)
-                        Center(
-                          child: Text(
-                            'Register Screen',
-                            style: TextStyle(color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'To use the application, please log in or register an organization',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Tab Bar
+                        TabBar(
+                          controller: _tabController,
+                          labelColor: Colors.black,
+                          unselectedLabelColor: Colors.grey,
+                          indicatorColor: Colors.blueAccent,
+                          tabs: const [
+                            Tab(text: 'Log in'),
+                            Tab(text: 'Register an organization\'s owner'),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // Tab Bar View with dynamic height
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 300),
+                          child: _tabController.index == 0
+                              ? buildLoginTab()
+                              : buildRegisterTab(),
+                        ),
+                        const SizedBox(height: 12),
+                        // Log in or Register Button
+                        ElevatedButton(
+                          onPressed: () async {
+                            if(_tabController.index == 0)
+                            {
+                              String email = _emailController.text;
+
+                              String password = _passwordController.text;
+
+                              String? role = _roleSelected;
+
+                              if(email.isEmpty || password.isEmpty || role == null)
+                              {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please fill all the corresponding fields.'))
+                                );
+                                return;
+                              }
+
+                              bool response = await _authService.login(email, password, int.parse(role));
+
+                              if(!mounted) return;
+
+                              if(response)
+                              {
+                                Navigator.pushNamed(context, '/dashboard');
+                              }
+                              else
+                              {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Something went wrong'))
+                                );
+                                return;
+                              }
+                            }
+                            else
+                            {
+
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.indigo[800],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 80, vertical: 16),
+                          ),
+                          child: Text(
+                            _tabController.index == 0 ? 'Log in' : 'Register organization',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Forgot Password Text (only for login)
+                        if (_tabController.index == 0)
+                          TextButton(
+                            onPressed: () {},
+                            child: const Text(
+                              'Forgot my password',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.blueAccent,
+                              ),
+                            ),
+                          ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Log in Button
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.indigo[800],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 80, vertical: 16),
-                    ),
-                    child: const Text(
-                      'Log in',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Forgot Password Text
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Forgot my password',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.blueAccent,
-                      ),
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -210,4 +226,158 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
     );
   }
 
+  Widget buildLoginTab() {
+    return Column(
+      children: [
+        TextField(
+          controller: _emailController,
+          decoration: InputDecoration(
+            labelText: 'Email',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _passwordController,
+          obscureText: true,
+          decoration: InputDecoration(
+            labelText: 'Password',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          value: _roleSelected,
+          items: const [
+            DropdownMenuItem(value: '1' ,child: Text('OWNER')),
+            DropdownMenuItem(value: '2',child: Text('ADMIN')),
+            DropdownMenuItem(value: '3',child: Text('WORKER')),
+          ],
+          onChanged: (value){
+            setState(() {
+              _roleSelected = value;
+            });
+          },
+          decoration: InputDecoration(
+            labelText: 'Role',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10)
+            )
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Checkbox(
+              value: _isRememberMe,
+              onChanged: (value) {
+                setState(() {
+                  _isRememberMe = value!;
+                });
+              },
+            ),
+            const Text('Remember me'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget buildRegisterTab() {
+    return Column(
+      children: [
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Owner’s username',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Owner’s phone number',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Owner’s email',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Owner’s complete name',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          obscureText: !_isPasswordVisible,
+          decoration: InputDecoration(
+            labelText: 'Owner’s password',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+              ),
+              onPressed: () {
+                setState(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                });
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            '• At least one character in uppercase and lowercase\n'
+            '• At least a number\n'
+            '• At least a special character\n'
+            '• At least 8 characters',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Checkbox(
+              value: _isTermsAccepted,
+              onChanged: (value) {
+                setState(() {
+                  _isTermsAccepted = value!;
+                });
+              },
+            ),
+            const Expanded(
+              child: Text(
+                'I’ve read and accept the Terms and Conditions and Privacy policy',
+                style: TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
 }
+
