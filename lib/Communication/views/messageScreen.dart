@@ -1,85 +1,24 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MensajesApp());
-}
+import '../models/notification.dart';
+import '../components/notificationCard.dart';
 
-class MensajesApp extends StatelessWidget {
+
+class Messagescreen extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MensajesScreen(),
-    );
-  }
+  _MessagescreenState createState() => _MessagescreenState();
 }
 
-class Message {
-  final String title;
-  final String recipient;
-  final String date;
-
-  Message(this.title, this.recipient, this.date);
-}
-
-class MessageTile extends StatelessWidget {
-  final String title;
-  final String recipient;
-  final String date;
-  final bool isSelected;
-  final VoidCallback onSelect;
-
-  MessageTile(this.title, this.recipient, this.date, {required this.isSelected, required this.onSelect});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onSelect,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [ 
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('sent to $recipient'),
-              ],
-            ),
-            Text(date),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class MensajesScreen extends StatefulWidget {
-  @override
-  _MensajesScreenState createState() => _MensajesScreenState();
-}
-
-class _MensajesScreenState extends State<MensajesScreen> {
-  final List<Message> _messages = [
-    Message('Meeting Today', 'S.T.', '2/02/2019'),
-    Message('Dismissal', 'H.K.', '4/02/2019'),
-    Message('Settlement', 'Reception', '5/02/2019'),
-    Message('New Policy', 'HR', '6/02/2019')
+class _MessagescreenState extends State<Messagescreen> {
+  // Replacing Message with Notifications class
+  final List<Notifications> _messages = [
+    Notifications(1, 1, 1, 1, 'Meeting Today', 'S.T.'),
+    Notifications(1, 1, 1, 1, 'Dismissal', 'H.K.'),
+    Notifications(1, 1, 1, 1, 'Settlement', 'Reception'),
+    Notifications(1, 1, 1, 1, 'New Policy', 'HR')
   ];
 
-  List<Message> _filteredMessages = [];
+  List<Notifications> _filteredMessages = [];
   String _searchQuery = '';
   Set<int> _selectedMessageIndices = {};
 
@@ -90,8 +29,8 @@ class _MensajesScreenState extends State<MensajesScreen> {
   }
 
   void _filterMessages(String query) {
-    final filtered = _messages.where((message) {
-      return message.title.toLowerCase().contains(query.toLowerCase());
+    final filtered = _messages.where((notification) {
+      return notification.title.toLowerCase().contains(query.toLowerCase());
     }).toList();
 
     setState(() {
@@ -102,7 +41,8 @@ class _MensajesScreenState extends State<MensajesScreen> {
 
   void _deleteSelectedMessages() {
     setState(() {
-      _filteredMessages.removeWhere((message) => _selectedMessageIndices.contains(_filteredMessages.indexOf(message)));
+      _filteredMessages.removeWhere((notification) =>
+          _selectedMessageIndices.contains(_filteredMessages.indexOf(notification)));
       _selectedMessageIndices.clear();
     });
   }
@@ -185,9 +125,9 @@ class _MensajesScreenState extends State<MensajesScreen> {
               child: ListView.builder(
                 itemCount: _filteredMessages.length,
                 itemBuilder: (context, index) {
-                  final message = _filteredMessages[index];
+                  final notification = _filteredMessages[index];
                   return Dismissible(
-                    key: Key(message.title),
+                    key: Key(notification.title),
                     onDismissed: (direction) {
                       setState(() {
                         _filteredMessages.removeAt(index);
@@ -196,9 +136,9 @@ class _MensajesScreenState extends State<MensajesScreen> {
                     },
                     background: Container(color: Colors.red),
                     child: MessageTile(
-                      message.title,
-                      message.recipient,
-                      message.date,
+                      notification.title,
+                      notification.description,
+                      notification.typesNotificationsId.toString(),
                       isSelected: _selectedMessageIndices.contains(index),
                       onSelect: () => _selectMessage(index),
                     ),
@@ -245,6 +185,29 @@ class _MensajesScreenState extends State<MensajesScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Assuming this is the MessageTile widget used in the builder
+class MessageTile extends StatelessWidget {
+  final String title;
+  final String recipient;
+  final String date;
+  final bool isSelected;
+  final VoidCallback onSelect;
+
+  MessageTile(this.title, this.recipient, this.date, {required this.isSelected, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      subtitle: Text('$recipient, $date'),
+      trailing: Checkbox(
+        value: isSelected,
+        onChanged: (value) => onSelect(),
       ),
     );
   }

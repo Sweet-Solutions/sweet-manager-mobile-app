@@ -1,56 +1,89 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(AlertaApp());
-}
+import '../models/notification.dart';
+import '../components/notificationCard.dart';
 
-class AlertaApp extends StatelessWidget {
+
+class WriteNotificationScreen extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: AlertaScreen(),
-    );
-  }
+  _WriteNotificationScreenState createState() => _WriteNotificationScreenState();
 }
 
-class AlertaScreen extends StatefulWidget {
-  @override
-  _AlertaScreenState createState() => _AlertaScreenState();
-}
-
-class _AlertaScreenState extends State<AlertaScreen> {
+class _WriteNotificationScreenState extends State<WriteNotificationScreen> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   String _selectedSeverity = 'Important';
+
+  // You can modify these default values as per your app's logic
+  final int _typesNotificationsId = 1; // Placeholder for notification type
+  final int _ownersId = 123; // Placeholder for owner ID
+  final int _adminsId = 456; // Placeholder for admin ID
+  final int _workersId = 789; // Placeholder for worker ID
+
+  void _submitNotification() {
+    if (_usernameController.text.isNotEmpty &&
+        _titleController.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty) {
+      Notifications newNotification = Notifications(
+        _typesNotificationsId,
+        _ownersId,
+        _adminsId,
+        _workersId,
+        _titleController.text,
+        _descriptionController.text,
+      );
+      print('Nueva notificación creada: ${newNotification.title}, ${newNotification.description}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('¡Notificación enviada con éxito!'),
+        ),
+      );
+      _usernameController.clear();
+      _titleController.clear();
+      _descriptionController.clear();
+      setState(() {
+        _selectedSeverity = 'Important';
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Por favor complete todos los campos.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Set background color to white
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('REGISTRO DE ALERTAS'),
+        title: Text('REGISTRO DE NOTIFICACIONES'),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          color: Color(0xFF183952), // Color for the AppBar title
-          fontSize: 16, // Smaller font size for "REGISTRO DE ALERTAS"
+          color: Color(0xFF183952),
+          fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
       ),
-      body: SingleChildScrollView( // Added scroll view to handle overflow
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              'Alerta',
+              'Notificación',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black, // Black color for "Alerta"
+                color: Colors.black,
               ),
             ),
             TextField(
+              controller: _usernameController,
               decoration: InputDecoration(
                 labelText: 'Nombre de Usuario',
                 border: OutlineInputBorder(
@@ -60,6 +93,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
             ),
             SizedBox(height: 8),
             TextField(
+              controller: _titleController,
               decoration: InputDecoration(
                 labelText: 'Título',
                 border: OutlineInputBorder(
@@ -75,7 +109,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'SU ALERTA SERÁ ENVIADA A TODOS LOS TRABAJADORES Y ADMINISTRADORES',
+                'SU NOTIFICACIÓN SERÁ ENVIADA A TODOS LOS TRABAJADORES Y ADMINISTRADORES',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -91,7 +125,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Color(0xFF183952), // Ensure visibility on white background
+                  color: Color(0xFF183952),
                 ),
               ),
             ),
@@ -105,7 +139,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
                       _selectedSeverity = value.toString();
                     });
                   },
-                  title: Text('Important', style: TextStyle(color: Color(0xFF183952))), // Ensure text visibility
+                  title: Text('Important', style: TextStyle(color: Color(0xFF183952))),
                 ),
                 RadioListTile(
                   value: 'Extreme',
@@ -115,7 +149,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
                       _selectedSeverity = value.toString();
                     });
                   },
-                  title: Text('Extreme', style: TextStyle(color: Color(0xFF183952))), // Ensure text visibility
+                  title: Text('Extreme', style: TextStyle(color: Color(0xFF183952))),
                 ),
                 RadioListTile(
                   value: 'Warning',
@@ -125,12 +159,13 @@ class _AlertaScreenState extends State<AlertaScreen> {
                       _selectedSeverity = value.toString();
                     });
                   },
-                  title: Text('Warning', style: TextStyle(color: Color(0xFF183952))), // Ensure text visibility
+                  title: Text('Warning', style: TextStyle(color: Color(0xFF183952))),
                 ),
               ],
             ),
             SizedBox(height: 8),
             TextField(
+              controller: _descriptionController,
               maxLines: 4,
               decoration: InputDecoration(
                 labelText: 'Describa el incidente',
@@ -141,9 +176,9 @@ class _AlertaScreenState extends State<AlertaScreen> {
             ),
             SizedBox(height: 8),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: _submitNotification,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF2C5282), // Color of the button
+                backgroundColor: Color(0xFF2C5282),
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -151,7 +186,7 @@ class _AlertaScreenState extends State<AlertaScreen> {
               ),
               child: Text(
                 'ENVIAR',
-                style: TextStyle(color: Colors.white), // Set text color to white
+                style: TextStyle(color: Colors.white),
               ),
             ),
           ],
