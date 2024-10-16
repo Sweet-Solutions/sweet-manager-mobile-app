@@ -6,9 +6,9 @@ class BaseLayout extends StatelessWidget{
   
   final Widget childScreen; // The content of the screen
 
-  final String role; // User's role to define sidebar's lit
+  final String? role; // User's role to define sidebar's lit
 
-  BaseLayout({required this.role, required this.childScreen});
+  const BaseLayout({required this.role, required this.childScreen, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +100,7 @@ class BaseLayout extends StatelessWidget{
         
       ];  
     }
-    else // ADMIN ROLE
+    else if(role == 'ROLE_ADMIN')// ADMIN ROLE
     {
       return [
         ListTile(
@@ -152,6 +152,15 @@ class BaseLayout extends StatelessWidget{
             Navigator.pushNamed(context, '/profile');
           },
         ),
+      ];
+    }
+    else
+    {
+      return [
+        const ListTile(
+          title: Text('No role'),
+          subtitle: Text('Check code'),
+        )
       ];
     }
   }
