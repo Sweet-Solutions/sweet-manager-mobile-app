@@ -27,8 +27,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/home',
       routes: {
         '/home': (context) => HomeView(), // the default app's entry point 
-        '/login': (context) => LogInScreen(),
-        '/dashboard': (context) => DashboardScreen(),
+        '/login': (context) => const LogInScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
         '/subscription': (context) => SubscriptionPlansView(),
         '/rooms': (context) => TableRoom(),
         '/providers': (context) => GestionProveedoresPage(),
