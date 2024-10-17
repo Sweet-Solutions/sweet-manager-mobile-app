@@ -41,6 +41,39 @@ class AuthService{
     }
   }
 
+  Future<bool> signup(int id, String username, String name, String surname, String email, String phone, String password) async
+  {
+    try
+    {
+      final response = await http.post(Uri.parse('$baseUrl/sign-up-owner'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'id': id,
+          'username': username,
+          'name': name,
+          'surname': surname,
+          'email': email,
+          'phone': phone,
+          'state': 'ACTIVE',
+          'password': password
+        })
+      );
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+
+      return false;
+    } catch(e)
+    {
+      rethrow;
+    }
+
+  }
+
   Future<void> logout() async{
     await storage.delete(key: 'token');
   }
