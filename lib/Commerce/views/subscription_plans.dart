@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Commerce/views/checkout_subscription.dart';
 import 'package:sweetmanager/Commerce/widgets/plan_card.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
@@ -24,30 +25,10 @@ class SubscriptionPlansView extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _getRole(), 
-      builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.waiting)
-        {
-          return const Center(child: CircularProgressIndicator(),);
-        }
-
-        if(snapshot.hasData)
-        {
-          String? role = snapshot.data;
-
-          return BaseLayout(
-            role: role, 
-            childScreen: getContentView()
-          );
-        }
-
-        return const Center(child: Text('Unable to get information', textAlign: TextAlign.center,));
-      }
-    );
+    return BaseLayout(role: '', childScreen: getContentView(context));
   }
 
-  Widget getContentView()
+  Widget getContentView(BuildContext context)
   {
     return Scaffold(
       body: Stack(
@@ -96,7 +77,9 @@ class SubscriptionPlansView extends StatelessWidget{
                       buttonColor: Colors.black,
                       behavior: () {
                         // Connection to checkout subscription dart view
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutSubscription(cardIdentifier: 1,)));
                       },
+                      textButton: 'COMENZAR',
                     ),
                     const SizedBox(height: 20),
                     // Regular Plan Card
@@ -114,13 +97,15 @@ class SubscriptionPlansView extends StatelessWidget{
                       buttonColor: Colors.indigo[800]!,
                       behavior: () {
                         // Connection to checkout subscription dart view
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutSubscription(cardIdentifier: 2,)));
                       },
+                      textButton: 'COMENZAR',
                     ),
                     const SizedBox(height: 20,),
                     PlanCard(
-                      color: Colors.brown,
+                      color: const Color.fromARGB(255, 238, 192, 77),
                       borderColor: Colors.transparent,
-                      planName: 'Regular',
+                      planName: 'Premium',
                       price: '110.69',
                       features: const [
                         'Dormitorios ilimitados',
@@ -128,10 +113,12 @@ class SubscriptionPlansView extends StatelessWidget{
                         'Trabajadores Ilimitados',
                         'Almacenamiento de 500 GB',
                       ],
-                      buttonColor: const Color.fromARGB(255, 39, 89, 109)!,
+                      buttonColor: const Color.fromARGB(255, 39, 89, 109),
                       behavior: () {
                         // Connection to checkout subscription dart view
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutSubscription(cardIdentifier: 3,)));
                       },
+                      textButton: 'COMENZAR',
                     ),
                   ],
                 ),
