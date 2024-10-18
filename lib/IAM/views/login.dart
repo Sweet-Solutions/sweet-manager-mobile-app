@@ -201,6 +201,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                             }
                             else
                             {
+
                               String dni = _dniController.text;
 
                               String username = _usernameController.text;
@@ -222,6 +223,8 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                               }
 
                               List<String> parts = name.split(',');
+
+                              name = parts[0].trim();
 
                               String surname = parts[1].trim();
 
