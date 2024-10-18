@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sweetmanager/Commerce/widgets/checkout_form_field.dart';
 import 'package:sweetmanager/Commerce/widgets/plan_card.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
@@ -165,6 +164,8 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
                       print('Expiry date: ${_expiryDateController.text}');
                       print('Security code: ${_securityCodeController.text}');
                       print('Email: ${_emailController.text}');
+
+                      
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.indigo[800],
