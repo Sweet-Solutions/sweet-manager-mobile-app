@@ -9,7 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService{
   // https://sweetmanager-api.ryzeon.me/api/v1/authentication
-  final String baseUrl = 'https://localhost:44390/api/v1/authentication';
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/v1/authentication';
 
   final storage = const FlutterSecureStorage();
 
