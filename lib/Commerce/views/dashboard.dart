@@ -24,7 +24,7 @@ class DashboardScreenState extends State<DashboardScreen>
 
     Map<String,dynamic> decodedToken = JwtDecoder.decode(token!);
 
-      // Get Role in Claims token
+    // Get Role in Claims token
 
     return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
   }
