@@ -8,6 +8,7 @@ class PlanCard extends StatelessWidget {
   final List<String> features;
   final Color buttonColor;
   final VoidCallback behavior;
+  final String textButton;
 
   const PlanCard({
     super.key,
@@ -17,7 +18,8 @@ class PlanCard extends StatelessWidget {
     required this.price,
     required this.features,
     required this.buttonColor,
-    required this.behavior
+    required this.behavior,
+    required this.textButton
   });
 
   @override
@@ -75,7 +77,7 @@ class PlanCard extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Comenzar',
+                textButton,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
