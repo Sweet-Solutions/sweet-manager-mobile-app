@@ -23,10 +23,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sweet Manager',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: HomeView(),
+      home: const HomeView(),
       initialRoute: '/home',
       routes: {
-        '/home': (context) => HomeView(), // the default app's entry point 
+        '/home': (context) => const HomeView(), // the default app's entry point 
         '/login': (context) => const LogInScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/subscription': (context) => SubscriptionPlansView(),

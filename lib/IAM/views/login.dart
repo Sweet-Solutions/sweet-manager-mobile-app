@@ -20,6 +20,18 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
 
   final TextEditingController _passwordController = TextEditingController();
 
+  final TextEditingController _usernameController = TextEditingController();
+
+  final TextEditingController _phoneController = TextEditingController();
+
+  final TextEditingController _emailRegistrationController = TextEditingController(); // Controller for email registration's tab
+
+  final TextEditingController _nameController = TextEditingController();
+
+  final TextEditingController _passwordRegistrationControler = TextEditingController();
+
+  final TextEditingController _dniController = TextEditingController();
+
   // Variables: tabController and rememberMe
 
   String? _roleSelected;
@@ -49,6 +61,16 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
     _tabController.dispose();
 
     _emailController.dispose();
+
+    _passwordController.dispose();
+
+    _usernameController.dispose();
+
+    _phoneController.dispose();
+
+    _emailRegistrationController.dispose();
+
+    _nameController.dispose();
 
     _passwordController.dispose();
 
@@ -180,6 +202,59 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                             else
                             {
 
+                              String dni = _dniController.text;
+
+                              String username = _usernameController.text;
+
+                              String phoneNumber = _phoneController.text;
+
+                              String email = _emailRegistrationController.text;
+
+                              String name = _nameController.text;
+
+                              String password = _passwordRegistrationControler.text;
+
+                              if(username.isEmpty || phoneNumber.isEmpty || email.isEmpty || name.isEmpty || password.isEmpty || !name.contains(','))
+                              {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please fill all the corresponding fields following the requested instructions.')));
+                                
+                                return;
+                              }
+
+                              List<String> parts = name.split(',');
+
+                              name = parts[0].trim();
+
+                              String surname = parts[1].trim();
+
+                              bool response = await _authService.signup(int.parse(dni), username, name, surname, email, phoneNumber, password);
+
+                              if(!mounted) return;
+
+                              if(response)
+                              {
+                                bool validation = await _authService.login(email, password, 1);
+
+                                if(validation)
+                                {
+                                  Navigator.pushNamed(context, '/subscription');
+                                }
+                                else
+                                {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('The registration failed')));
+                                
+                                  return;
+                                }
+                              }
+                              else
+                              {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Something went wrong'))
+                                );
+                                return;
+                              }
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -290,6 +365,17 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
     return Column(
       children: [
         TextField(
+          controller: _dniController,
+          decoration: InputDecoration(
+            labelText: "Owner's DNI",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12,),
+        TextField(
+          controller: _usernameController,
           decoration: InputDecoration(
             labelText: 'Owner’s username',
             border: OutlineInputBorder(
@@ -299,6 +385,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
         ),
         const SizedBox(height: 12),
         TextField(
+          controller: _phoneController,
           decoration: InputDecoration(
             labelText: 'Owner’s phone number',
             border: OutlineInputBorder(
@@ -308,6 +395,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
         ),
         const SizedBox(height: 12),
         TextField(
+          controller: _emailRegistrationController,
           decoration: InputDecoration(
             labelText: 'Owner’s email',
             border: OutlineInputBorder(
@@ -317,6 +405,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
         ),
         const SizedBox(height: 12),
         TextField(
+          controller: _nameController,
           decoration: InputDecoration(
             labelText: 'Owner’s complete name',
             border: OutlineInputBorder(
@@ -326,6 +415,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
         ),
         const SizedBox(height: 12),
         TextField(
+          controller: _passwordRegistrationControler,
           obscureText: !_isPasswordVisible,
           decoration: InputDecoration(
             labelText: 'Owner’s password',

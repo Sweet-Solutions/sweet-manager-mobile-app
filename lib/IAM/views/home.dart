@@ -3,6 +3,8 @@ import 'package:sweetmanager/IAM/views/login.dart';
 
 class HomeView extends StatelessWidget{
   
+  const HomeView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +29,6 @@ class HomeView extends StatelessWidget{
       ),
     );
   }
-
 }
 
 class SweetManagerCardHome extends StatelessWidget
