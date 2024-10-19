@@ -8,7 +8,6 @@ class PaymentOwner
 
   final double finalAmount;
 
-
   PaymentOwner({required this.id,required this.ownersId, required this.description, required this.finalAmount});
 
 }
