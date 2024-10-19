@@ -1,26 +1,9 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HotelDetailScreen(),
-    );
-  }
-}
-
 class HotelDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Sweet Manager',style: TextStyle(color: Colors.white),),
-        backgroundColor: Color(0xFF1C4257),
-      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,6 +74,18 @@ class HotelDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
+            // Título "Sweet Manager"
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Sweet Manager',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1C4257),
+                ),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -128,7 +123,7 @@ class HotelDetailScreen extends StatelessWidget {
                         backgroundColor: Color(0xFF1C4257),
                         padding: EdgeInsets.symmetric(vertical: 16.0),
                       ),
-                      child: Text('Save', style: TextStyle(fontSize: 16,color: Colors.white)),
+                      child: Text('Save', style: TextStyle(fontSize: 16, color: Colors.white)),
                     ),
                   ),
                 ],
