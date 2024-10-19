@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
+import 'package:firebase_storage/firebase_storage.dart'; // Importa Firebase Storage
+import 'package:path/path.dart' as path; // Para obtener el nombre del archivo
+import 'package:sweetmanager/ResourceManagement/models/typereport.dart';
+import 'package:sweetmanager/ResourceManagement/services/typesreportservice.dart';
 
 class AddReport extends StatefulWidget {
   const AddReport({super.key});
@@ -15,8 +18,83 @@ class _AddReportState extends State<AddReport> {
   TextEditingController titleController = TextEditingController();
   TextEditingController contentController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  File? _imageFile;
-  final picker = ImagePicker(); // Para manejar la imagen seleccionada.
+  File? _imageFile; // Imagen seleccionada
+  final picker = ImagePicker();
+  int? selectedTypeReportId; // ID del tipo de reporte seleccionado
+  List<TypesReport> typesReports = []; // Lista de tipos de reportes
+  final TypesReportService _typesReportService = TypesReportService(); // Servicio para obtener los tipos de reporte
+  String? imageUrl; // URL de la imagen subida a Firebase
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTypesReports(); // Llamada a la API al iniciar
+  }
+
+  // Método para obtener los tipos de reportes
+  Future<void> fetchTypesReports() async {
+    try {
+      List<TypesReport> fetchedReports = await _typesReportService.fetchTypesReports();
+      setState(() {
+        typesReports = fetchedReports;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al obtener los tipos de reportes')),
+      );
+    }
+  }
+
+  // Método para seleccionar una imagen y luego subirla a Firebase
+  Future<void> _pickImageAndUpload() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+
+      // Sube la imagen a Firebase Storage
+      String fileName = path.basename(pickedFile.path);
+      try {
+        FirebaseStorage storage = FirebaseStorage.instance;
+        Reference ref = storage.ref().child('report_images/$fileName');
+        UploadTask uploadTask = ref.putFile(_imageFile!);
+
+        // Espera a que la tarea se complete
+        TaskSnapshot snapshot = await uploadTask.whenComplete(() => {});
+        String downloadUrl = await snapshot.ref.getDownloadURL();
+
+        setState(() {
+          imageUrl = downloadUrl; // Guarda la URL de la imagen
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Imagen cargada exitosamente')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cargar la imagen: $e')),
+        );
+      }
+    }
+  }
+
+  // Método para manejar el envío del formulario
+  void _submitReport() {
+    String username = usernameController.text;
+    String title = titleController.text;
+    String content = contentController.text;
+
+    if (username.isEmpty || title.isEmpty || content.isEmpty || selectedTypeReportId == null || imageUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Todos los campos son obligatorios, incluyendo la imagen.')),
+      );
+      return;
+    }
+
+    // Aquí puedes manejar el envío del reporte al backend, incluyendo imageUrl
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +111,7 @@ class _AddReportState extends State<AddReport> {
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ReportList(),
-                        ));
+                    Navigator.pop(context);
                   },
                 ),
                 const Expanded(
@@ -51,35 +125,30 @@ class _AddReportState extends State<AddReport> {
                     ),
                   ),
                 ),
-                // Espacio en blanco para centrar el título
                 const SizedBox(width: 48),
               ],
             ),
             const SizedBox(height: 16),
 
             // Selección del tipo de reporte
-            ElevatedButton(
-              onPressed: () {
-                // Acción para seleccionar tipo de reporte
-              },
-              style: ElevatedButton.styleFrom(
-                side: const BorderSide(color: Colors.black),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              child: const Text(
-                'Selecciona el tipo de reporte >',
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Texto de instrucciones
-            const Text(
-              'Agrega detalles para enviar tu reporte',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            typesReports.isEmpty
+                ? const CircularProgressIndicator()
+                : DropdownButton<int>(
+                    value: selectedTypeReportId,
+                    items: typesReports.map((TypesReport reportType) {
+                      return DropdownMenuItem<int>(
+                        value: reportType.id,
+                        child: Text(reportType.name),
+                      );
+                    }).toList(),
+                    onChanged: (int? newValue) {
+                      setState(() {
+                        selectedTypeReportId = newValue;
+                      });
+                    },
+                    hint: const Text('Selecciona el tipo de reporte'),
+                  ),
+          
             const SizedBox(height: 16),
 
             // Campo de Usuario
@@ -121,7 +190,7 @@ class _AddReportState extends State<AddReport> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  onPressed: _pickImage, // Método para seleccionar una imagen
+                  onPressed: _pickImageAndUpload, // Método para seleccionar e intentar subir una imagen
                   style: ElevatedButton.styleFrom(
                     side: const BorderSide(color: Colors.black),
                     shape: RoundedRectangleBorder(
@@ -137,9 +206,9 @@ class _AddReportState extends State<AddReport> {
             // Botón de enviar el reporte
             Center(
               child: ElevatedButton(
-                onPressed: _submitReport, // Método para manejar el envío del formulario
+                onPressed: _submitReport,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Color del botón de enviar
+                  backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
@@ -155,32 +224,5 @@ class _AddReportState extends State<AddReport> {
         ),
       ),
     );
-  }
-
-  // Método para seleccionar una imagen
-  Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
-  // Método para manejar el envío del formulario
-  void _submitReport() {
-    String username = usernameController.text;
-    String title = titleController.text;
-    String content = contentController.text;
-
-    if (username.isEmpty || title.isEmpty || content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Todos los campos son obligatorios')),
-      );
-      return;
-    }
-
-    // Aquí puedes manejar el envío del reporte al backend
   }
 }

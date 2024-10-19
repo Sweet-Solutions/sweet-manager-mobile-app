@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
 import 'package:sweetmanager/Communication/views/messageScreen.dart';
@@ -10,12 +11,26 @@ import 'package:sweetmanager/Profiles/Views/providers/management_provider_page.d
 import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
 import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializa Firebase con la configuración correcta para la web
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyBTGEj8JZrWvn62ZtofnaGr-LluqliNXMc",
+      authDomain: "sweet-solutions.firebaseapp.com",
+      projectId: "sweet-solutions",
+      storageBucket: "sweet-solutions.appspot.com",
+      messagingSenderId: "180154492305",
+      appId: "1:180154492305:web:b156d317f56c1d4f34a630",
+    ),
+  );
+
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
 
   // This widget is the root of your application.
   @override
