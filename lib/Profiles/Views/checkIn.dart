@@ -1,20 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Sweet Manager',
-      debugShowCheckedModeBanner: false,
-      home: CheckInScreen(),
-    );
-  }
-}
-
 class CheckInScreen extends StatefulWidget {
   @override
   _CheckInScreenState createState() => _CheckInScreenState();
@@ -105,34 +90,29 @@ class _CheckInScreenState extends State<CheckInScreen> {
     List<Map<String, dynamic>> customersForPage = customers.skip((currentPage - 1) * customersPerPage).take(customersPerPage).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF1C4257),
-        title: Text(
-          'Sweet Manager',
-          style: TextStyle(color: Colors.white, fontSize: 20),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
-            onPressed: () {
-              // Acción del menú
-            },
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Título de la pantalla "Sweet Manager"
+            Text(
+              'Sweet Manager',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1C4257),
+              ),
+            ),
+            SizedBox(height: 16),
             // Header con "Check-in" centrado y botón a la derecha
             Row(
               children: [
-                Spacer(), // Añade espacio a la izquierda para centrar el texto
+                Spacer(),
                 Text(
                   'Check-in',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                Spacer(), // Añade espacio a la derecha del texto
+                Spacer(),
                 IconButton(
                   icon: Icon(Icons.add_circle_outline, size: 30),
                   onPressed: _showAddCustomerDialog,
@@ -148,7 +128,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
                 children: [
                   Expanded(flex: 2, child: Text('Customer Name', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
                   Expanded(flex: 1, child: Text('Room', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))),
-                  SizedBox(width: 50), // Espacio extra para separar de "Date"
+                  SizedBox(width: 50),
                   Expanded(flex: 2, child: Text('Date', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey), textAlign: TextAlign.right)),
                 ],
               ),
