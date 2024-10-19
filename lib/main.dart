@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sweetmanager/Commerce/views/checkout_subscription.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
 import 'package:sweetmanager/Communication/View/message.dart';
@@ -27,7 +26,7 @@ class MyApp extends StatelessWidget {
       home: HomeView(),
       initialRoute: '/home',
       routes: {
-        '/home': (context) => HomeView(), // the default app's entry point 
+        '/home': (context) => const HomeView(), // the default app's entry point 
         '/login': (context) => const LogInScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/subscription': (context) => SubscriptionPlansView(),
