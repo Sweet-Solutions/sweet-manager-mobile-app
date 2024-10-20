@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Commerce/views/checkout_subscription.dart';
 import 'package:sweetmanager/Commerce/widgets/plan_card.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
@@ -8,20 +6,7 @@ import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 class SubscriptionPlansView extends StatelessWidget{
   
 
-  final storage = const FlutterSecureStorage();
-
-  Future<String?> _getRole() async
-  {
-    // Retrieve token from local storage
-
-    String? token = await storage.read(key: 'token');
-
-    Map<String,dynamic> decodedToken = JwtDecoder.decode(token!);
-
-      // Get Role in Claims token
-
-    return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
-  }
+  const SubscriptionPlansView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +51,13 @@ class SubscriptionPlansView extends StatelessWidget{
                     // Basic Plan Card
                     PlanCard(
                       color: Colors.brown[200]!,
-                      planName: 'Básico',
+                      planName: 'Basic',
                       price: '29.50',
                       features: const [
-                        'Max 5 Empleados',
-                        'Max 1 Administrador',
-                        'Max 50 Dormitorios',
-                        'Almacenamiento de 5 GB',
+                        'Maximum 5 Workers',
+                        'Maximum 1 Admins',
+                        'Maximum 50 Rooms',
+                        '5GB Storage',
                       ],
                       buttonColor: Colors.black,
                       behavior: () {
@@ -89,10 +74,10 @@ class SubscriptionPlansView extends StatelessWidget{
                       planName: 'Regular',
                       price: '58.99',
                       features: const [
-                        'Max 150 habitaciones',
-                        'Max 3 Administrador',
-                        'Max 15 trabajadores',
-                        'Almacenamiento de 20 GB',
+                        'Maximum 15 Workers',
+                        'Maximum 3 Admins',
+                        'Maximum 150 Rooms',
+                        '20GB Storage',
                       ],
                       buttonColor: Colors.indigo[800]!,
                       behavior: () {
@@ -108,10 +93,10 @@ class SubscriptionPlansView extends StatelessWidget{
                       planName: 'Premium',
                       price: '110.69',
                       features: const [
-                        'Dormitorios ilimitados',
-                        'Administradores Ilimitados',
-                        'Trabajadores Ilimitados',
-                        'Almacenamiento de 500 GB',
+                        'Unlimited Workers',
+                        'Unlimited Admins',
+                        'Unlimited Rooms',
+                        '500 GB Storage',
                       ],
                       buttonColor: const Color.fromARGB(255, 39, 89, 109),
                       behavior: () {
