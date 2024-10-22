@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../models/notification.dart';
+import '../services/notificationService.dart';
 
-class ComposeEmailApp extends StatelessWidget {
+class WriteMessageScreen extends StatelessWidget {
+  const WriteMessageScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: ComposeEmail(),
+      home: const WriteMessage(),
       theme: ThemeData(
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           bodyLarge: TextStyle(color: Colors.black87),
         ),
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
@@ -20,122 +23,140 @@ class ComposeEmailApp extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide.none,
           ),
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
   }
 }
 
-class ComposeEmail extends StatefulWidget {
+class WriteMessage extends StatefulWidget {
+  const WriteMessage({super.key});
+
   @override
-  _ComposeEmailState createState() => _ComposeEmailState();
+  _WriteMessageState createState() => _WriteMessageState();
 }
 
-class _ComposeEmailState extends State<ComposeEmail> {
+class _WriteMessageState extends State<WriteMessage> {
   final _formKey = GlobalKey<FormState>();
+  final NotificationService _notificationService = NotificationService();
 
-  // Controladores para capturar el valor de los campos de texto
-  final TextEditingController _toController = TextEditingController();
   final TextEditingController _fromController = TextEditingController();
-  final TextEditingController _subjectController = TextEditingController();
-  final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _adminsController = TextEditingController();
+  final TextEditingController _workersController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Compose Notification',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
-      ),
-      body: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildLabel('To (typesNotificationsId):'),
-              _buildTextField(
-                  hintText: 'Enter notification type ID',
-                  controller: _toController,
-                  icon: Icons.email),
-              SizedBox(height: 16),
-              _buildLabel('From (ownersId):'),
-              _buildTextField(
-                  hintText: 'Enter your owner ID',
-                  controller: _fromController,
-                  icon: Icons.email_outlined),
-              SizedBox(height: 16),
-              _buildLabel('Admins (adminsId):'),
-              _buildTextField(
-                  hintText: 'Enter admin ID',
-                  controller: _subjectController,
-                  icon: Icons.admin_panel_settings),
-              SizedBox(height: 16),
-              _buildLabel('Workers (workersId):'),
-              _buildTextField(
-                  hintText: 'Enter worker ID',
-                  controller: _messageController,
-                  icon: Icons.people),
-              SizedBox(height: 16),
-              _buildLabel('Title:'),
-              _buildTextField(
-                  hintText: 'Enter title',
-                  controller: _subjectController,
-                  icon: Icons.title),
-              SizedBox(height: 16),
-              _buildLabel('Description:'),
-              _buildTextField(
-                  hintText: 'Enter description',
-                  controller: _messageController,
-                  icon: Icons.description),
-              Spacer(),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      // Convertir los valores del formulario en tipos necesarios
-                      int typesNotificationsId =
-                          int.tryParse(_toController.text) ?? 0;
-                      int ownersId = int.tryParse(_fromController.text) ?? 0;
-                      int adminsId = int.tryParse(_subjectController.text) ?? 0;
-                      int workersId = int.tryParse(_messageController.text) ?? 0;
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Write Message',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('From (ownersId):'),
+                      _buildTextField(
+                        hintText: 'Enter your owner ID',
+                        controller: _fromController,
+                        icon: Icons.email_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildLabel('Admins (adminsId):'),
+                      _buildTextField(
+                        hintText: 'Enter admin ID',
+                        controller: _adminsController,
+                        icon: Icons.admin_panel_settings,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildLabel('Workers (workersId):'),
+                      _buildTextField(
+                        hintText: 'Enter worker ID',
+                        controller: _workersController,
+                        icon: Icons.people,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildLabel('Title:'),
+                      _buildTextField(
+                        hintText: 'Enter title',
+                        controller: _titleController,
+                        icon: Icons.title,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildLabel('Description:'),
+                      _buildTextField(
+                        hintText: 'Enter description',
+                        controller: _descriptionController,
+                        icon: Icons.description,
+                      ),
+                      const Spacer(),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (_formKey.currentState?.validate() ?? false) {
+                              // Set typesNotificationsId to 1
+                              int typesNotificationsId = 1;
 
-                      // Crear la instancia de Notifications
-                      Notifications notification = Notifications(
-                        typesNotificationsId,
-                        ownersId,
-                        adminsId,
-                        workersId,
-                        _subjectController.text,
-                        _messageController.text,
-                      );
+                              int ownersId = 378;
+                              int adminsId = 8;
+                              int workersId = 7;
 
-                      // Lógica adicional para enviar/almacenar la notificación
-                      print('Notification created: ${notification.title}');
-                    }
-                  },
-                  child: Text('Send',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[900],
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                              // Create the notification object
+                              Notifications notification = Notifications(
+                                typesNotificationsId,
+                                ownersId,
+                                adminsId,
+                                workersId,
+                                _titleController.text,
+                                _descriptionController.text,
+                              );
+
+                              // Call the NotificationService to create the notification
+                              try {
+                                bool result = await _notificationService.createNotification(notification);
+                                if (result) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Notification sent successfully')),
+                                  );
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Failed to send notification')),
+                                );
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[900],
+                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('Send',
+                              style: TextStyle(
+                                  color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -144,7 +165,7 @@ class _ComposeEmailState extends State<ComposeEmail> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
         color: Colors.black87,
@@ -152,10 +173,11 @@ class _ComposeEmailState extends State<ComposeEmail> {
     );
   }
 
-  Widget _buildTextField(
-      {required String hintText,
-        required TextEditingController controller,
-        required IconData icon}) {
+  Widget _buildTextField({
+    required String hintText,
+    required TextEditingController controller,
+    required IconData icon,
+  }) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(

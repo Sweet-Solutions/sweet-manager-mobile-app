@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Communication/models/notification.dart';
 
@@ -9,12 +8,12 @@ class AlertCard extends StatelessWidget {
   final void Function(int) removeAlert;
 
   const AlertCard({
-    Key? key,
+    super.key,
     required this.alert,
     required this.level,
     required this.index,
     required this.removeAlert,
-  }) : super(key: key);
+  });
 
   Color getLevelColor() {
     switch (level) {

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class MessageTile extends StatelessWidget {
@@ -8,7 +7,7 @@ class MessageTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onSelect;
 
-  MessageTile(this.title, this.recipient, this.date, {required this.isSelected, required this.onSelect});
+  const MessageTile(this.title, this.recipient, this.date, {super.key, required this.isSelected, required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +19,7 @@ class MessageTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 4,

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
 import 'package:sweetmanager/Communication/views/messageScreen.dart';
+import 'package:sweetmanager/Communication/views/notificationScreen.dart';
+import 'package:sweetmanager/Communication/views/writeAlert.dart';
+import 'package:sweetmanager/Communication/views/writeMessage.dart';
 import 'package:sweetmanager/IAM/views/home.dart';
 import 'package:sweetmanager/IAM/views/login.dart';
 import 'package:sweetmanager/Monitoring/views/tableroom.dart';
@@ -34,10 +37,14 @@ class MyApp extends StatelessWidget {
         '/providers': (context) => GestionProveedoresPage(),
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
-        '/messages': (context) => Messagescreen(),
+        '/notifications': (context) => const NotificationsScreen(),
         // ignore: prefer_const_constructors
         '/reports': (context) => ReportList(),
-        '/profiles': (context) => ProfilePage()
+        '/profiles': (context) => ProfilePage(),
+
+        // borrar luego
+        '/writeMessage': (context) => const WriteMessageScreen(),
+        '/writeAlert': (context) => const WriteAlertScreen()
       },
     );
   }

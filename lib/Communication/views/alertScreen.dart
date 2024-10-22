@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-
+import '../../Shared/widgets/base_layout.dart';
 import '../models/notification.dart';
 
+@override
+Widget build(BuildContext context) {
+  return BaseLayout(role: '', childScreen: AlertsScreen());
+}
+
 class AlertsScreen extends StatefulWidget {
-  const AlertsScreen({Key? key}) : super(key: key);
+  const AlertsScreen({super.key});
 
   @override
   _AlertsScreenState createState() => _AlertsScreenState();
@@ -24,7 +29,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
   ];
 
   final Map<int, bool> _isHoveringNotification = {};
-  bool _isHoveringAdd = false;
+  final bool _isHoveringAdd = false;
 
   void removeNotification(int index) {
     setState(() {
@@ -42,127 +47,76 @@ class _AlertsScreenState extends State<AlertsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        title: const Row(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.notifications,
-              color: Colors.red,
-              size: 30,
-            ),
-            SizedBox(width: 8),
-            Text(
+            const Text(
               'Alerts',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: ListView.builder(
+                itemCount: alertNotifications.length,
+                itemBuilder: (context, index) {
+                  return MouseRegion(
+                    onEnter: (_) {
+                      setState(() {
+                        _isHoveringNotification[index] = true;
+                      });
+                    },
+                    onExit: (_) {
+                      setState(() {
+                        _isHoveringNotification[index] = false;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                      decoration: BoxDecoration(
+                        color: _isHoveringNotification[index] ?? false
+                            ? Colors.grey[100]
+                            : (index % 2 == 0 ? Colors.white : const Color(0xFFDEE8EB)),
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            spreadRadius: 1,
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: NotificationCard(
+                        notification: alertNotifications[index],
+                        index: index,
+                        removeNotification: removeNotification,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: MouseRegion(
-              onEnter: (_) {
-                setState(() {
-                  _isHoveringAdd = true;
-                });
-              },
-              onExit: (_) {
-                setState(() {
-                  _isHoveringAdd = false;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: _isHoveringAdd ? 45 : 40,
-                height: _isHoveringAdd ? 45 : 40,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 2),
-                  shape: BoxShape.circle,
-                  color: _isHoveringAdd ? Colors.grey[100] : Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.black,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: ListView.builder(
-        itemCount: alertNotifications.length,
-        itemBuilder: (context, index) {
-          return MouseRegion(
-            onEnter: (_) {
-              setState(() {
-                _isHoveringNotification[index] = true;
-              });
-            },
-            onExit: (_) {
-              setState(() {
-                _isHoveringNotification[index] = false;
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
-              padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-              decoration: BoxDecoration(
-                color: _isHoveringNotification[index] ?? false
-                    ? Colors.grey[100]
-                    : (index % 2 == 0 ? Colors.white : const Color(0xFFDEE8EB)),
-                borderRadius: BorderRadius.circular(8.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    spreadRadius: 1,
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: NotificationCard(
-                notification: alertNotifications[index],
-                index: index,
-                removeNotification: removeNotification,
-              ),
-            ),
-          );
-        },
       ),
     );
   }
 }
 
 class NotificationCard extends StatelessWidget {
-  final Notifications notification; // Aquí también usamos 'Notifications' del modelo
+  final Notifications notification;
   final int index;
   final Function(int) removeNotification;
 
   const NotificationCard({
-    Key? key,
+    super.key,
     required this.notification,
     required this.index,
     required this.removeNotification,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
