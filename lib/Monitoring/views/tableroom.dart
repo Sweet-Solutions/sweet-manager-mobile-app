@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../components/editroomdialog.dart';
 import '../models/room.dart';
 import '../services/roomservice.dart';
 
@@ -55,14 +56,17 @@ class TableRoom extends StatelessWidget {
 
 class DataTableRoom extends DataTableSource {
 
+  late RoomService roomService;
+  late List<Room> _data = [];
   final BuildContext context;
 
   DataTableRoom(this.context);
 
-  final List<Room> _data = [
-    Room(id: 1, typeRoomId: 2, hotelId: 101, roomState: 'OCUPADO'),
-    Room(id: 2, typeRoomId: 1, hotelId: 102, roomState: 'LIBRE'),
-  ];
+  Future<void> initState() async {
+
+    roomService = RoomService();
+    _data = await roomService.getRooms();
+  }
 
   @override
   DataRow getRow(int index) {
@@ -77,21 +81,14 @@ class DataTableRoom extends DataTableSource {
       DataCell(Text(data.roomState.toString())),
       DataCell(TextButton(
         onPressed: () {
-          final id = data.id;
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("Editar habitación"),
-                content: Text("Se modificara la información de la habitación $id"),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text("Aceptar"),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
+              return EditRoomDialog(
+                id: data.id,
+                typeRoomId: data.typeRoomId,
+                hotelId: data.hotelId,
+                roomState: data.roomState,
               );
             },
           );
