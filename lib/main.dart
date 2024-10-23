@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
-import 'package:sweetmanager/Communication/views/messageScreen.dart';
 import 'package:sweetmanager/Communication/views/notificationScreen.dart';
 import 'package:sweetmanager/Communication/views/writeAlert.dart';
 import 'package:sweetmanager/Communication/views/writeMessage.dart';
@@ -56,10 +55,6 @@ class MyHomePage extends StatelessWidget {
         // ignore: prefer_const_constructors
         '/reports': (context) => ReportList(),
         '/profiles': (context) => ProfilePage(),
-
-        // borrar luego
-        '/writeMessage': (context) => const WriteMessageScreen(),
-        '/writeAlert': (context) => const WriteAlertScreen()
       },
     );
   }
