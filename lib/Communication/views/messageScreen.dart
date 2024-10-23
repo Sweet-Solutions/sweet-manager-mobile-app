@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-
+import '../../Shared/widgets/base_layout.dart';
+import '../components/messageTile.dart';
 import '../models/notification.dart';
 import '../components/notificationCard.dart';
 
+@override
+Widget build(BuildContext context) {
+  return BaseLayout(role: '', childScreen: Messagescreen());
+}
 
 class Messagescreen extends StatefulWidget {
   @override
@@ -10,7 +15,6 @@ class Messagescreen extends StatefulWidget {
 }
 
 class _MessagescreenState extends State<Messagescreen> {
-  // Replacing Message with Notifications class
   final List<Notifications> _messages = [
     Notifications(1, 1, 1, 1, 'Meeting Today', 'S.T.'),
     Notifications(1, 1, 1, 1, 'Dismissal', 'H.K.'),
@@ -70,33 +74,12 @@ class _MessagescreenState extends State<Messagescreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Message Registry'.toUpperCase(),
-          style: const TextStyle(
-            color: Color(0xFF183952),
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.select_all),
-            onPressed: _selectAllMessages,
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
-              'Messages',
+              'Message Registry',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -185,29 +168,6 @@ class _MessagescreenState extends State<Messagescreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// Assuming this is the MessageTile widget used in the builder
-class MessageTile extends StatelessWidget {
-  final String title;
-  final String recipient;
-  final String date;
-  final bool isSelected;
-  final VoidCallback onSelect;
-
-  MessageTile(this.title, this.recipient, this.date, {required this.isSelected, required this.onSelect});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(title),
-      subtitle: Text('$recipient, $date'),
-      trailing: Checkbox(
-        value: isSelected,
-        onChanged: (value) => onSelect(),
       ),
     );
   }

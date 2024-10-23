@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../Shared/widgets/base_layout.dart';
 import '../components/dotsIndicator.dart';
 import '../models/notification.dart';
 import '../components/notificationCard.dart';
 
+@override
+Widget build(BuildContext context) {
+  return BaseLayout(role: '', childScreen: NotificationsScreen());
+}
+
 class NotificationsScreen extends StatefulWidget {
+  const NotificationsScreen({super.key});
+
   @override
   _NotificationsScreenState createState() => _NotificationsScreenState();
 }
@@ -99,7 +107,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Row(
+        title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.notifications_none, color: Colors.black, size: 36),
@@ -117,7 +125,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.add_circle_outline, color: Colors.black, size: 32),
+            icon: const Icon(Icons.add_circle_outline, color: Colors.black, size: 32),
             onPressed: () {},
           ),
         ],
@@ -127,10 +135,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Expanded(
             flex: 1,
             child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               child: ListView(
                 key: ValueKey<int>(_currentPage),
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 children: _getNotificationsForPage(_currentPage),
               ),
             ),
@@ -154,7 +162,7 @@ class SupportSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Report a Problem',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -162,37 +170,37 @@ class SupportSection extends StatelessWidget {
               color: Color(0xFF091E3D),
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           TextField(
             maxLines: 5,
             decoration: InputDecoration(
               hintText: 'Describe your issue...',
               filled: true,
-              fillColor: Color(0xFF2196F3).withOpacity(0.1),
+              fillColor: const Color(0xFF2196F3).withOpacity(0.1),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Color(0xFF183952)),
+                borderSide: const BorderSide(color: Color(0xFF183952)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Color(0xFF0066CC)),
+                borderSide: const BorderSide(color: Color(0xFF0066CC)),
               ),
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Center(
             child: SizedBox(
               width: 180,
               child: ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF183952),
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: const Color(0xFF183952),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(50),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Send',
                   style: TextStyle(
                     fontFamily: 'Be Vietnam Pro',

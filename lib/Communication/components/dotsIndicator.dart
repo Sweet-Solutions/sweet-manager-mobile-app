@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/notification.dart';
-import '../components/notificationCard.dart';
 
 class DotsIndicator extends StatelessWidget {
   final int currentPage;
   final Function(int) onPageSelected;
 
-  const DotsIndicator({required this.currentPage, required this.onPageSelected});
+  const DotsIndicator({super.key, required this.currentPage, required this.onPageSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +16,8 @@ class DotsIndicator extends StatelessWidget {
           return GestureDetector(
             onTap: () => onPageSelected(index),
             child: AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              margin: EdgeInsets.symmetric(horizontal: 4),
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
               width: 8,
               height: 8,
               decoration: BoxDecoration(
