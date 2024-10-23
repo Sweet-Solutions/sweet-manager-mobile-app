@@ -26,7 +26,7 @@ void main() async {
     ),
   );
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyHomePage extends StatelessWidget {
@@ -44,7 +44,7 @@ class MyHomePage extends StatelessWidget {
         '/home': (context) => const HomeView(), // the default app's entry point 
         '/login': (context) => const LogInScreen(),
         '/dashboard': (context) => const DashboardScreen(),
-        '/subscription': (context) => SubscriptionPlansView(),
+        '/subscription': (context) => const SubscriptionPlansView(),
         '/rooms': (context) => TableRoom(),
         '/providers': (context) => GestionProveedoresPage(),
         // ignore: prefer_const_constructors
