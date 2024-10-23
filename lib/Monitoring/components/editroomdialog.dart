@@ -9,7 +9,7 @@ class EditRoomDialog extends StatefulWidget {
   final int hotelId;
   final String roomState;
 
-  EditRoomDialog({
+  const EditRoomDialog({
     super.key,
     required this.id,
     required this.typeRoomId,
