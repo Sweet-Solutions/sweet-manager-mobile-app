@@ -1,13 +1,15 @@
+
 import 'package:flutter/material.dart';
 import '../../Shared/widgets/base_layout.dart';
 import '../models/notification.dart';
 
 @override
 Widget build(BuildContext context) {
-  return BaseLayout(role: '', childScreen: AlertsScreen());
+  return const BaseLayout(role: '', childScreen: AlertsScreen());
 }
 
 class AlertsScreen extends StatefulWidget {
+
   const AlertsScreen({super.key});
 
   @override
@@ -29,7 +31,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
   ];
 
   final Map<int, bool> _isHoveringNotification = {};
-  final bool _isHoveringAdd = false;
 
   void removeNotification(int index) {
     setState(() {
