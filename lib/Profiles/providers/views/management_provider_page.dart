@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Profiles/providers/views/add_provider.dart';
 import 'package:sweetmanager/Profiles/providers/views/edit_provider.dart';
 import 'package:sweetmanager/Profiles/providers/models/provider_model.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class ManageProvidersPage extends StatefulWidget {
-  final String role; // Add user role
-
-  ManageProvidersPage({required this.role}); // Constructor that receives the role
+  ManageProvidersPage({super.key});
 
   @override
   _ManageProvidersPageState createState() => _ManageProvidersPageState();
@@ -15,74 +16,102 @@ class ManageProvidersPage extends StatefulWidget {
 class _ManageProvidersPageState extends State<ManageProvidersPage> {
   Provider? selectedProvider;
   int rowsPerPage = 4;
+  final storage = const FlutterSecureStorage();
+  String? role;
+
+  Future<String?> _getRole() async {
+    String? token = await storage.read(key: 'token');
+
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    }
+    return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  void _loadRole() async {
+    String? userRole = await _getRole();
+    setState(() {
+      role = userRole;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Page title
-            Text(
-              'Manage Providers',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: PaginatedDataTable(
-                  header: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    color: Color(0xFF494E74),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Expanded(child: Text('Name', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
-                        Expanded(child: Text('Contact', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
-                        Expanded(child: Text('Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
-                        Expanded(child: Text('Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
-                      ],
+    return role == null
+        ? const Center(child: CircularProgressIndicator())
+        : BaseLayout(
+      role: role!,
+      childScreen: Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Manage Providers',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: PaginatedDataTable(
+                    header: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      color: Color(0xFF494E74),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Expanded(child: Text('Name', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
+                          Expanded(child: Text('Contact', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
+                          Expanded(child: Text('Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
+                          Expanded(child: Text('Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
+                        ],
+                      ),
                     ),
+                    columnSpacing: 5,
+                    dataRowHeight: 40,
+                    rowsPerPage: rowsPerPage,
+                    availableRowsPerPage: [4],
+                    columns: [
+                      DataColumn(label: Text('')),
+                      DataColumn(label: Text('')),
+                      DataColumn(label: Text('')),
+                      DataColumn(label: Text('')),
+                    ],
+                    source: _ProviderDataSource(context, showActionsDialog, showDeleteConfirmation, role!),
                   ),
-                  columnSpacing: 5,
-                  dataRowHeight: 40,
-                  rowsPerPage: rowsPerPage,
-                  availableRowsPerPage: [4],
-                  columns: [
-                    DataColumn(label: Text('')),
-                    DataColumn(label: Text('')),
-                    DataColumn(label: Text('')),
-                    DataColumn(label: Text('')),
-                  ],
-                  source: _ProviderDataSource(context, showActionsDialog, showDeleteConfirmation, widget.role),
                 ),
               ),
-            ),
-            Text(
-              'Showing ${providers.length} providers',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 20),
-            // Check if the user has the owner role before allowing to add providers
-            if (widget.role == 'ROLE_OWNER')
-              ElevatedButton(
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddProviderPage(role: widget.role)),
-                  );
-                  if (result != null) {
-                    setState(() {});
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
-                  }
-                },
-                child: Text('Add Provider'),
+              Text(
+                'Showing ${providers.length} providers',
+                style: TextStyle(fontSize: 16),
               ),
-          ],
+              SizedBox(height: 20),
+              if (role == 'ROLE_OWNER')
+                ElevatedButton(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddProviderPage(role: role!)),
+                    );
+                    if (result != null) {
+                      setState(() {});
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+                    }
+                  },
+                  child: Text('Add Provider'),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -97,8 +126,7 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Check if the user has the owner role before allowing to edit the provider
-              if (widget.role == 'ROLE_OWNER')
+              if (role == 'ROLE_OWNER')
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
@@ -108,7 +136,7 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EditProviderPage(provider: provider, role: widget.role),
+                        builder: (context) => EditProviderPage(provider: provider, role: role!),
                       ),
                     );
                     if (result != null) {
@@ -172,7 +200,7 @@ class _ProviderDataSource extends DataTableSource {
   final BuildContext context;
   final Function(BuildContext, Provider) showActionsDialog;
   final Function(BuildContext, Provider) showDeleteConfirmation;
-  final String role; // Add user role
+  final String role;
 
   _ProviderDataSource(this.context, this.showActionsDialog, this.showDeleteConfirmation, this.role);
 

@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
+
+@override
+Widget build(BuildContext context) { // Implements design for login view.
+  return BaseLayout(role: '', childScreen: WorkerListScreen());
+}
 
 class WorkerListScreen extends StatelessWidget {
   final List<Map<String, String>> workers = [

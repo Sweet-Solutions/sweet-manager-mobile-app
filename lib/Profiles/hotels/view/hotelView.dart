@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
+@override
+Widget build(BuildContext context) { // Implements design for login view.
+  return BaseLayout(role: '', childScreen: HotelDetailScreen());
+}
 class HotelDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:sweetmanager/Profiles/customers/views/add_customer.dart';
 import 'package:sweetmanager/Profiles/customers/views/edit_customer.dart';
 import 'package:sweetmanager/Profiles/customers/models/customer_model.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
+
+@override
+Widget build(BuildContext context) { // Implements design for login view.
+  return BaseLayout(role: '', childScreen: ManageCustomersPage(role: 'ROLE_OWNER'));
+}
 
 class ManageCustomersPage extends StatefulWidget {
   final String role; // Add user role
@@ -59,7 +65,7 @@ class _ManageCustomersPageState extends State<ManageCustomersPage> {
                     DataColumn(label: Text('')),
                     DataColumn(label: Text('')),
                   ],
-                  source: _CustomerDataSource(context, showActionsDialog),
+                  source: _CustomerDataSource(context, showActionsDialog, widget.role),
                 ),
               ),
             ),
@@ -131,8 +137,9 @@ class _ManageCustomersPageState extends State<ManageCustomersPage> {
 class _CustomerDataSource extends DataTableSource {
   final BuildContext context;
   final Function(BuildContext, Customer) showActionsDialog;
+  final String role;
 
-  _CustomerDataSource(this.context, this.showActionsDialog);
+  _CustomerDataSource(this.context, this.showActionsDialog, this.role);
 
   @override
   DataRow getRow(int index) {
@@ -148,7 +155,6 @@ class _CustomerDataSource extends DataTableSource {
         DataCell(Text(customer.contact)),
         DataCell(Row(
           children: [
-            // Remove edit and delete icons
           ],
         )),
       ],

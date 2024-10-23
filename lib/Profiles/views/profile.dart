@@ -1,42 +1,62 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: ProfilePage(role: 'ROLE_OWNER'), // Cambia el rol a 'ROLE_OWNER' o 'ROLE_ADMIN' para probar
-    );
-  }
-}
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class ProfilePage extends StatefulWidget {
-  final String role; // Propiedad para el rol del usuario
-
-  ProfilePage({required this.role}); // Constructor que acepta el rol
+  ProfilePage({super.key});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  // Initializing the secure storage
+  final storage = const FlutterSecureStorage();
+
+  Future<String?> _getRole() async {
+    // Retrieve token from local storage
+    String? token = await storage.read(key: 'token');
+
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    }
+
+    return null; // Return null if no token is found
+  }
+
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _getRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasData) {
+          String? role = snapshot.data;
+          return BaseLayout(
+            role: role!,
+            childScreen: _buildProfilePage(role),
+          );
+        }
+
+        return const Center(child: Text('Unable to retrieve role'));
+      },
+    );
+  }
+
+  Widget _buildProfilePage(String role) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // Permitir el desplazamiento
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header con icono de usuario, nombre y botón View organization alineados
+              // Header with user icon, name, and "View organization" button
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -59,10 +79,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       SizedBox(height: 4),
-                      // "View organization" está disponible para ambos roles
                       TextButton(
                         onPressed: () {
-                          // Navegar a la pantalla de organización
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -83,23 +101,23 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               SizedBox(height: 20),
 
-              // Secciones de cambio de información con campos alineados y botones debajo
+              // Editable fields for the profile page
               buildEditableField('Name', 'Jane Doe', 'Change name'),
-              buildEditableField('Username', 'Jane Doe wiwi', 'Change username'),
+              buildEditableField('Username', 'JaneDoe123', 'Change username'),
               buildEditableField('Email', 'janedoe@peruagro.com', 'Change email'),
               buildEditableField('Phone', '77777777', 'Change phone'),
 
-              // Mostrar el campo "Supervision Areas" solo si el rol es "owner"
-              if (widget.role == 'ROLE_OWNER')
+              // Show "Supervision Areas" only if the user is an "owner"
+              if (role == 'ROLE_OWNER')
                 buildEditableField('Supervision Areas', 'SECURITY STAFF', 'Change supervision areas'),
 
-              // Mostrar el campo "Assigned Area" solo si el rol es "worker"
-              if (widget.role == 'ROLE_WORKER')
+              // Show "Assigned Area" only if the user is a "worker"
+              if (role == 'ROLE_WORKER')
                 buildInfoField('Assigned Area', 'SECURITY STAFF'),
 
-              // Sección de contraseña
+              // Password section
               buildPasswordField(),
-              SizedBox(height: 20), // Espacio adicional al final
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -107,7 +125,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Widget reutilizable para los campos editables con campos a rellenar
   Widget buildEditableField(String label, String value, String actionLabel) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -134,12 +151,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-          SizedBox(height: 4), // Espacio entre campo y botón de acción
+          SizedBox(height: 4),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () {
-                // Acción para cambiar el valor
+                // Action to change the field value
               },
               child: Text(
                 actionLabel,
@@ -152,7 +169,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Widget para mostrar el campo de información asignada
   Widget buildInfoField(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -174,7 +190,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Widget para la sección de contraseña
   Widget buildPasswordField() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -196,12 +211,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          SizedBox(height: 4), // Espacio entre campo y botón
+          SizedBox(height: 4),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () {
-                // Acción para cambiar la contraseña
+                // Action to change the password
               },
               child: Text(
                 'Change password',
@@ -215,7 +230,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-// Pantalla de información de la organización
+// Organization Information Screen
 class OrganizationInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -225,7 +240,6 @@ class OrganizationInfoScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Título "Sweet Manager"
             Center(
               child: Column(
                 children: [
@@ -238,7 +252,6 @@ class OrganizationInfoScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Logo de la organización
                   CircleAvatar(
                     radius: 40,
                     backgroundImage: NetworkImage(
@@ -246,7 +259,6 @@ class OrganizationInfoScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Texto "My organization"
                   Text(
                     'My organization',
                     style: TextStyle(
@@ -258,7 +270,6 @@ class OrganizationInfoScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
-            // Información del negocio
             Text(
               'Business name: Peru Agro J&V S.A.C',
               style: TextStyle(
@@ -268,7 +279,6 @@ class OrganizationInfoScreen extends StatelessWidget {
             ),
             Divider(color: Colors.black),
             SizedBox(height: 16),
-            // Sección de información del hotel
             Text(
               'HOTEL INFO',
               style: TextStyle(
@@ -294,7 +304,6 @@ class OrganizationInfoScreen extends StatelessWidget {
     );
   }
 
-  // Función auxiliar para construir cada fila de información
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
