@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import '../../Shared/widgets/base_layout.dart';
 import '../components/messageTile.dart';
 import '../models/notification.dart';
-import '../components/notificationCard.dart';
 
 @override
 Widget build(BuildContext context) {
-  return BaseLayout(role: '', childScreen: Messagescreen());
+  return const BaseLayout(role: '', childScreen: Messagescreen());
 }
 
 class Messagescreen extends StatefulWidget {
+  const Messagescreen({super.key});
+
   @override
   _MessagescreenState createState() => _MessagescreenState();
 }
@@ -23,7 +24,10 @@ class _MessagescreenState extends State<Messagescreen> {
   ];
 
   List<Notifications> _filteredMessages = [];
+  
+  // ignore: unused_field
   String _searchQuery = '';
+  
   Set<int> _selectedMessageIndices = {};
 
   @override
@@ -95,8 +99,8 @@ class _MessagescreenState extends State<Messagescreen> {
                   color: Colors.white.withOpacity(0.7),
                 ),
                 filled: true,
-                fillColor: Color(0xFF4A4E69),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                fillColor: const Color(0xFF4A4E69),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
