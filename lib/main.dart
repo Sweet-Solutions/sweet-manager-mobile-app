@@ -3,8 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
 import 'package:sweetmanager/Communication/views/notificationScreen.dart';
-import 'package:sweetmanager/Communication/views/writeAlert.dart';
-import 'package:sweetmanager/Communication/views/writeMessage.dart';
 import 'package:sweetmanager/IAM/views/home.dart';
 import 'package:sweetmanager/IAM/views/login.dart';
 import 'package:sweetmanager/Monitoring/views/tableroom.dart';
