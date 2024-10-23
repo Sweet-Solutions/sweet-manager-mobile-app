@@ -26,7 +26,7 @@ void main() async {
     ),
   );
 
-  runApp(MyApp());
+  runApp(const MyHomePage());
 }
 
 class MyHomePage extends StatelessWidget {
