@@ -4,6 +4,9 @@ import '../models/notification.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
 import '../components/dotsIndicator.dart';
 import '../components/notificationCard.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart'; 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class NotificationsScreen extends StatefulWidget {
   @override
@@ -16,6 +19,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   List<List<Notifications>> paginatedNotifications = []; // List of paginated notifications
 
   late NotificationService notificationService;
+  final storage = const FlutterSecureStorage();
+  String? role;
 
   @override
   void initState() {
@@ -28,15 +33,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     fetchNotifications(); // Fetch notifications on init
   }
 
+  // Método para obtener el rol del token
+  Future<String?> _getRole() async {
+    String? token = await storage.read(key: 'token');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    }
+    return null;
+  }
+
   // Fetch all notifications
   Future<void> fetchNotifications() async {
     try {
-      // Verifica que el token esté disponible antes de continuar
-      final token = await notificationService.authService.storage.read(key: 'token');
-      if (token == null || token.isEmpty) {
-        throw Exception("Token not found or empty");
-      }
-
       final notifications = await notificationService.getAllNotifications(1); // Pass the correct hotel ID
       setState(() {
         paginatedNotifications = _paginateNotifications(notifications); // Paginate the notifications
@@ -49,7 +58,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load notifications: $e')),
       );
-      // Puedes usar print o logging para registrar más detalles del error
       print("Error fetching notifications: $e");
     }
   }
@@ -74,61 +82,51 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.notifications_none, color: Colors.black, size: 36),
-            SizedBox(width: 8),
-            Text(
-              'Notifications',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Colors.black, size: 32),
-            onPressed: () {
-              // Add new notification logic if needed
-            },
-          ),
-        ],
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator()) // Show loading spinner
-          : Column(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: ListView(
-                      key: ValueKey<int>(_currentPage),
-                      padding: const EdgeInsets.all(16),
-                      children: paginatedNotifications.isNotEmpty
-                          ? paginatedNotifications[_currentPage].map((notification) {
-                              return NotificationCard(notification: notification);
-                            }).toList()
-                          : [],
-                    ),
+    return FutureBuilder<String?>(
+      future: _getRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error loading role'));
+        }
+
+        role = snapshot.data;
+
+        return BaseLayout(
+          role: role,
+          childScreen: Scaffold(
+            body: isLoading
+                ? const Center(child: CircularProgressIndicator()) // Show loading spinner
+                : Column(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: ListView(
+                            key: ValueKey<int>(_currentPage),
+                            padding: const EdgeInsets.all(16),
+                            children: paginatedNotifications.isNotEmpty
+                                ? paginatedNotifications[_currentPage].map((notification) {
+                                    return NotificationCard(notification: notification);
+                                  }).toList()
+                                : [],
+                          ),
+                        ),
+                      ),
+                      DotsIndicator(
+                        currentPage: _currentPage,
+                        onPageSelected: _changePage,
+                      ),
+                      SupportSection(),
+                    ],
                   ),
-                ),
-                DotsIndicator(
-                  currentPage: _currentPage,
-                  onPageSelected: _changePage,
-                ),
-                SupportSection(),
-              ],
-            ),
+          ),
+        );
+      },
     );
   }
 }

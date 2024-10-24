@@ -18,23 +18,33 @@ class InventoryManagement extends StatefulWidget {
 class _InventoryManagementState extends State<InventoryManagement> {
   late SupplyService _supplyService;
   late AuthService _authService;
-  final FlutterSecureStorage storage = const FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
   List<Supply> supplies = [];
   bool isLoading = true;
-  int? hotelId; // Asumiendo que tienes un hotelId
-  String? role; // User's role to pass to BaseLayout
+  int? hotelId;
+  String? role;
+  
+  // Método para obtener el rol del token
+  Future<String?> _getRole() async {
+    String? token = await storage.read(key: 'token');
 
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    }
+    return null;
+  }
+  
+  // Método para obtener el hotelId desde el token
   Future<int?> _getHotelId() async {
     String? token = await storage.read(key: 'token');
 
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
 
-      // Verificar que el valor no sea null antes de convertirlo
-      if (decodedToken['http://schemas.xmlsoap.org/ws/2006/08/identity/claims/locality'] != null) {
-        // Tratar de convertirlo en un entero
+      if (decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality'] != null) {
         try {
-          return int.parse(decodedToken['http://schemas.xmlsoap.org/ws/2006/08/identity/claims/locality']);
+          return int.parse(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']);
         } catch (e) {
           print('Failed to Convert Hotel ID $e');
           return null;
@@ -44,7 +54,6 @@ class _InventoryManagementState extends State<InventoryManagement> {
         return null;
       }
     }
-
     return null;
   }
 
@@ -52,21 +61,20 @@ class _InventoryManagementState extends State<InventoryManagement> {
   void initState() {
     super.initState();
     _authService = AuthService();
-    _supplyService = SupplyService('http://localhost:5181', _authService);
+    _supplyService = SupplyService('https://sweetmanager-api.ryzeon.me/', _authService);
     _loadHotelId();
   }
 
   Future<void> _loadHotelId() async {
-    int? tokenHotelId = await _getHotelId(); // Obtener el hotelId desde el token
+    int? tokenHotelId = await _getHotelId();
     print('Hotel ID: $tokenHotelId');
 
     if (tokenHotelId != null) {
       setState(() {
         hotelId = tokenHotelId;
       });
-      _fetchSupplies(); // Llama a la función para obtener los suministros
+      _fetchSupplies();
     } else {
-      // Manejar el caso donde no se encuentra el hotelId
       setState(() {
         isLoading = false;
       });
@@ -91,10 +99,21 @@ class _InventoryManagementState extends State<InventoryManagement> {
       setState(() {
         isLoading = false;
       });
-      print('Error fetching supplies: $e'); // Mostrar el error en la consola
+      print('Error fetching supplies: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load supplies: $e')),
       );
+    }
+  }
+
+  Future<void> _addSupply() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SupplyAddScreen()),
+    );
+
+    if (result == true) {
+      _fetchSupplies();
     }
   }
 
@@ -103,18 +122,18 @@ class _InventoryManagementState extends State<InventoryManagement> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Failed to delete supply"),
+          title: const Text("Delete supply"),
           content: Text('Are you sure you want to delete this supply: "${supply.name}"?'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Cierra el diálogo sin eliminar
+                Navigator.of(context).pop();
               },
               child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () {
-                _deleteSupply(supply); // Call delete function
+                _deleteSupply(supply);
                 Navigator.of(context).pop();
               },
               child: const Text(
@@ -155,189 +174,182 @@ class _InventoryManagementState extends State<InventoryManagement> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseLayout(
-      role: role, // Pass the role to BaseLayout
-      childScreen: Scaffold(
-        appBar: AppBar(
-          title: const Text('Inventory Management'),
-          backgroundColor: const Color(0xFF474C74),
-        ),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  // Header con botón de agregar
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Supplies',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const SupplyAddScreen()),
-                                  );
+    return FutureBuilder<String?>(
+      future: _getRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error loading role'));
+        }
+        
+        role = snapshot.data;
 
-                                  if (result == true) {
-                                    _fetchSupplies();
-                                  }
-                                },
+        return BaseLayout(
+          role: role,
+          childScreen: Scaffold(
+            body: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: const Offset(0, 3),
                               ),
                             ],
                           ),
-                        ],
+                          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Supplies',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: _addSupply,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Lista de suministros
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          headingRowColor: MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                              return const Color(0xFF474C74);
-                            },
-                          ),
-                          dataRowColor: MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.selected)) {
-                                return Colors.grey.withOpacity(0.5);
-                              }
-                              return Colors.white;
-                            },
-                          ),
-                          columns: const <DataColumn>[
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'ID',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              headingRowColor: MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                                  return const Color(0xFF474C74);
+                                },
                               ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Product',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                              dataRowColor: MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                                  if (states.contains(MaterialState.selected)) {
+                                    return Colors.grey.withOpacity(0.5);
+                                  }
+                                  return Colors.white;
+                                },
                               ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Quantity',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Actions',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                          rows: supplies.map((supply) {
-                            return DataRow(
-                              cells: [
-                                DataCell(Text(supply.id.toString())),
-                                DataCell(Text(supply.name)),
-                                DataCell(Text(supply.stock.toString())),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => SupplyEditScreen(supply: supply),
-                                            ),
-                                          );
-
-                                          if (result == true) {
-                                            _fetchSupplies();
-                                          }
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF474C74),
-                                        ),
-                                        child: const Text(
-                                          'Edit',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
+                              columns: const <DataColumn>[
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'ID',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                      const SizedBox(width: 10),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () {
-                                          _showDeleteConfirmationDialog(supply);
-                                        },
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Product',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    ],
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Quantity',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Actions',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
-                            );
-                          }).toList(),
+                              rows: supplies.map((supply) {
+                                return DataRow(
+                                  cells: [
+                                    DataCell(Text(supply.id.toString())),
+                                    DataCell(Text(supply.name)),
+                                    DataCell(Text(supply.stock.toString())),
+                                    DataCell(
+                                      Row(
+                                        children: [
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              final result = await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => SupplyEditScreen(supply: supply),
+                                                ),
+                                              );
+
+                                              if (result == true) {
+                                                _fetchSupplies();
+                                              }
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF474C74),
+                                            ),
+                                            child: const Text(
+                                              'Edit',
+                                              style: TextStyle(color: Colors.white),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete, color: Colors.red),
+                                            onPressed: () {
+                                              _showDeleteConfirmationDialog(supply);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(height: 40),
-                      Text('Rows per page: 4      1-4 of 365'),
                     ],
                   ),
-                ],
-              ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

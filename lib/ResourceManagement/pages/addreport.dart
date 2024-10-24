@@ -33,11 +33,11 @@ class _AddReportState extends State<AddReport> {
     super.initState();
     final authService = AuthService(); // Instantiate AuthService
     typesReportService = TypesReportService(
-      baseUrl: 'http://localhost:5181/api', 
+      baseUrl: 'https://sweetmanager-api.ryzeon.me/api', 
       authService: authService
     );
     reportService = ReportService(
-        baseUrl: 'http://localhost:5181/api',
+        baseUrl: 'https://sweetmanager-api.ryzeon.me/api',
         authService: authService);
     fetchTypesReports(); // Fetch types of reports on init
   }

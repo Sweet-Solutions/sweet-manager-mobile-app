@@ -90,6 +90,9 @@ class _ComposeMessageState extends State<ComposeMessage> {
           _messageController.clear();
           _titleController.clear();
           _descriptionController.clear();
+
+          // Return to the previous screen
+          Navigator.of(context).pop();
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -103,6 +106,12 @@ class _ComposeMessageState extends State<ComposeMessage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+        ),
         title: const Text(
           'Compose Message',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
