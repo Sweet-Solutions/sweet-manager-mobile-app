@@ -10,6 +10,11 @@ import 'package:sweetmanager/Profiles/Views/ownerProfile.dart';
 import 'package:sweetmanager/Profiles/Views/providers/management_provider_page.dart';
 import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
 import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
+import 'package:sweetmanager/Communication/views/writeMessage.dart';
+import 'package:sweetmanager/Communication/views/alertScreen.dart';
+import 'package:sweetmanager/Communication/views/writeAlert.dart';
+import 'package:sweetmanager/Communication/views/notificationScreen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +31,7 @@ void main() async {
     ),
   );
 
-  runApp(const MyApp());
+  runApp( const MyHomePage());
 }
 
 class MyHomePage extends StatelessWidget {
@@ -44,7 +49,8 @@ class MyHomePage extends StatelessWidget {
         '/home': (context) => const HomeView(), // the default app's entry point 
         '/login': (context) => const LogInScreen(),
         '/dashboard': (context) => const DashboardScreen(),
-        '/subscription': (context) => SubscriptionPlansView(),
+        '/subscription': (context) => SubscriptionPlansView
+        (),
         '/rooms': (context) => TableRoom(),
         '/providers': (context) => GestionProveedoresPage(),
         // ignore: prefer_const_constructors
@@ -52,7 +58,12 @@ class MyHomePage extends StatelessWidget {
         '/messages': (context) => Messagescreen(),
         // ignore: prefer_const_constructors
         '/reports': (context) => ReportList(),
-        '/profiles': (context) => ProfilePage()
+        '/profiles': (context) => ProfilePage(),
+        '/writemessage': (context) => WriteMessage(),
+        '/alerts': (context) => AlertsScreen(),
+        '/writealert': (context) => WriteAlertScreen(),
+        '/notifications': (context) => NotificationsScreen(),
+        
       },
     );
   }

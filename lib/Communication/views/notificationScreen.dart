@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../components/dotsIndicator.dart';
+import 'package:sweetmanager/Communication/services/NotificationService.dart';
 import '../models/notification.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
+import '../components/dotsIndicator.dart';
 import '../components/notificationCard.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -10,87 +12,64 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   int _currentPage = 0;
+  bool isLoading = true;
+  List<List<Notifications>> paginatedNotifications = []; // List of paginated notifications
 
+  late NotificationService notificationService;
+
+  @override
+  void initState() {
+    super.initState();
+    final authService = AuthService(); // Instantiate AuthService
+    notificationService = NotificationService(
+      baseUrl: 'http://localhost:5181', // Adjust this to your API's base URL
+      authService: authService,
+    );
+    fetchNotifications(); // Fetch notifications on init
+  }
+
+  // Fetch all notifications
+  Future<void> fetchNotifications() async {
+    try {
+      // Verifica que el token esté disponible antes de continuar
+      final token = await notificationService.authService.storage.read(key: 'token');
+      if (token == null || token.isEmpty) {
+        throw Exception("Token not found or empty");
+      }
+
+      final notifications = await notificationService.getAllNotifications(1); // Pass the correct hotel ID
+      setState(() {
+        paginatedNotifications = _paginateNotifications(notifications); // Paginate the notifications
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load notifications: $e')),
+      );
+      // Puedes usar print o logging para registrar más detalles del error
+      print("Error fetching notifications: $e");
+    }
+  }
+
+  // Paginate the notifications into chunks of 2 (or any number per page)
+  List<List<Notifications>> _paginateNotifications(List<Notifications> notifications) {
+    List<List<Notifications>> pages = [];
+    int pageSize = 2;
+
+    for (var i = 0; i < notifications.length; i += pageSize) {
+      pages.add(notifications.sublist(i, i + pageSize > notifications.length ? notifications.length : i + pageSize));
+    }
+    return pages;
+  }
+
+  // Change page for pagination
   void _changePage(int pageIndex) {
     setState(() {
       _currentPage = pageIndex;
     });
-  }
-
-  List<Widget> _getNotificationsForPage(int page) {
-    switch (page) {
-      case 0:
-        return [
-          NotificationCard(
-            notification: Notifications(
-              1,
-              101,
-              201,
-              301,
-              'Reunión de Administradores',
-              'Reunión en la sala de conferencias para discutir la estrategia del mes.',
-            ),
-          ),
-          NotificationCard(
-            notification: Notifications(
-              2,
-              101,
-              201,
-              301,
-              'Taller de Capacitación',
-              'Capacitación en la sala de capacitación sobre nuevas tecnologías.',
-            ),
-          ),
-        ];
-      case 1:
-        return [
-          NotificationCard(
-            notification: Notifications(
-              1,
-              101,
-              201,
-              301,
-              'Llamada de Proveedores',
-              'Llamada con proveedores para discutir los términos del acuerdo.',
-            ),
-          ),
-          NotificationCard(
-            notification: Notifications(
-              2,
-              101,
-              201,
-              301,
-              'Revisión de Inventario',
-              'Revisión del inventario en el almacén central.',
-            ),
-          ),
-        ];
-      case 2:
-        return [
-          NotificationCard(
-            notification: Notifications(
-              1,
-              101,
-              201,
-              301,
-              'Reunión de Marketing',
-              'Reunión en la sala ejecutiva para definir la estrategia de marketing.',
-            ),
-          ),
-          NotificationCard(
-            notification: Notifications(
-              2,
-              101,
-              201,
-              301,
-              'Presentación de Proyectos',
-              'Presentación en el auditorio principal sobre los proyectos del trimestre.',
-            ),
-          ),
-        ];
-      default:
-        return [];
-    }
   }
 
   @override
@@ -99,7 +78,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Row(
+        title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.notifications_none, color: Colors.black, size: 36),
@@ -117,31 +96,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.add_circle_outline, color: Colors.black, size: 32),
-            onPressed: () {},
+            icon: const Icon(Icons.add_circle_outline, color: Colors.black, size: 32),
+            onPressed: () {
+              // Add new notification logic if needed
+            },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
-              child: ListView(
-                key: ValueKey<int>(_currentPage),
-                padding: EdgeInsets.all(16),
-                children: _getNotificationsForPage(_currentPage),
-              ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator()) // Show loading spinner
+          : Column(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: ListView(
+                      key: ValueKey<int>(_currentPage),
+                      padding: const EdgeInsets.all(16),
+                      children: paginatedNotifications.isNotEmpty
+                          ? paginatedNotifications[_currentPage].map((notification) {
+                              return NotificationCard(notification: notification);
+                            }).toList()
+                          : [],
+                    ),
+                  ),
+                ),
+                DotsIndicator(
+                  currentPage: _currentPage,
+                  onPageSelected: _changePage,
+                ),
+                SupportSection(),
+              ],
             ),
-          ),
-          DotsIndicator(
-            currentPage: _currentPage,
-            onPageSelected: _changePage,
-          ),
-          SupportSection(),
-        ],
-      ),
     );
   }
 }
@@ -184,7 +171,9 @@ class SupportSection extends StatelessWidget {
             child: SizedBox(
               width: 180,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Add report submission logic if needed
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF183952),
                   padding: EdgeInsets.symmetric(vertical: 12),
@@ -192,7 +181,7 @@ class SupportSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(50),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Send',
                   style: TextStyle(
                     fontFamily: 'Be Vietnam Pro',

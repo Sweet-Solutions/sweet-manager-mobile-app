@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/ResourceManagement/components/reportcard.dart';
-import 'package:sweetmanager/ResourceManagement/components/reportdata.dart';
 import 'package:sweetmanager/ResourceManagement/pages/addreport.dart';
+import 'package:sweetmanager/ResourceManagement/models/report.dart';
+import 'package:sweetmanager/ResourceManagement/services/reportservice.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService
 
 class ReportList extends StatefulWidget {
   const ReportList({super.key});
@@ -13,31 +15,59 @@ class ReportList extends StatefulWidget {
 class _ReportListState extends State<ReportList> {
   TextEditingController searchController = TextEditingController();
   String searchQuery = "";
-  bool isSearching = false; // Estado para mostrar el TextField de búsqueda
+  bool isSearching = false; // State to show the search TextField
+  bool isLoading = true; // Loading state
+  List<Report> reports = []; // List of reports
+  List<Report> filteredReports = []; // Filtered list of reports
+  late ReportService reportService; // ReportService instance
+
+  @override
+  void initState() {
+    super.initState();
+    final authService = AuthService(); // Instantiate AuthService
+    reportService = ReportService(
+      baseUrl: 'http://localhost:5181/api', // Set your localhost URL
+      authService: authService,
+    );
+    fetchReports(); // Fetch reports on initialization
+  }
+
+  Future<void> fetchReports() async {
+    try {
+      // Call the service to get reports
+      final List<dynamic> reportData = await reportService.getReports();
+      setState(() {
+        reports = reportData.map((data) => Report.fromJson(data)).toList();
+        filteredReports = reports; // Initially, show all reports
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      // Handle error if necessary
+      print('Error fetching reports: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Filtrar los reportes según la búsqueda
-    List filteredReports = reports.where((report) {
-      return report.title.toLowerCase().contains(searchQuery.toLowerCase());
-    }).toList();
-
     return Scaffold(
       body: Column(
         children: [
-          // Contenedor con padding y borde redondeado alrededor del encabezado
+          // Container with padding and rounded borders around the header
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12.0), // Borde redondeado
+                borderRadius: BorderRadius.circular(12.0), // Rounded border
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.2),
                     spreadRadius: 2,
                     blurRadius: 5,
-                    offset: const Offset(0, 3), // Sombra hacia abajo
+                    offset: const Offset(0, 3), // Shadow downwards
                   ),
                 ],
               ),
@@ -54,7 +84,7 @@ class _ReportListState extends State<ReportList> {
                   ),
                   Row(
                     children: [
-                      // Si isSearching es true, mostramos el campo de búsqueda
+                      // If isSearching is true, display the search field
                       isSearching
                           ? SizedBox(
                               width: 200,
@@ -63,10 +93,13 @@ class _ReportListState extends State<ReportList> {
                                 onChanged: (value) {
                                   setState(() {
                                     searchQuery = value;
+                                    filteredReports = reports.where((report) {
+                                      return report.title.toLowerCase().contains(searchQuery.toLowerCase());
+                                    }).toList();
                                   });
                                 },
                                 decoration: InputDecoration(
-                                  hintText: 'Buscar reportes',
+                                  hintText: 'Search reports',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
                                   ),
@@ -78,10 +111,11 @@ class _ReportListState extends State<ReportList> {
                         icon: const Icon(Icons.search),
                         onPressed: () {
                           setState(() {
-                            isSearching = !isSearching; // Alternar búsqueda
+                            isSearching = !isSearching; // Toggle search state
                             if (!isSearching) {
                               searchController.clear();
                               searchQuery = "";
+                              filteredReports = reports; // Reset report list
                             }
                           });
                         },
@@ -104,21 +138,23 @@ class _ReportListState extends State<ReportList> {
             ),
           ),
           const SizedBox(height: 8),
-          // Lista de reportes
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListView.builder(
-                itemCount: filteredReports.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: ReportCard(report: filteredReports[index], index: index),
-                  );
-                },
-              ),
-            ),
-          ),
+          // Show a loading indicator while fetching data
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListView.builder(
+                      itemCount: filteredReports.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: ReportCard(report: filteredReports[index], index: index),
+                        );
+                      },
+                    ),
+                  ),
+                ),
         ],
       ),
     );

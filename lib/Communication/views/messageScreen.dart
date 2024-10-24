@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'package:sweetmanager/Communication/services/NotificationService.dart';
 import '../models/notification.dart';
-import '../components/notificationCard.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
 
 
 class Messagescreen extends StatefulWidget {
@@ -10,24 +10,45 @@ class Messagescreen extends StatefulWidget {
 }
 
 class _MessagescreenState extends State<Messagescreen> {
-  // Replacing Message with Notifications class
-  final List<Notifications> _messages = [
-    Notifications(1, 1, 1, 1, 'Meeting Today', 'S.T.'),
-    Notifications(1, 1, 1, 1, 'Dismissal', 'H.K.'),
-    Notifications(1, 1, 1, 1, 'Settlement', 'Reception'),
-    Notifications(1, 1, 1, 1, 'New Policy', 'HR')
-  ];
-
+  List<Notifications> _messages = []; // List of fetched messages
   List<Notifications> _filteredMessages = [];
   String _searchQuery = '';
   Set<int> _selectedMessageIndices = {};
+  bool isLoading = true;
+
+  late NotificationService notificationService;
 
   @override
   void initState() {
     super.initState();
-    _filteredMessages = _messages;
+    final authService = AuthService(); // Instantiate AuthService
+    notificationService = NotificationService(
+      baseUrl: 'http://localhost:5181', // Adjust this to your API's base URL
+      authService: authService,
+    );
+    fetchMessages(); // Fetch messages when the widget is initialized
   }
 
+  // Fetch messages from the backend
+  Future<void> fetchMessages() async {
+    try {
+      final messages = await notificationService.getMessages(1); // Pass the correct hotel ID
+      setState(() {
+        _messages = messages;
+        _filteredMessages = messages; // Initialize the filtered list
+        isLoading = false; // Stop loading indicator
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false; // Stop loading indicator on error
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load messages: $e')),
+      );
+    }
+  }
+
+  // Filter messages by search query
   void _filterMessages(String query) {
     final filtered = _messages.where((notification) {
       return notification.title.toLowerCase().contains(query.toLowerCase());
@@ -39,6 +60,7 @@ class _MessagescreenState extends State<Messagescreen> {
     });
   }
 
+  // Delete selected messages
   void _deleteSelectedMessages() {
     setState(() {
       _filteredMessages.removeWhere((notification) =>
@@ -47,6 +69,7 @@ class _MessagescreenState extends State<Messagescreen> {
     });
   }
 
+  // Select or deselect a message
   void _selectMessage(int index) {
     setState(() {
       if (_selectedMessageIndices.contains(index)) {
@@ -57,6 +80,7 @@ class _MessagescreenState extends State<Messagescreen> {
     });
   }
 
+  // Select or deselect all messages
   void _selectAllMessages() {
     setState(() {
       if (_selectedMessageIndices.length == _filteredMessages.length) {
@@ -121,31 +145,33 @@ class _MessagescreenState extends State<Messagescreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _filteredMessages.length,
-                itemBuilder: (context, index) {
-                  final notification = _filteredMessages[index];
-                  return Dismissible(
-                    key: Key(notification.title),
-                    onDismissed: (direction) {
-                      setState(() {
-                        _filteredMessages.removeAt(index);
-                        _selectedMessageIndices.remove(index);
-                      });
-                    },
-                    background: Container(color: Colors.red),
-                    child: MessageTile(
-                      notification.title,
-                      notification.description,
-                      notification.typesNotificationsId.toString(),
-                      isSelected: _selectedMessageIndices.contains(index),
-                      onSelect: () => _selectMessage(index),
+            isLoading
+                ? const Center(child: CircularProgressIndicator()) // Show loading spinner
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: _filteredMessages.length,
+                      itemBuilder: (context, index) {
+                        final notification = _filteredMessages[index];
+                        return Dismissible(
+                          key: Key(notification.title),
+                          onDismissed: (direction) {
+                            setState(() {
+                              _filteredMessages.removeAt(index);
+                              _selectedMessageIndices.remove(index);
+                            });
+                          },
+                          background: Container(color: Colors.red),
+                          child: MessageTile(
+                            notification.title,
+                            notification.description,
+                            notification.typesNotificationsId.toString(),
+                            isSelected: _selectedMessageIndices.contains(index),
+                            onSelect: () => _selectMessage(index),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

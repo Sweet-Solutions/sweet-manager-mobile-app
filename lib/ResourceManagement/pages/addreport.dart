@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Importa Firebase Storage
-import 'package:path/path.dart' as path; // Para obtener el nombre del archivo
+import 'package:firebase_storage/firebase_storage.dart'; // Firebase Storage import
+import 'package:path/path.dart' as path; // For file path manipulation
 import 'package:sweetmanager/ResourceManagement/models/typereport.dart';
 import 'package:sweetmanager/ResourceManagement/services/typesreportservice.dart';
+import 'package:sweetmanager/ResourceManagement/services/reportservice.dart'; // ReportService import
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // AuthService import
 
 class AddReport extends StatefulWidget {
   const AddReport({super.key});
@@ -18,34 +20,43 @@ class _AddReportState extends State<AddReport> {
   TextEditingController titleController = TextEditingController();
   TextEditingController contentController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  File? _imageFile; // Imagen seleccionada
+  File? _imageFile; // Selected image file
   final picker = ImagePicker();
-  int? selectedTypeReportId; // ID del tipo de reporte seleccionado
-  List<TypesReport> typesReports = []; // Lista de tipos de reportes
-  final TypesReportService _typesReportService = TypesReportService(); // Servicio para obtener los tipos de reporte
-  String? imageUrl; // URL de la imagen subida a Firebase
+  int? selectedTypeReportId; // ID of the selected report type
+  List<TypesReport> typesReports = []; // List of report types
+  late TypesReportService typesReportService; // Service to fetch types of reports
+  late ReportService reportService; // Report service
+  String? imageUrl; // URL of the image uploaded to Firebase
 
   @override
   void initState() {
     super.initState();
-    fetchTypesReports(); // Llamada a la API al iniciar
+    final authService = AuthService(); // Instantiate AuthService
+    typesReportService = TypesReportService(
+      baseUrl: 'http://localhost:5181/api', 
+      authService: authService
+    );
+    reportService = ReportService(
+        baseUrl: 'http://localhost:5181/api',
+        authService: authService);
+    fetchTypesReports(); // Fetch types of reports on init
   }
 
-  // Método para obtener los tipos de reportes
+  // Fetch report types from the API
   Future<void> fetchTypesReports() async {
     try {
-      List<TypesReport> fetchedReports = await _typesReportService.fetchTypesReports();
+      List<TypesReport> fetchedReports = await typesReportService.fetchTypesReports();
       setState(() {
         typesReports = fetchedReports;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al obtener los tipos de reportes')),
+        const SnackBar(content: Text('Error fetching report types')),
       );
     }
   }
 
-  // Método para seleccionar una imagen y luego subirla a Firebase
+  // Pick an image and upload it to Firebase
   Future<void> _pickImageAndUpload() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
@@ -54,46 +65,65 @@ class _AddReportState extends State<AddReport> {
         _imageFile = File(pickedFile.path);
       });
 
-      // Sube la imagen a Firebase Storage
+      // Upload the image to Firebase Storage
       String fileName = path.basename(pickedFile.path);
       try {
         FirebaseStorage storage = FirebaseStorage.instance;
         Reference ref = storage.ref().child('report_images/$fileName');
         UploadTask uploadTask = ref.putFile(_imageFile!);
 
-        // Espera a que la tarea se complete
+        // Wait for the upload to complete
         TaskSnapshot snapshot = await uploadTask.whenComplete(() => {});
         String downloadUrl = await snapshot.ref.getDownloadURL();
 
         setState(() {
-          imageUrl = downloadUrl; // Guarda la URL de la imagen
+          imageUrl = downloadUrl; // Save the image URL
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Imagen cargada exitosamente')),
+          const SnackBar(content: Text('Image uploaded successfully')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar la imagen: $e')),
+          SnackBar(content: Text('Error uploading image: $e')),
         );
       }
     }
   }
 
-  // Método para manejar el envío del formulario
-  void _submitReport() {
+  // Handle form submission
+  Future<void> _submitReport() async {
     String username = usernameController.text;
     String title = titleController.text;
     String content = contentController.text;
 
     if (username.isEmpty || title.isEmpty || content.isEmpty || selectedTypeReportId == null || imageUrl == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Todos los campos son obligatorios, incluyendo la imagen.')),
+        const SnackBar(content: Text('All fields are required, including the image.')),
       );
       return;
     }
 
-    // Aquí puedes manejar el envío del reporte al backend, incluyendo imageUrl
+    // Create the report data
+    Map<String, dynamic> reportData = {
+      'username': username,
+      'title': title,
+      'description': content,
+      'typesReportsId': selectedTypeReportId,
+      'fileUrl': imageUrl, // Use the uploaded image URL
+    };
+
+    try {
+      await reportService.createReport(reportData, _imageFile);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Report submitted successfully')),
+      );
+      Navigator.pop(context); // Return to the previous screen
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error submitting report: $e')),
+      );
+    }
   }
 
   @override
@@ -104,7 +134,7 @@ class _AddReportState extends State<AddReport> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Flecha y Título centrado
+            // Back arrow and centered title
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -117,7 +147,7 @@ class _AddReportState extends State<AddReport> {
                 const Expanded(
                   child: Center(
                     child: Text(
-                      'HACER UN REPORTE',
+                      'Create Report',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -125,12 +155,12 @@ class _AddReportState extends State<AddReport> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 48),
+                const SizedBox(width: 48), // Placeholder for space alignment
               ],
             ),
             const SizedBox(height: 16),
 
-            // Selección del tipo de reporte
+            // Dropdown for selecting report type
             typesReports.isEmpty
                 ? const CircularProgressIndicator()
                 : DropdownButton<int>(
@@ -138,7 +168,7 @@ class _AddReportState extends State<AddReport> {
                     items: typesReports.map((TypesReport reportType) {
                       return DropdownMenuItem<int>(
                         value: reportType.id,
-                        child: Text(reportType.name),
+                        child: Text(reportType.title),
                       );
                     }).toList(),
                     onChanged: (int? newValue) {
@@ -146,64 +176,64 @@ class _AddReportState extends State<AddReport> {
                         selectedTypeReportId = newValue;
                       });
                     },
-                    hint: const Text('Selecciona el tipo de reporte'),
+                    hint: const Text('Select report type'),
                   ),
           
             const SizedBox(height: 16),
 
-            // Campo de Usuario
-            const Text('Usuario'),
+            // User field
+            const Text('User'),
             TextField(
               controller: usernameController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Usuario',
+                labelText: 'User',
               ),
             ),
             const SizedBox(height: 16),
 
-            // Campo de Título
-            const Text('Título'),
+            // Title field
+            const Text('Title'),
             TextField(
               controller: titleController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Título',
+                labelText: 'Title',
               ),
             ),
             const SizedBox(height: 16),
 
-            // Campo de Contenido
-            const Text('Contenido'),
+            // Content field
+            const Text('Content'),
             TextField(
               controller: contentController,
               maxLines: 5,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Contenido',
+                labelText: 'Content',
               ),
             ),
             const SizedBox(height: 16),
 
-            // Botón para subir imagen
+            // Upload image button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  onPressed: _pickImageAndUpload, // Método para seleccionar e intentar subir una imagen
+                  onPressed: _pickImageAndUpload, // Select and upload image
                   style: ElevatedButton.styleFrom(
                     side: const BorderSide(color: Colors.black),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-                  child: const Text('Subir Imagen'),
+                  child: const Text('Upload Image'),
                 ),
               ],
             ),
             const SizedBox(height: 16),
 
-            // Botón de enviar el reporte
+            // Submit report button
             Center(
               child: ElevatedButton(
                 onPressed: _submitReport,
@@ -215,7 +245,7 @@ class _AddReportState extends State<AddReport> {
                   ),
                 ),
                 child: const Text(
-                  'Mandar',
+                  'Submit',
                   style: TextStyle(color: Colors.white),
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sweetmanager/supply-management/services/supplyservices.dart'; // Asegúrate de importar tu servicio
-import 'package:sweetmanager/supply-management/models/supply.dart';
+import 'package:sweetmanager/supply-management/services/supplyservices.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SupplyAddScreen extends StatefulWidget {
   const SupplyAddScreen({super.key});
@@ -16,13 +17,22 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stateController = TextEditingController();
 
-  bool isLoading = false; // Variable para manejar el estado de carga
+  bool isLoading = false;
 
-  final SupplyService _supplyService = SupplyService('https://example.com'); // Cambia la URL base
+  late SupplyService _supplyService;
+  late AuthService _authService;
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = AuthService();
+    _supplyService = SupplyService('http://localhost:5181', _authService);
+  }
 
   Future<void> _addSupply() async {
     setState(() {
-      isLoading = true; // Mostrar el indicador de carga
+      isLoading = true;
     });
 
     try {
@@ -36,28 +46,21 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
       };
 
       // Llamar al servicio para crear el suministro
-      await _supplyService.createSupply(newSupply);
+      final response = await _supplyService.createSupply(newSupply);
 
-      // Mostrar un mensaje de éxito o regresar a la pantalla anterior
-      Navigator.of(context).pop();
+      // Asumir que si no hubo error, la operación fue exitosa
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Supply addded succesfully')),
+      );
+      Navigator.of(context).pop(true); // Regresar con un resultado de éxito
     } catch (e) {
-      // Manejar errores (por ejemplo, mostrar un diálogo con el error)
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('Ocurrió un error al agregar el suministro: $e'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+      // Manejar errores con un Snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Faild to load supplies: $e')),
       );
     } finally {
       setState(() {
-        isLoading = false; // Ocultar el indicador de carga
+        isLoading = false;
       });
     }
   }
@@ -65,6 +68,10 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add Supply'),
+        backgroundColor: const Color(0xFF474C74),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -79,59 +86,59 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
-                    children: [
-                      Text(
-                        'Agregar Suministro',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF474C74)),
-                      ),
-                    ],
+                  const Text(
+                    'Add Supply',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF474C74),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   TextField(
-                    controller: _nameController, // Asignar controlador
+                    controller: _nameController,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.label),
-                      labelText: 'Nombre',
+                      labelText: 'Name',
                       border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
-                    controller: _providersIdController, // Asignar controlador
+                    controller: _providersIdController,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.person_2),
-                      labelText: 'ID del proveedor',
+                      labelText: 'Provider ID',
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.number, // Asegurar que solo se ingresen números
+                    keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 10),
                   TextField(
-                    controller: _stockController, // Asignar controlador
+                    controller: _stockController,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.shopping_cart),
                       labelText: 'Stock',
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.number, // Asegurar que solo se ingresen números
+                    keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 10),
                   TextField(
-                    controller: _priceController, // Asignar controlador
+                    controller: _priceController,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.attach_money),
-                      labelText: 'Precio',
+                      labelText: 'Price',
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.number, // Asegurar que solo se ingresen números
+                    keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 10),
                   TextField(
-                    controller: _stateController, // Asignar controlador
+                    controller: _stateController,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.check_circle),
-                      labelText: 'Estado',
+                      labelText: 'State',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -140,13 +147,16 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       isLoading
-                          ? const CircularProgressIndicator() // Mostrar indicador de carga si isLoading es true
+                          ? const CircularProgressIndicator()
                           : ElevatedButton(
-                              onPressed: _addSupply, // Llamar a la función para agregar el suministro
+                              onPressed: _addSupply,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF474C74),
                               ),
-                              child: const Text('Agregar', style: TextStyle(color: Colors.white)),
+                              child: const Text(
+                                'Add Supply',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                     ],
                   ),
@@ -161,7 +171,6 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
 
   @override
   void dispose() {
-    // Liberar los controladores de texto cuando se destruya el widget
     _nameController.dispose();
     _providersIdController.dispose();
     _stockController.dispose();

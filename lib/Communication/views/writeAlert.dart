@@ -1,69 +1,98 @@
 import 'package:flutter/material.dart';
-
+import 'package:sweetmanager/Communication/services/NotificationService.dart';
 import '../models/notification.dart';
-import '../components/notificationCard.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
 
-
-class WriteNotificationScreen extends StatefulWidget {
+class WriteAlertScreen extends StatefulWidget {
   @override
-  _WriteNotificationScreenState createState() => _WriteNotificationScreenState();
+  _WriteAlertScreenState createState() => _WriteAlertScreenState();
 }
 
-class _WriteNotificationScreenState extends State<WriteNotificationScreen> {
+class _WriteAlertScreenState extends State<WriteAlertScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String _selectedSeverity = 'Important';
 
-  // You can modify these default values as per your app's logic
-  final int _typesNotificationsId = 1; // Placeholder for notification type
-  final int _ownersId = 123; // Placeholder for owner ID
-  final int _adminsId = 456; // Placeholder for admin ID
-  final int _workersId = 789; // Placeholder for worker ID
+  late NotificationService notificationService;
 
-  void _submitNotification() {
-    if (_usernameController.text.isNotEmpty &&
-        _titleController.text.isNotEmpty &&
-        _descriptionController.text.isNotEmpty) {
-      Notifications newNotification = Notifications(
-        _typesNotificationsId,
-        _ownersId,
-        _adminsId,
-        _workersId,
-        _titleController.text,
-        _descriptionController.text,
-      );
-      print('Nueva notificación creada: ${newNotification.title}, ${newNotification.description}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('¡Notificación enviada con éxito!'),
-        ),
-      );
-      _usernameController.clear();
+  @override
+  void initState() {
+    super.initState();
+    final authService = AuthService(); // Instantiate AuthService
+    notificationService = NotificationService(
+      baseUrl: 'http://localhost:5181', // Adjust this to your API's base URL
+      authService: authService,
+    );
+  }
+
+  // Submit the alert notification
+  Future<void> _submitNotification() async {
+  if (_titleController.text.isNotEmpty && _descriptionController.text.isNotEmpty) {
+    try {
+      // Obtén todas las IDs de admins y workers
+      List<int> adminIds = await notificationService.getAllAdminIds();
+      List<int> workerIds = await notificationService.getAllWorkerIds();
+      final ownersId = await notificationService.authService.getOwnersId();
+  if (ownersId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Unable to get owner ID. Please log in again.')),
+    );
+    return;
+  }
+
+      // Crea y envía una notificación para cada admin y worker
+      for (int adminId in adminIds) {
+        for (int workerId in workerIds) {
+          Notifications newNotification = Notifications(
+            2, // typesNotificationsId para alertas
+            ownersId,
+            adminId, // ID del administrador
+            workerId, // ID del trabajador
+            _titleController.text,
+            _descriptionController.text,
+          );
+          bool success = await notificationService.createAlert(newNotification);
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Alert sent successfully!')),
+            );
+          }
+        }
+      }
+
+      // Limpiar campos después de enviar
       _titleController.clear();
       _descriptionController.clear();
       setState(() {
         _selectedSeverity = 'Important';
       });
-    } else {
+
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Por favor complete todos los campos.'),
-        ),
+        SnackBar(content: Text('Failed to send alert: $e')),
       );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please complete all fields.')),
+    );
   }
+
+
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('REGISTRO DE NOTIFICACIONES'),
+        title: const Text('REGISTER ALERT'),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           color: Color(0xFF183952),
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -74,8 +103,8 @@ class _WriteNotificationScreenState extends State<WriteNotificationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              'Notificación',
+            const Text(
+              'Alert',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -85,31 +114,31 @@ class _WriteNotificationScreenState extends State<WriteNotificationScreen> {
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
-                labelText: 'Nombre de Usuario',
+                labelText: 'Username',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
-                labelText: 'Título',
+                labelText: 'Title',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Color(0xFF2C5282),
+                color: const Color(0xFF2C5282),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
-                'SU NOTIFICACIÓN SERÁ ENVIADA A TODOS LOS TRABAJADORES Y ADMINISTRADORES',
+              child: const Text(
+                'YOUR ALERT WILL BE SENT TO ALL WORKERS AND ADMINISTRATORS',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -117,11 +146,11 @@ class _WriteNotificationScreenState extends State<WriteNotificationScreen> {
                 textAlign: TextAlign.center,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                'Gravedad',
+              child: const Text(
+                'Severity',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -139,7 +168,7 @@ class _WriteNotificationScreenState extends State<WriteNotificationScreen> {
                       _selectedSeverity = value.toString();
                     });
                   },
-                  title: Text('Important', style: TextStyle(color: Color(0xFF183952))),
+                  title: const Text('Important', style: TextStyle(color: Color(0xFF183952))),
                 ),
                 RadioListTile(
                   value: 'Extreme',
@@ -149,7 +178,7 @@ class _WriteNotificationScreenState extends State<WriteNotificationScreen> {
                       _selectedSeverity = value.toString();
                     });
                   },
-                  title: Text('Extreme', style: TextStyle(color: Color(0xFF183952))),
+                  title: const Text('Extreme', style: TextStyle(color: Color(0xFF183952))),
                 ),
                 RadioListTile(
                   value: 'Warning',
@@ -159,33 +188,33 @@ class _WriteNotificationScreenState extends State<WriteNotificationScreen> {
                       _selectedSeverity = value.toString();
                     });
                   },
-                  title: Text('Warning', style: TextStyle(color: Color(0xFF183952))),
+                  title: const Text('Warning', style: TextStyle(color: Color(0xFF183952))),
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             TextField(
               controller: _descriptionController,
               maxLines: 4,
               decoration: InputDecoration(
-                labelText: 'Describa el incidente',
+                labelText: 'Describe the incident',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             ElevatedButton(
               onPressed: _submitNotification,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF2C5282),
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                backgroundColor: const Color(0xFF2C5282),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text(
-                'ENVIAR',
+              child: const Text(
+                'SEND',
                 style: TextStyle(color: Colors.white),
               ),
             ),
