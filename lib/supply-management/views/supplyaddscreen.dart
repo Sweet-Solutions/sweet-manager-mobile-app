@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/supply-management/services/supplyservices.dart'; // Asegúrate de importar tu servicio
-import 'package:sweetmanager/supply-management/models/supply.dart';
 
 class SupplyAddScreen extends StatefulWidget {
   const SupplyAddScreen({super.key});
