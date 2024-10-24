@@ -67,7 +67,7 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       color: Color(0xFF494E74),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           Expanded(child: Text('Name', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
@@ -80,8 +80,8 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
                     columnSpacing: 5,
                     dataRowHeight: 40,
                     rowsPerPage: rowsPerPage,
-                    availableRowsPerPage: [4],
-                    columns: [
+                    availableRowsPerPage: const [4],
+                    columns: const [
                       DataColumn(label: Text('')),
                       DataColumn(label: Text('')),
                       DataColumn(label: Text('')),
