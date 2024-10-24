@@ -435,7 +435,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
           ),
         ),
         const SizedBox(height: 8),
-        const Align(
+        /* const Align(
           alignment: Alignment.centerLeft,
           child: Text(
             '• At least one character in uppercase and lowercase\n'
@@ -445,7 +445,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 12), */
         Row(
           children: [
             Checkbox(

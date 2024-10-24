@@ -1,9 +1,9 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:sweetmanager/Commerce/services/commerce_service.dart';
+import 'package:sweetmanager/Profiles/Views/hotelView.dart';
+import 'package:sweetmanager/Profiles/hotel/models/hotel.dart';
+import 'package:sweetmanager/Profiles/hotel/services/hotel_service.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class HotelRegistration extends StatefulWidget {
@@ -19,7 +19,7 @@ class _HotelRegistrationState extends State<HotelRegistration> {
 
   final storage = const FlutterSecureStorage();
 
-  final _commerceService = CommerceService();
+  final _hotelService = HotelService();
 
   // Declare all variables
 
@@ -33,7 +33,6 @@ class _HotelRegistrationState extends State<HotelRegistration> {
 
   final TextEditingController _emailController = TextEditingController();
 
-
   Future<String?> _getIdentity() async
   {
     // Retrieve token from local storage
@@ -44,9 +43,8 @@ class _HotelRegistrationState extends State<HotelRegistration> {
 
     // Get Role in Claims token
 
-    return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/Sid']?.toString();
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid']?.toString();
   }
-
 
   @override
   void initState() {
@@ -151,7 +149,31 @@ class _HotelRegistrationState extends State<HotelRegistration> {
                       print('${_hotelDescriptionController.text}');
                       print('${_emailController.text}');
                       
-                      
+                      if(_hotelNameController.text.isEmpty || _hotelAddressController.text.isEmpty || _contactController.text.isEmpty || 
+                          _hotelDescriptionController.text.isEmpty || _emailController.text.isEmpty)
+                          {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please fill all the corresponding fields.'))
+                                );
+                            return;
+                          }
+
+                      var hotel = Hotel(name: _hotelNameController.text, address: _hotelAddressController.text, phoneNumber: _contactController.text, 
+                          email: _emailController.text, description: _hotelDescriptionController.text, ownerId: int.parse(identity));
+
+                      var validation = await _hotelService.registerHotel(hotel);
+
+                      if(validation != null)
+                      {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => HotelDetailScreen()));
+                      }
+                      else
+                      {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Couldnt create hotel'))
+                                );
+                        return;
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.indigo[800],

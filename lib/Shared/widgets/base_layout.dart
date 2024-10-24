@@ -89,7 +89,7 @@ class BaseLayout extends StatelessWidget{
           leading: const Icon(Icons.person),
           title: const Text('Profiles'),
           onTap: (){
-            Navigator.pushNamed(context, '/profile');
+            Navigator.pushNamed(context, '/profiles');
           },
         ),
       ];
