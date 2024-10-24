@@ -1,59 +1,105 @@
-import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/room.dart';
 
-class RoomService extends DataTableSource {
+class RoomService {
 
-  final BuildContext context;
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/v1/';
 
-  RoomService(this.context);
+  Future<bool> createRoom(Room room) async {
 
-  final List<Room> _data = [
-    Room(id: 1, typeRoomId: 2, hotelId: 101, roomState: 'OCUPADO'),
-    Room(id: 2, typeRoomId: 1, hotelId: 102, roomState: 'LIBRE'),
-  ];
+    if (room.typeRoomId == 0 || room.hotelId == 0 || room.roomState.isEmpty) {
 
-  @override
-  DataRow getRow(int index) {
+      throw Exception('All fields are required.');
+    }
 
-    final data = _data[index];
+    final response = await http.post(
 
-    return DataRow(cells: [
+      Uri.parse('${baseUrl}rooms'),
 
-      DataCell(Text(data.id.toString())),
-      DataCell(Text(data.typeRoomId.toString())),
-      DataCell(Text(data.hotelId.toString())),
-      DataCell(Text(data.roomState.toString())),
-      DataCell(TextButton(
-        onPressed: () {
-          final id = data.id;
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("Editar habitación"),
-                content: Text("Se modificara la información de la habitación $id"),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text("Aceptar"),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
-        child: const Text('Modificar'),
-      )),
-    ]);
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'typeRoomId': room.typeRoomId,
+        'hotelId': room.hotelId,
+        'roomState': room.roomState,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
   }
 
-  @override
-  bool get isRowCountApproximate => false;
-  @override
-  int get rowCount => _data.length;
-  @override
-  int get selectedRowCount => 0;
+  Future<bool> updateRoom(int id, Room room) async {
+
+    if (room.typeRoomId == 0 || room.hotelId == 0 || room.roomState.isEmpty) {
+
+      throw Exception('All fields are required.');
+    }
+
+    final response = await http.post(
+
+      Uri.parse('${baseUrl}rooms/$id'),
+
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'typeRoomId': room.typeRoomId,
+        'hotelId': room.hotelId,
+        'roomState': room.roomState,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
+  }
+
+  Future<List<Room>> getRooms() async {
+
+    final response = await http.get(Uri.parse('${baseUrl}rooms'));
+
+    if (response.statusCode == 200) {
+
+      List<dynamic> data = json.decode(response.body);
+
+      return data.map((roomJson) => Room(
+        id: roomJson['id'],
+        typeRoomId: roomJson['typeRoomId'],
+        hotelId: roomJson['hotelId'],
+        roomState: roomJson['roomState']
+      )).toList();
+
+    } else {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
+  }
+
+  Future<Room> getRoomById(int id) async {
+
+    if (id == 0) {
+
+      throw Exception('The provider id cannot be 0.');
+    }
+
+    final response = await http.get(Uri.parse('${baseUrl}rooms/$id'));
+
+    if (response.statusCode == 200) {
+
+      var roomJson = json.decode(response.body);
+
+      return Room(
+          id: roomJson['id'],
+          typeRoomId: roomJson['typeRoomId'],
+          hotelId: roomJson['hotelId'],
+          roomState: roomJson['roomState']
+      );
+    }
+    else {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
+  }
 }
