@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:sweetmanager/Profiles/Views/hotelView.dart';
-import 'package:sweetmanager/Profiles/hotel/models/hotel.dart';
-import 'package:sweetmanager/Profiles/hotel/services/hotel_service.dart';
+import 'package:sweetmanager/Profiles/hotels/models/hotel.dart';
+import 'package:sweetmanager/Profiles/hotels/service/hotelservices.dart';
+import 'package:sweetmanager/Profiles/hotels/view/hotelView.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class HotelRegistration extends StatefulWidget {
