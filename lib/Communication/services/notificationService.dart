@@ -4,10 +4,10 @@ import '../models/notification.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
 
 class NotificationService {
-  final String baseUrl;
-  final AuthService authService; // AuthService dependency
+  final String baseUrl = "https://sweetmanager-api.ryzeon.me"; // Base URL
+  final AuthService authService = AuthService(); // AuthService dependency
 
-  NotificationService({required this.baseUrl, required this.authService});
+  NotificationService();
 
   // Helper method to get the headers with the token
   Future<Map<String, String>> _getHeaders() async {

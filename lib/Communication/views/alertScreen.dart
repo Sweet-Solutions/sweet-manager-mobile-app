@@ -23,10 +23,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
   @override
   void initState() {
     super.initState();
-    final authService = AuthService(); 
     notificationService = NotificationService(
-      baseUrl: 'https://sweetmanager-api.ryzeon.me/', 
-      authService: authService,
     );
     fetchAlertNotifications(); 
   }

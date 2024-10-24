@@ -27,8 +27,6 @@ class _MessagescreenState extends State<Messagescreen> {
     super.initState();
     final authService = AuthService(); 
     notificationService = NotificationService(
-      baseUrl: 'http://localhost:5181', 
-      authService: authService,
     );
     fetchMessages(); 
   }

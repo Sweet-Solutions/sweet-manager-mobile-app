@@ -21,8 +21,7 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
     super.initState();
     final authService = AuthService(); // Instantiate AuthService
     notificationService = NotificationService(
-      baseUrl: 'http://localhost:5181', // Adjust this to your API's base URL
-      authService: authService,
+
     );
   }
 

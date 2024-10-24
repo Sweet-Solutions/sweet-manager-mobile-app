@@ -54,8 +54,6 @@ class _ComposeMessageState extends State<ComposeMessage> {
     super.initState();
     final authService = AuthService(); // Instantiate AuthService
     notificationService = NotificationService(
-      baseUrl: 'http://localhost:5181', // Adjust to your API URL
-      authService: authService,
     );
   }
 
