@@ -1,40 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HotelForm(),
-    );
-  }
+@override
+Widget build(BuildContext context) { // Implements design for login view.
+  return BaseLayout(role: '', childScreen: HotelForm());
 }
 
 class HotelForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Sweet Manager',style: TextStyle(color: Colors.white),),
-        backgroundColor: Color(0xFF1C4257), // Color similar al azul de la cabecera
-        actions: [
-          IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {
-              // Acción para el ícono del menú
-            },
-          )
-        ],
-      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // Aquí envolvemos el Column en un SingleChildScrollView
+        child: SingleChildScrollView( // Envolvemos el Column en un SingleChildScrollView
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(height: 20),
               _buildTextField('Hotel Name', 'Heden Golf'),
               SizedBox(height: 16),
               _buildTextField('Hotel Address', 'Av. La Mar'),
@@ -57,14 +39,13 @@ class HotelForm extends StatelessWidget {
                     backgroundColor: Color(0xFF1C4257),
                     padding: EdgeInsets.symmetric(vertical: 16.0),
                   ),
-                  child: Text('Save', style: TextStyle(fontSize: 16,color: Colors.white)),
+                  child: Text('Save', style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
               ),
             ],
           ),
         ),
       ),
-
     );
   }
 

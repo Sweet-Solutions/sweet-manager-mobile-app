@@ -7,7 +7,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 // For secure storage
 
+@override
+Widget build(BuildContext context) {
+  return const BaseLayout(role: '', childScreen: Messagescreen());
+}
+
 class Messagescreen extends StatefulWidget {
+  const Messagescreen({super.key});
+
   @override
   _MessagescreenState createState() => _MessagescreenState();
 }
@@ -15,7 +22,10 @@ class Messagescreen extends StatefulWidget {
 class _MessagescreenState extends State<Messagescreen> {
   List<Notifications> _messages = []; // List of fetched messages
   List<Notifications> _filteredMessages = [];
+  
+  // ignore: unused_field
   String _searchQuery = '';
+  
   Set<int> _selectedMessageIndices = {};
   bool isLoading = true;
   late NotificationService notificationService;
@@ -133,6 +143,74 @@ class _MessagescreenState extends State<Messagescreen> {
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
+    return Scaffold(
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'Message Registry',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              onChanged: _filterMessages,
+              decoration: InputDecoration(
+                hintText: 'Search message',
+                hintStyle: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                ),
+                filled: true,
+                fillColor: const Color(0xFF4A4E69),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _filteredMessages.length,
+                itemBuilder: (context, index) {
+                  final notification = _filteredMessages[index];
+                  return Dismissible(
+                    key: Key(notification.title),
+                    onDismissed: (direction) {
+                      setState(() {
+                        _filteredMessages.removeAt(index);
+                        _selectedMessageIndices.remove(index);
+                      });
+                    },
+                    background: Container(color: Colors.red),
+                    child: MessageTile(
+                      notification.title,
+                      notification.description,
+                      notification.typesNotificationsId.toString(),
+                      isSelected: _selectedMessageIndices.contains(index),
+                      onSelect: () => _selectMessage(index),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    // Add functionality to create a new message
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2C5282),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   const SizedBox(height: 16),

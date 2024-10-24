@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
 import 'package:sweetmanager/Communication/views/messageScreen.dart';
+import 'package:sweetmanager/Communication/views/notificationScreen.dart';
 import 'package:sweetmanager/IAM/views/home.dart';
 import 'package:sweetmanager/IAM/views/login.dart';
 import 'package:sweetmanager/Monitoring/views/tableroom.dart';
-import 'package:sweetmanager/Profiles/Views/ownerProfile.dart';
-import 'package:sweetmanager/Profiles/Views/providers/management_provider_page.dart';
+import 'package:sweetmanager/Profiles/providers/views/management_provider_page.dart';
+import 'package:sweetmanager/Profiles/views/profile.dart';
 import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
 import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
 import 'package:sweetmanager/Communication/views/writeMessage.dart';
@@ -17,8 +19,25 @@ import 'package:sweetmanager/Communication/views/notificationScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   runApp( const MyHomePage());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializa Firebase con la configuración correcta para la web
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyBTGEj8JZrWvn62ZtofnaGr-LluqliNXMc",
+      authDomain: "sweet-solutions.firebaseapp.com",
+      projectId: "sweet-solutions",
+      storageBucket: "sweet-solutions.appspot.com",
+      messagingSenderId: "180154492305",
+      appId: "1:180154492305:web:b156d317f56c1d4f34a630",
+    ),
+  );
+
+  runApp(const MyHomePage());
+
 }
 
 class MyHomePage extends StatelessWidget {
@@ -36,10 +55,9 @@ class MyHomePage extends StatelessWidget {
         '/home': (context) => const HomeView(), // the default app's entry point 
         '/login': (context) => const LogInScreen(),
         '/dashboard': (context) => const DashboardScreen(),
-        '/subscription': (context) => SubscriptionPlansView
-        (),
+        '/subscription': (context) => const SubscriptionPlansView(),
         '/rooms': (context) => TableRoom(),
-        '/providers': (context) => GestionProveedoresPage(),
+        '/providers': (context) => ManageProvidersPage(),
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
         '/messages': (context) => Messagescreen(),
@@ -50,7 +68,6 @@ class MyHomePage extends StatelessWidget {
         '/alerts': (context) => AlertsScreen(),
         '/writealert': (context) => WriteAlertScreen(),
         '/notifications': (context) => NotificationsScreen(),
-        
       },
     );
   }

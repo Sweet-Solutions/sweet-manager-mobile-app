@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: WorkerListScreen(),
-    );
-  }
+@override
+Widget build(BuildContext context) { // Implements design for login view.
+  return BaseLayout(role: '', childScreen: WorkerListScreen());
 }
 
 class WorkerListScreen extends StatelessWidget {
@@ -24,19 +17,6 @@ class WorkerListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF1C4257),
-        title: Text(
-          'Sweet Manager',
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -79,7 +59,10 @@ class WorkerListScreen extends StatelessWidget {
                   backgroundColor: Color(0xFF1C4257),
                   padding: EdgeInsets.symmetric(vertical: 16.0),
                 ),
-                child: Text('Invitar trabajador', style: TextStyle(color: Colors.white, fontSize: 16)),
+                child: Text(
+                  'Invitar trabajador',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               ),
             ),
           ],

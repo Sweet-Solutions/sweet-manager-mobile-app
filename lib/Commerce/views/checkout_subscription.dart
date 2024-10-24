@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Commerce/services/commerce_service.dart';
+import 'package:sweetmanager/Commerce/views/hotel_registration.dart';
 import 'package:sweetmanager/Commerce/widgets/plan_card.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
@@ -11,9 +15,14 @@ class CheckoutSubscription extends StatefulWidget {
   State<CheckoutSubscription> createState() => CheckoutSubscriptionState();
 }
 
+
 class CheckoutSubscriptionState extends State<CheckoutSubscription> {
 
+  // Declare services
 
+  final _commerceService = CommerceService();
+
+  final storage = const FlutterSecureStorage();
   // Declare all the variables 
 
   final TextEditingController _cardOwnerController = TextEditingController();
@@ -36,6 +45,20 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
     cardIdentifier = widget.cardIdentifier;
   }
 
+  Future<String?> _getIdentity() async
+  {
+    // Retrieve token from local storage
+
+    String? token = await storage.read(key: 'token');
+
+    Map<String,dynamic> decodedToken = JwtDecoder.decode(token!);
+
+    // Get Role in Claims token
+
+    return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/Sid']?.toString();
+  }
+
+
   @override
   void dispose() {
     _cardOwnerController.dispose();
@@ -53,10 +76,30 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseLayout(role: '', childScreen: getContentView());
+    return FutureBuilder(
+      future: _getIdentity(),
+      builder: (context, snapshot) {
+        if(snapshot.connectionState == ConnectionState.waiting)
+        {
+          return const Center(child: CircularProgressIndicator(),);
+        }
+
+        if(snapshot.hasData)
+        {
+          String identity = snapshot.data!;
+
+          return BaseLayout(
+            role: '',
+            childScreen: getContentView(identity, context)
+          );
+        }
+
+        return const Center(child: Text('Unable to get information', textAlign: TextAlign.center,));
+      }
+    );
   }
 
-  Widget getContentView()
+  Widget getContentView(String identity, BuildContext context)
   {
     return Scaffold(
       body: Stack(
@@ -156,7 +199,7 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       // Access cardIdentifier here
                       print('Card identifier: $cardIdentifier');
                       print('Card owner: ${_cardOwnerController.text}');
@@ -165,7 +208,45 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
                       print('Security code: ${_securityCodeController.text}');
                       print('Email: ${_emailController.text}');
 
-                      
+                      if(_cardOwnerController.text.isEmpty || _cardNumberController.text.isEmpty || _expiryDateController.text.isEmpty 
+                        || _securityCodeController.text.isEmpty || _emailController.text.isEmpty)
+                        {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please fill all the corresponding fields.'))
+                                );
+                          return;
+                        }
+
+                      double finalAmount = 0;
+
+                      if(cardIdentifier == 1)
+                      {
+                        finalAmount = 29.5;
+                      }
+                      else if(cardIdentifier == 2)
+                      {
+                        finalAmount = 58.99;
+                      }
+                      else
+                      {
+                        finalAmount = 110.69;
+                      }
+
+                      var response = await _commerceService.createPaymentOwner(int.parse(identity), 'SUBSCRIPTION PAYMENT', finalAmount);
+
+                      if(response)
+                      {
+                        await _commerceService.registerContract(cardIdentifier, int.parse(identity));
+
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const HotelRegistration()));
+                      }
+                      else
+                      {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please fill all the corresponding fields.'))
+                                );
+                          return;
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.indigo[800],

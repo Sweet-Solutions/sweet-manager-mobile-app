@@ -12,3 +12,9 @@ class Report{
   required this.fileUrl, required this.title, required this.description});
 }
 
+//hacer un dropdown con los tipos de reportes
+//chequear los ids del type reports
+
+
+// prox semana: añadirle firebase 
+// flutterfire 

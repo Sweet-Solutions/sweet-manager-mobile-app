@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/supply-management/models/supply.dart';
+import 'package:sweetmanager/supply-management/services/supplyservices.dart'; // Asegúrate de importar tu servicio
 
 class SupplyEditScreen extends StatefulWidget {
   final Supply supply; // Este es el supply que se va a editar.
@@ -16,6 +17,9 @@ class _SupplyEditScreenState extends State<SupplyEditScreen> {
   late TextEditingController _stockController;
   late TextEditingController _priceController;
   late TextEditingController _stateController;
+  bool isLoading = false; // Variable para el estado de carga
+
+  final SupplyService _supplyService = SupplyService('https://example.com'); // Cambia la URL base
 
   @override
   void initState() {
@@ -39,10 +43,51 @@ class _SupplyEditScreenState extends State<SupplyEditScreen> {
     super.dispose();
   }
 
+  Future<void> _updateSupply() async {
+    setState(() {
+      isLoading = true; // Mostrar el indicador de carga
+    });
+
+    try {
+      // Actualizar el objeto supply con los nuevos valores del formulario
+      Map<String, dynamic> updatedSupply = {
+        'name': _nameController.text,
+        'providersId': int.parse(_providersIdController.text),
+        'stock': int.parse(_stockController.text),
+        'price': double.parse(_priceController.text),
+        'state': _stateController.text,
+      };
+
+      // Llamar al servicio para actualizar el suministro
+      await _supplyService.updateSupply(widget.supply.id, updatedSupply);
+
+      // Regresar a la pantalla anterior con los datos actualizados
+      Navigator.of(context).pop(updatedSupply);
+    } catch (e) {
+      // Manejar errores (por ejemplo, mostrar un diálogo con el error)
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('Ocurrió un error al actualizar el suministro: $e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false; // Ocultar el indicador de carga
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       body: Padding(
         padding: const EdgeInsets.all(16.0), // Añadir un espacio alrededor de todo el contenido
         child: Center(
@@ -51,7 +96,7 @@ class _SupplyEditScreenState extends State<SupplyEditScreen> {
               borderRadius: BorderRadius.circular(15.0), // Radio de 15 px
             ),
             elevation: 8,
-            child: Padding( 
+            child: Padding(
               padding: const EdgeInsets.all(20.0), // Añadir un espacio alrededor del contenido del Card
               child: Column(
                 mainAxisSize: MainAxisSize.min, // Tamaño principal mínimo
@@ -100,22 +145,12 @@ class _SupplyEditScreenState extends State<SupplyEditScreen> {
                   const Divider(),
                   
                   // Botón de guardar cambios
-                  ElevatedButton(
-                    onPressed: () {
-                      // Actualizar el objeto supply con los nuevos valores
-                      final updatedSupply = Supply(
-                        id: widget.supply.id,
-                        name: _nameController.text,
-                        providersId: int.parse(_providersIdController.text),
-                        stock: int.parse(_stockController.text),
-                        price: double.parse(_priceController.text),
-                        state: _stateController.text,
-                      );
-                      // Devolver el objeto actualizado a la pantalla anterior
-                      Navigator.of(context).pop(updatedSupply);
-                    },
-                    child: const Text('Guardar cambios'),
-                  ),
+                  isLoading
+                    ? const Center(child: CircularProgressIndicator()) // Mostrar indicador de carga si isLoading es true
+                    : ElevatedButton(
+                        onPressed: _updateSupply, // Llamar al método que actualiza el suministro
+                        child: const Text('Guardar cambios'),
+                      ),
                 ],
               ),
             ),

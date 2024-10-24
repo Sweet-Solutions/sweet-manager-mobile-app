@@ -14,7 +14,7 @@ class CommerceService {
   Future<bool> registerContract(int subscriptionId, int ownersId) async
   {
     try {
-      final String? token = await storage.read(key: 'token');
+      final token = await storage.read(key: 'token');
 
       final response = await http.post(Uri.parse('$baseUrl/contracts/create-contract-owner'), 
        headers: {
