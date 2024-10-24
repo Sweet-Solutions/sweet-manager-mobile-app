@@ -1,155 +1,130 @@
 import 'package:flutter/material.dart';
-import '../../Shared/widgets/base_layout.dart';
-import '../components/dotsIndicator.dart';
+import 'package:sweetmanager/Communication/services/NotificationService.dart';
 import '../models/notification.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
+import '../components/dotsIndicator.dart';
 import '../components/notificationCard.dart';
-
-@override
-Widget build(BuildContext context) {
-  return BaseLayout(role: '', childScreen: NotificationsScreen());
-}
+import 'package:sweetmanager/Shared/widgets/base_layout.dart'; 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
-
   @override
   _NotificationsScreenState createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   int _currentPage = 0;
+  bool isLoading = true;
+  List<List<Notifications>> paginatedNotifications = []; // List of paginated notifications
 
+  late NotificationService notificationService;
+  final storage = const FlutterSecureStorage();
+  String? role;
+
+  @override
+  void initState() {
+    super.initState();
+    final authService = AuthService(); // Instantiate AuthService
+    notificationService = NotificationService(
+    );
+    fetchNotifications(); // Fetch notifications on init
+  }
+
+  // Método para obtener el rol del token
+  Future<String?> _getRole() async {
+    String? token = await storage.read(key: 'token');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    }
+    return null;
+  }
+
+  // Fetch all notifications
+  Future<void> fetchNotifications() async {
+    try {
+      final notifications = await notificationService.getAllNotifications(1); // Pass the correct hotel ID
+      setState(() {
+        paginatedNotifications = _paginateNotifications(notifications); // Paginate the notifications
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load notifications: $e')),
+      );
+      print("Error fetching notifications: $e");
+    }
+  }
+
+  // Paginate the notifications into chunks of 2 (or any number per page)
+  List<List<Notifications>> _paginateNotifications(List<Notifications> notifications) {
+    List<List<Notifications>> pages = [];
+    int pageSize = 2;
+
+    for (var i = 0; i < notifications.length; i += pageSize) {
+      pages.add(notifications.sublist(i, i + pageSize > notifications.length ? notifications.length : i + pageSize));
+    }
+    return pages;
+  }
+
+  // Change page for pagination
   void _changePage(int pageIndex) {
     setState(() {
       _currentPage = pageIndex;
     });
   }
 
-  List<Widget> _getNotificationsForPage(int page) {
-    switch (page) {
-      case 0:
-        return [
-          NotificationCard(
-            notification: Notifications(
-              1,
-              101,
-              201,
-              301,
-              'Reunión de Administradores',
-              'Reunión en la sala de conferencias para discutir la estrategia del mes.',
-            ),
-          ),
-          NotificationCard(
-            notification: Notifications(
-              2,
-              101,
-              201,
-              301,
-              'Taller de Capacitación',
-              'Capacitación en la sala de capacitación sobre nuevas tecnologías.',
-            ),
-          ),
-        ];
-      case 1:
-        return [
-          NotificationCard(
-            notification: Notifications(
-              1,
-              101,
-              201,
-              301,
-              'Llamada de Proveedores',
-              'Llamada con proveedores para discutir los términos del acuerdo.',
-            ),
-          ),
-          NotificationCard(
-            notification: Notifications(
-              2,
-              101,
-              201,
-              301,
-              'Revisión de Inventario',
-              'Revisión del inventario en el almacén central.',
-            ),
-          ),
-        ];
-      case 2:
-        return [
-          NotificationCard(
-            notification: Notifications(
-              1,
-              101,
-              201,
-              301,
-              'Reunión de Marketing',
-              'Reunión en la sala ejecutiva para definir la estrategia de marketing.',
-            ),
-          ),
-          NotificationCard(
-            notification: Notifications(
-              2,
-              101,
-              201,
-              301,
-              'Presentación de Proyectos',
-              'Presentación en el auditorio principal sobre los proyectos del trimestre.',
-            ),
-          ),
-        ];
-      default:
-        return [];
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.notifications_none, color: Colors.black, size: 36),
-            SizedBox(width: 8),
-            Text(
-              'Notifications',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Colors.black, size: 32),
-            onPressed: () {},
+    return FutureBuilder<String?>(
+      future: _getRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error loading role'));
+        }
+
+        role = snapshot.data;
+
+        return BaseLayout(
+          role: role,
+          childScreen: Scaffold(
+            body: isLoading
+                ? const Center(child: CircularProgressIndicator()) // Show loading spinner
+                : Column(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: ListView(
+                            key: ValueKey<int>(_currentPage),
+                            padding: const EdgeInsets.all(16),
+                            children: paginatedNotifications.isNotEmpty
+                                ? paginatedNotifications[_currentPage].map((notification) {
+                                    return NotificationCard(notification: notification);
+                                  }).toList()
+                                : [],
+                          ),
+                        ),
+                      ),
+                      DotsIndicator(
+                        currentPage: _currentPage,
+                        onPageSelected: _changePage,
+                      ),
+                      SupportSection(),
+                    ],
+                  ),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: ListView(
-                key: ValueKey<int>(_currentPage),
-                padding: const EdgeInsets.all(16),
-                children: _getNotificationsForPage(_currentPage),
-              ),
-            ),
-          ),
-          DotsIndicator(
-            currentPage: _currentPage,
-            onPageSelected: _changePage,
-          ),
-          SupportSection(),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -162,7 +137,7 @@ class SupportSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Report a Problem',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -170,32 +145,34 @@ class SupportSection extends StatelessWidget {
               color: Color(0xFF091E3D),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           TextField(
             maxLines: 5,
             decoration: InputDecoration(
               hintText: 'Describe your issue...',
               filled: true,
-              fillColor: const Color(0xFF2196F3).withOpacity(0.1),
+              fillColor: Color(0xFF2196F3).withOpacity(0.1),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF183952)),
+                borderSide: BorderSide(color: Color(0xFF183952)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF0066CC)),
+                borderSide: BorderSide(color: Color(0xFF0066CC)),
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Center(
             child: SizedBox(
               width: 180,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Add report submission logic if needed
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF183952),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: Color(0xFF183952),
+                  padding: EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(50),
                   ),
@@ -217,3 +194,4 @@ class SupportSection extends StatelessWidget {
     );
   }
 }
+

@@ -1,7 +1,14 @@
 
 import 'package:flutter/material.dart';
-import '../../Shared/widgets/base_layout.dart';
+import 'package:sweetmanager/Communication/services/NotificationService.dart';
 import '../models/notification.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
+class AlertsScreen extends StatefulWidget {
+  const AlertsScreen({Key? key}) : super(key: key);
 
 @override
 Widget build(BuildContext context) {
@@ -17,6 +24,46 @@ class AlertsScreen extends StatefulWidget {
 }
 
 class _AlertsScreenState extends State<AlertsScreen> {
+  List<Notifications> alertNotifications = []; // List of fetched notifications
+  bool isLoading = true;
+  late NotificationService notificationService;
+  final storage = const FlutterSecureStorage();
+  String? role;
+
+  @override
+  void initState() {
+    super.initState();
+    notificationService = NotificationService(
+    );
+    fetchAlertNotifications(); 
+  }
+
+  // Método para obtener el rol del token
+  Future<String?> _getRole() async {
+    String? token = await storage.read(key: 'token');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    }
+    return null;
+  }
+
+  Future<void> fetchAlertNotifications() async {
+    try {
+      final notifications = await notificationService.getAlertNotifications(1); // Pass the correct hotel ID
+      setState(() {
+        alertNotifications = notifications;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load notifications: $e')),
+      );
+    }
+  }
   final List<Notifications> alertNotifications = [
     Notifications(1, 1, 2, 3, 'Power Outage Scheduled', 'There will be a power outage in the hotel from 2 AM to...'),
     Notifications(2, 1, 2, 3, 'Emergency Fire Drill', 'An emergency fire drill will take place at 10 AM today...'),
@@ -35,74 +82,77 @@ class _AlertsScreenState extends State<AlertsScreen> {
   void removeNotification(int index) {
     setState(() {
       alertNotifications.removeAt(index);
-      _isHoveringNotification.remove(index);
-      // Update hover states after removal
-      _isHoveringNotification.forEach((key, value) {
-        if (key > index) {
-          _isHoveringNotification[key - 1] = value;
-        }
-      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Alerts',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: alertNotifications.length,
-                itemBuilder: (context, index) {
-                  return MouseRegion(
-                    onEnter: (_) {
-                      setState(() {
-                        _isHoveringNotification[index] = true;
-                      });
+    return FutureBuilder<String?>(
+      future: _getRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error loading role'));
+        }
+
+        role = snapshot.data;
+
+        return BaseLayout(
+          role: role,
+          childScreen: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Alerts',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/writealert');
                     },
-                    onExit: (_) {
-                      setState(() {
-                        _isHoveringNotification[index] = false;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
-                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                      decoration: BoxDecoration(
-                        color: _isHoveringNotification[index] ?? false
-                            ? Colors.grey[100]
-                            : (index % 2 == 0 ? Colors.white : const Color(0xFFDEE8EB)),
-                        borderRadius: BorderRadius.circular(8.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            spreadRadius: 1,
-                            blurRadius: 2,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: NotificationCard(
-                        notification: alertNotifications[index],
-                        index: index,
-                        removeNotification: removeNotification,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2C5282),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                  );
-                },
+                    child: const Text(
+                      'Write Alert',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  isLoading
+                      ? const Center(child: CircularProgressIndicator()) // Show a loading spinner
+                      : Expanded(
+                          child: ListView.builder(
+                            itemCount: alertNotifications.length,
+                            itemBuilder: (context, index) {
+                              return NotificationCard(
+                                notification: alertNotifications[index],
+                                index: index,
+                                removeNotification: removeNotification,
+                              );
+                            },
+                          ),
+                        ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -113,36 +163,30 @@ class NotificationCard extends StatelessWidget {
   final Function(int) removeNotification;
 
   const NotificationCard({
-    super.key,
+    Key? key,
     required this.notification,
     required this.index,
     required this.removeNotification,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              notification.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(notification.description),
-          ],
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+      child: ListTile(
+        title: Text(
+          notification.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        IconButton(
+        subtitle: Text(notification.description),
+        trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () => removeNotification(index),
         ),
-      ],
+      ),
     );
   }
 }
+
+
+

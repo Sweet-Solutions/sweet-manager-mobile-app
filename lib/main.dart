@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
+import 'package:sweetmanager/Communication/views/messageScreen.dart';
 import 'package:sweetmanager/Communication/views/notificationScreen.dart';
 import 'package:sweetmanager/IAM/views/home.dart';
 import 'package:sweetmanager/IAM/views/login.dart';
@@ -10,6 +11,15 @@ import 'package:sweetmanager/Profiles/providers/views/management_provider_page.d
 import 'package:sweetmanager/Profiles/views/profile.dart';
 import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
 import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
+import 'package:sweetmanager/Communication/views/writeMessage.dart';
+import 'package:sweetmanager/Communication/views/alertScreen.dart';
+import 'package:sweetmanager/Communication/views/writeAlert.dart';
+import 'package:sweetmanager/Communication/views/notificationScreen.dart';
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp( const MyHomePage());
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +37,7 @@ void main() async {
   );
 
   runApp(const MyHomePage());
+
 }
 
 class MyHomePage extends StatelessWidget {
@@ -49,10 +60,14 @@ class MyHomePage extends StatelessWidget {
         '/providers': (context) => ManageProvidersPage(),
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
-        '/notifications': (context) => const NotificationsScreen(),
+        '/messages': (context) => Messagescreen(),
         // ignore: prefer_const_constructors
         '/reports': (context) => ReportList(),
         '/profiles': (context) => ProfilePage(),
+        '/writemessage': (context) => WriteMessage(),
+        '/alerts': (context) => AlertsScreen(),
+        '/writealert': (context) => WriteAlertScreen(),
+        '/notifications': (context) => NotificationsScreen(),
       },
     );
   }
