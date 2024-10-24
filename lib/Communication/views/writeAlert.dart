@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
-
-import '../../Communication/models/notification.dart';
-import '../../Shared/widgets/base_layout.dart';
-
-@override
-Widget build(BuildContext context) {
-  return const BaseLayout(role: '', childScreen: WriteAlertScreen());
-}
+import 'package:sweetmanager/Communication/services/NotificationService.dart';
+import '../models/notification.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
 
 class WriteAlertScreen extends StatefulWidget {
-  const WriteAlertScreen({super.key});
-
   @override
   _WriteAlertScreenState createState() => _WriteAlertScreenState();
 }
@@ -21,56 +14,95 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   String _selectedSeverity = 'Important';
 
-  // You can modify these default values as per your app's logic
-  final int _typesNotificationsId = 1; // Placeholder for notification type
-  final int _ownersId = 123; // Placeholder for owner ID
-  final int _adminsId = 456; // Placeholder for admin ID
-  final int _workersId = 789; // Placeholder for worker ID
+  late NotificationService notificationService;
 
-  void _submitAlert() {
-    if (_usernameController.text.isNotEmpty &&
-        _titleController.text.isNotEmpty &&
-        _descriptionController.text.isNotEmpty) {
-      Notifications newAlert = Notifications(
-        _typesNotificationsId,
-        _ownersId,
-        _adminsId,
-        _workersId,
-        _titleController.text,
-        _descriptionController.text,
-      );
-      print('Nueva alerta creada: ${newAlert.title}, ${newAlert.description}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('¡Alerta enviada con éxito!'),
-        ),
-      );
-      _usernameController.clear();
+  @override
+  void initState() {
+    super.initState();
+    final authService = AuthService(); // Instantiate AuthService
+    notificationService = NotificationService(
+      baseUrl: 'http://localhost:5181', // Adjust this to your API's base URL
+      authService: authService,
+    );
+  }
+
+  // Submit the alert notification
+  Future<void> _submitNotification() async {
+  if (_titleController.text.isNotEmpty && _descriptionController.text.isNotEmpty) {
+    try {
+      // Obtén todas las IDs de admins y workers
+      List<int> adminIds = await notificationService.getAllAdminIds();
+      List<int> workerIds = await notificationService.getAllWorkerIds();
+      int ownersId = 1; 
+  if (ownersId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Unable to get owner ID. Please log in again.')),
+    );
+    return;
+  }
+
+      // Crea y envía una notificación para cada admin y worker
+      for (int adminId in adminIds) {
+        for (int workerId in workerIds) {
+          Notifications newNotification = Notifications(
+            2, // typesNotificationsId para alertas
+            ownersId,
+            adminId, // ID del administrador
+            workerId, // ID del trabajador
+            _titleController.text,
+            _descriptionController.text,
+          );
+          bool success = await notificationService.createAlert(newNotification);
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Alert sent successfully!')),
+            );
+          }
+        }
+      }
+
+      // Limpiar campos después de enviar
       _titleController.clear();
       _descriptionController.clear();
       setState(() {
         _selectedSeverity = 'Important';
       });
-    } else {
+
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor complete todos los campos.'),
-        ),
+        SnackBar(content: Text('Failed to send alert: $e')),
       );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please complete all fields.')),
+    );
   }
+
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('REGISTER ALERT'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: const TextStyle(
+          color: Color(0xFF183952),
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
-              'Alerta',
+              'Alert',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -80,7 +112,7 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
-                labelText: 'Nombre de Usuario',
+                labelText: 'Username',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -90,7 +122,7 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
-                labelText: 'Título',
+                labelText: 'Title',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -104,7 +136,7 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
-                'SU ALERTA SERÁ ENVIADA A TODOS LOS TRABAJADORES Y ADMINISTRADORES',
+                'YOUR ALERT WILL BE SENT TO ALL WORKERS AND ADMINISTRATORS',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -113,10 +145,10 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                'Gravedad',
+              child: const Text(
+                'Severity',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -163,7 +195,7 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
               controller: _descriptionController,
               maxLines: 4,
               decoration: InputDecoration(
-                labelText: 'Describa el incidente',
+                labelText: 'Describe the incident',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -171,7 +203,7 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
             ),
             const SizedBox(height: 8),
             ElevatedButton(
-              onPressed: _submitAlert,
+              onPressed: _submitNotification,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2C5282),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -180,7 +212,7 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
                 ),
               ),
               child: const Text(
-                'ENVIAR',
+                'SEND',
                 style: TextStyle(color: Colors.white),
               ),
             ),
