@@ -6,8 +6,8 @@ import 'package:sweetmanager/Communication/views/notificationScreen.dart';
 import 'package:sweetmanager/IAM/views/home.dart';
 import 'package:sweetmanager/IAM/views/login.dart';
 import 'package:sweetmanager/Monitoring/views/tableroom.dart';
-import 'package:sweetmanager/Profiles/Views/ownerProfile.dart';
-import 'package:sweetmanager/Profiles/Views/providers/management_provider_page.dart';
+import 'package:sweetmanager/Profiles/providers/views/management_provider_page.dart';
+import 'package:sweetmanager/Profiles/views/profile.dart';
 import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
 import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
 
@@ -46,7 +46,7 @@ class MyHomePage extends StatelessWidget {
         '/dashboard': (context) => const DashboardScreen(),
         '/subscription': (context) => const SubscriptionPlansView(),
         '/rooms': (context) => TableRoom(),
-        '/providers': (context) => GestionProveedoresPage(),
+        '/providers': (context) => ManageProvidersPage(),
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
         '/notifications': (context) => const NotificationsScreen(),
