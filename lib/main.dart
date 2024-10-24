@@ -14,12 +14,6 @@ import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
 import 'package:sweetmanager/Communication/views/writeMessage.dart';
 import 'package:sweetmanager/Communication/views/alertScreen.dart';
 import 'package:sweetmanager/Communication/views/writeAlert.dart';
-import 'package:sweetmanager/Communication/views/notificationScreen.dart';
-
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp( const MyHomePage());
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,7 +50,7 @@ class MyHomePage extends StatelessWidget {
         '/login': (context) => const LogInScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/subscription': (context) => const SubscriptionPlansView(),
-        '/rooms': (context) => TableRoom(),
+        '/rooms': (context) => const TableRoom(),
         '/providers': (context) => ManageProvidersPage(),
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
@@ -65,7 +59,7 @@ class MyHomePage extends StatelessWidget {
         '/reports': (context) => ReportList(),
         '/profiles': (context) => ProfilePage(),
         '/writemessage': (context) => WriteMessage(),
-        '/alerts': (context) => AlertsScreen(),
+        '/alerts': (context) => const AlertsScreen(),
         '/writealert': (context) => WriteAlertScreen(),
         '/notifications': (context) => NotificationsScreen(),
       },
