@@ -133,6 +133,7 @@ class _HotelRegistrationState extends State<HotelRegistration> {
                     border: OutlineInputBorder(),
                   ),
                 ),
+                const SizedBox(height: 60,),
                 TextField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -140,6 +141,7 @@ class _HotelRegistrationState extends State<HotelRegistration> {
                     border: OutlineInputBorder(),
                   ),
                 ),
+                const SizedBox(height: 60,),
                 ElevatedButton(
                     onPressed: () async {
                       // Access cardIdentifier here
