@@ -55,7 +55,7 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
 
     // Get Role in Claims token
 
-    return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/Sid']?.toString();
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid']?.toString();
   }
 
 
