@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
+import 'package:sweetmanager/Commerce/views/worker_areas.dart';
 import 'package:sweetmanager/Communication/views/messageScreen.dart';
 import 'package:sweetmanager/Communication/views/notificationScreen.dart';
 import 'package:sweetmanager/IAM/views/home.dart';
@@ -37,7 +38,6 @@ void main() async {
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
 
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -63,6 +63,7 @@ class MyHomePage extends StatelessWidget {
         '/alerts': (context) => const AlertsScreen(),
         '/writealert': (context) => WriteAlertScreen(),
         '/notifications': (context) => NotificationsScreen(),
+        '/worker-areas-selection': (context) => const WorkerAreasSelection()
       },
     );
   }
