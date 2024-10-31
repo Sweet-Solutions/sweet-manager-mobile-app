@@ -44,6 +44,19 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
     return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
   }
 
+  Future<String?> _getLocality() async
+  {
+    // Retrieve token from local storage
+
+    String? token = await storage.read(key: 'token');
+
+    Map<String,dynamic> decodedToken = JwtDecoder.decode(token!);
+
+    // Get Role in Claims token
+
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
+  }
+
   void toggleSelection(int index) {
     setState(() {
       workAreas[index]["selected"] = !workAreas[index]["selected"];
@@ -56,13 +69,23 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
         .map((area) => area["name"] as String)
         .toList();
 
-    var isWrong = false;
+    var hotelId = await _getLocality();
 
     for(var workerAreas in workAreas.where((wa) => wa["selected"]))
     {
-      
-    }
+      var val = await _commerceService.registerWorkerAreas(workerAreas["name"], int.parse(hotelId!));
 
+      if(val)
+      {
+        continue;
+      }
+      else{
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              'Price ${workerAreas["name"]}'),
+        ));
+      }
+    }
 
     print("Selected Work Areas: $selectedAreas");
   }
@@ -103,7 +126,7 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/images/background.jpg"),
+                image: AssetImage("assets/images/beach_back.jpg"),
                 fit: BoxFit.cover,
               ),
             ),
