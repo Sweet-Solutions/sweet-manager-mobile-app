@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:sweetmanager/Profiles/providers/views/add_provider.dart';
-import 'package:sweetmanager/Profiles/providers/views/edit_provider.dart';
+import 'add_provider.dart';
+import 'edit_provider.dart';
+import 'package:sweetmanager/Profiles/providers/views/paymentscreen.dart';
 import 'package:sweetmanager/Profiles/providers/models/provider_model.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class ManageProvidersPage extends StatefulWidget {
-  ManageProvidersPage({super.key});
-
   @override
   _ManageProvidersPageState createState() => _ManageProvidersPageState();
 }
@@ -18,10 +17,10 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
   int rowsPerPage = 4;
   final storage = const FlutterSecureStorage();
   String? role;
+  List<Provider> providers = []; // Inicializa tu lista de proveedores
 
   Future<String?> _getRole() async {
     String? token = await storage.read(key: 'token');
-
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
@@ -58,18 +57,17 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
                 'Manage Providers',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
                   child: PaginatedDataTable(
                     header: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0), // Reduzco el padding
                       color: Color(0xFF494E74),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
+                        children: const [
                           Expanded(child: Text('Name', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
                           Expanded(child: Text('Contact', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
                           Expanded(child: Text('Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
@@ -78,7 +76,7 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
                       ),
                     ),
                     columnSpacing: 5,
-                    dataRowHeight: 40,
+                    dataRowMinHeight: 40,
                     rowsPerPage: rowsPerPage,
                     availableRowsPerPage: const [4],
                     columns: const [
@@ -96,20 +94,24 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 20),
-              if (role == 'ROLE_OWNER')
-                ElevatedButton(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AddProviderPage(role: role!)),
-                    );
-                    if (result != null) {
-                      setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
-                    }
-                  },
-                  child: Text('Add Provider'),
-                ),
+              Row(
+                children: [
+                  if (role == 'ROLE_OWNER')
+                    ElevatedButton(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => AddProviderPage(role: role!)),
+                        );
+                        if (result != null) {
+                          setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+                        }
+                      },
+                      child: Text('Add Provider'),
+                    ),
+                ],
+              ),
             ],
           ),
         ),
@@ -214,7 +216,23 @@ class _ProviderDataSource extends DataTableSource {
         }),
         DataCell(Text(provider.contact)),
         DataCell(Text(provider.address)),
-        DataCell(Text(provider.product)),
+        DataCell(
+          Row(
+            children: [
+              Text(provider.product),
+              IconButton(
+                icon: Icon(Icons.money, color: Colors.green), // Icono de dinero junto al producto
+                onPressed: () {
+                  // Al hacer clic en el ícono, navega a la pantalla de pago
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PaymentScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
