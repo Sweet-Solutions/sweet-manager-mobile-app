@@ -77,6 +77,7 @@ flutter:
      - assets/images/junior_suite_bedroom.jpg
      - assets/images/suite_executive.jpg
      - assets/images/penthouse_room.jpg
+     - assets/images/beach_back.jpg
      - assets/images/
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
