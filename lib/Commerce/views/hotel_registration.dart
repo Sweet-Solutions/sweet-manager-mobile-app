@@ -167,7 +167,7 @@ class _HotelRegistrationState extends State<HotelRegistration> {
 
                       if(validation != null)
                       {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => HotelDetailScreen()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => HotelDetailScreen(hotel: validation)));
                       }
                       else
                       {
