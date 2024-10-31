@@ -1,13 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Profiles/hotels/models/hotel.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
-@override
-Widget build(BuildContext context) { // Implements design for login view.
-  return BaseLayout(role: '', childScreen: HotelDetailScreen());
-}
 class HotelDetailScreen extends StatelessWidget {
+  final Hotel hotel;
+
+  HotelDetailScreen({Key? key, required this.hotel}) : super(key: key);
+
+  // Inicializando el almacenamiento seguro
+  final storage = const FlutterSecureStorage();
+
+  Future<String?> _getRole() async {
+    // Recuperar el token del almacenamiento local
+    String? token = await storage.read(key: 'token');
+
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    }
+
+    return null; // Retornar null si no se encuentra el token
+  }
+
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _getRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasData) {
+          String? role = snapshot.data;
+
+          // Verificar si el rol es 'ROLE_OWNER'
+          if (role != 'ROLE_OWNER') {
+            return const Center(child: Text('Access denied. You do not have permission to view this page.'));
+          }
+
+          return BaseLayout(
+            role: role!,
+            childScreen: _buildHotelDetailPage(),
+          );
+        }
+
+        return const Center(child: Text('Unable to retrieve role'));
+      },
+    );
+  }
+
+  Widget _buildHotelDetailPage() {
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -16,53 +61,28 @@ class HotelDetailScreen extends StatelessWidget {
             Stack(
               children: [
                 Image.network(
-                  'https://i.pinimg.com/564x/29/1b/10/291b104087960aa6b0c63e1aca8a7977.jpg', // Imagen personalizada
+                  'https://i.pinimg.com/564x/29/1b/10/291b104087960aa6b0c63e1aca8a7977.jpg',
                   height: 300,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
-                // Capa oscura semitransparente para oscurecer la imagen
                 Container(
                   height: 300,
                   width: double.infinity,
-                  color: Colors.black.withOpacity(0.4), // Oscurecimiento
+                  color: Colors.black.withOpacity(0.4),
                 ),
-                // Botón de regresar (sin funcionalidad)
                 Positioned(
                   top: 16,
                   left: 16,
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () {
-                          // No hay funcionalidad aquí, el botón es solo visual
-                        },
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Heden Golf',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    hotel.name, // Usar el nombre del hotel
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                // Botón de compartir en la esquina superior derecha
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: IconButton(
-                    icon: Icon(Icons.share, color: Colors.white),
-                    onPressed: () {
-                      // Acción para compartir
-                    },
-                  ),
-                ),
-                // Dirección en la parte inferior derecha
                 Positioned(
                   bottom: 16,
                   right: 16,
@@ -71,25 +91,13 @@ class HotelDetailScreen extends StatelessWidget {
                       Icon(Icons.location_on, color: Colors.white),
                       SizedBox(width: 8),
                       Text(
-                        'Av. La mar 1415',
+                        hotel.address, // Usar la dirección del hotel
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ],
                   ),
                 ),
               ],
-            ),
-            // Título "Sweet Manager"
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Sweet Manager',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1C4257),
-                ),
-              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -101,12 +109,11 @@ class HotelDetailScreen extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   SizedBox(height: 8),
-                  _buildHotelInfoRow('Name', 'Heden Golf'),
-                  _buildHotelInfoRow('Address', 'Av. La mar'),
-                  _buildHotelInfoRow('Phone Number', '941 691 025'),
-                  _buildHotelInfoRow('Email', 'hedengolf@gmail.com'),
-                  _buildHotelInfoRow('Timezone (Country)', 'Perú'),
-                  _buildHotelInfoRow('Language', 'English'),
+                  _buildHotelInfoRow('Name', hotel.name),
+                  _buildHotelInfoRow('Address', hotel.address),
+                  _buildHotelInfoRow('Phone Number', hotel.phoneNumber),
+                  _buildHotelInfoRow('Email', hotel.email),
+                  _buildHotelInfoRow('Owner ID', hotel.ownerId.toString()),
                   SizedBox(height: 16),
                   Text(
                     'Description',
@@ -114,7 +121,7 @@ class HotelDetailScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Ofrece habitaciones confortables con vistas al océano y acceso directo a la playa. Es ideal para disfrutar de una estancia relajante en un ambiente costero tranquilo.',
+                    hotel.description, // Usar la descripción del hotel
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   SizedBox(height: 16),
