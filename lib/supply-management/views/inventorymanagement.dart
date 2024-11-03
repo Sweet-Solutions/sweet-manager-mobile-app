@@ -240,14 +240,14 @@ class _InventoryManagementState extends State<InventoryManagement> {
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: DataTable(
-                              headingRowColor: MaterialStateProperty.resolveWith<Color>(
-                                (Set<MaterialState> states) {
+                              headingRowColor: WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                                   return const Color(0xFF474C74);
                                 },
                               ),
-                              dataRowColor: MaterialStateProperty.resolveWith<Color>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.selected)) {
+                              dataRowColor: WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.selected)) {
                                     return Colors.grey.withOpacity(0.5);
                                   }
                                   return Colors.white;

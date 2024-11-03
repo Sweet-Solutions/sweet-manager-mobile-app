@@ -15,9 +15,10 @@ class AddReport extends StatefulWidget {
 }
 
 class _AddReportState extends State<AddReport> {
-  final TextEditingController usernameController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
   final TextEditingController contentController = TextEditingController();
+  final TextEditingController adminController = TextEditingController();
+  final TextEditingController workerController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   PlatformFile? pickedFile;
@@ -59,39 +60,69 @@ class _AddReportState extends State<AddReport> {
   }
 
   Future<void> _submitReport() async {
-    if (usernameController.text.isEmpty ||
-        titleController.text.isEmpty ||
-        contentController.text.isEmpty ||
-        selectedTypeReportId == null ||
-        base64File == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All fields are required, including the file.')),
-      );
-      return;
+  // Verifica que todos los campos requeridos estén completos
+  if (titleController.text.isEmpty ||
+      contentController.text.isEmpty ||
+      selectedTypeReportId == null ||
+      pickedFile == null ||
+      adminController.text.isEmpty ||
+      workerController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All fields are required, including the file.')),
+    );
+    return;
+  }
+
+  try {
+    // PASO 1: Subir la imagen a Firestore y obtener su URL
+    String? imageUrl;
+    if (pickedFile != null) {
+      final storageRef = FirebaseFirestore.instance.collection('report_images').doc();
+      await storageRef.set({
+        'fileName': pickedFile!.name,
+        'content': base64File,
+      });
+      imageUrl = storageRef.path;
     }
 
+    // PASO 2: Preparar los datos del reporte
     final reportData = {
-      'username': usernameController.text,
+      'typesReportsId': selectedTypeReportId,
+      'adminsId': int.parse(adminController.text),
+      'workersId': int.parse(workerController.text),
       'title': titleController.text,
       'description': contentController.text,
-      'typesReportsId': selectedTypeReportId,
-      'fileBase64': base64File, // Store the Base64 file content
-      'fileName': pickedFile!.name,
-      'timestamp': FieldValue.serverTimestamp(),
+      'fileUrl': imageUrl ?? base64File,
     };
 
-    try {
-      await firestore.collection('reports').add(reportData); // Save in Firestore
+    // Enviar el reporte
+    final response = await reportService.createReport(reportData, null);
+
+    // Verifica la respuesta y redirige si es exitosa
+    if (response == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Report submitted successfully')),
       );
-      Navigator.pop(context);
-    } catch (e) {
+      Navigator.pop(context);  // Redirige al usuario al cerrar el formulario
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error submitting report: $e')),
+        const SnackBar(content: Text('Failed to submit report')),
       );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error submitting report: $e')),
+      
+    );
+    Navigator.pop(context); 
   }
+}
+
+
+
+
+
+
 
   Future<void> fetchTypesReports() async {
     try {
@@ -152,13 +183,22 @@ class _AddReportState extends State<AddReport> {
                     },
                     hint: const Text('Select report type'),
                   ),
-            const SizedBox(height: 16),
-            const Text('User'),
+            const SizedBox(height: 8),
+            const Text('Admin ID'),
             TextField(
-              controller: usernameController,
+              controller: adminController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'User',
+                labelText: 'Admin ID',
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Worker ID'),
+            TextField(
+              controller: workerController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Worker ID',
               ),
             ),
             const SizedBox(height: 16),

@@ -52,41 +52,33 @@ class ReportService {
   }
 
   // Create a new report, optionally with an image
-  Future<dynamic> createReport(Map<String, dynamic> report, File? imageFile) async {
-    final headers = await _getHeaders();
-    var uri = Uri.parse('$baseUrl/reports/create');
-    var request = http.MultipartRequest('POST', uri);
+  Future<dynamic> createReport(Map<String, dynamic> report, String? base64Image) async {
+  final headers = await _getHeaders();
+  final uri = Uri.parse('$baseUrl/reports/create');
 
-    // Add report data as form fields
-    report.forEach((key, value) {
-      request.fields[key] = value.toString();
-    });
-
-    // Add the headers including the token
-    request.headers.addAll(headers);
-
-    if (imageFile != null) {
-      // Get the MIME type of the image
-      var mimeType = lookupMimeType(imageFile.path)?.split('/');
-
-      // Add the image as a multipart file
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'fileUrl', // Name of the field expected by the backend
-          imageFile.path,
-          contentType: MediaType(mimeType![0], mimeType[1]),
-        ),
-      );
-    }
-
-    // Send the request and get the response
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to create report');
-    }
+  // Assign the Base64 image to the 'fileUrl' key if not null
+  if (base64Image != null) {
+    report['fileUrl'] = base64Image;
   }
+
+  // Print for debugging
+  print("Report Data: $report");
+  print("Headers: $headers");
+
+  final response = await http.post(
+    uri,
+    headers: headers,
+    body: jsonEncode(report),
+  );
+
+  if (response.statusCode == 201) {
+    return json.decode(response.body);
+  } else {
+    print("Error: ${response.body}");
+    throw Exception('Failed to create report');
+  }
+}
+
+
+
 }
