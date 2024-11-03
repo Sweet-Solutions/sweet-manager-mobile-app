@@ -61,7 +61,7 @@ class _InventoryManagementState extends State<InventoryManagement> {
   void initState() {
     super.initState();
     _authService = AuthService();
-    _supplyService = SupplyService('https://sweetmanager-api.ryzeon.me/');
+    _supplyService = SupplyService('https://sweetmanager-api.ryzeon.me');
     _loadHotelId();
   }
 
@@ -107,15 +107,16 @@ class _InventoryManagementState extends State<InventoryManagement> {
   }
 
   Future<void> _addSupply() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SupplyAddScreen()),
-    );
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const SupplyAddScreen()),
+  );
 
-    if (result == true) {
-      _fetchSupplies();
-    }
+  if (result == true) {
+    await _fetchSupplies(); // Refresca la lista después de agregar
   }
+}
+
 
   void _showDeleteConfirmationDialog(Supply supply) {
     showDialog(
