@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/IAM/models/sign_in_entity.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:sweetmanager/Profiles/hotels/models/hotel.dart';
 import 'package:sweetmanager/Profiles/hotels/service/hotelservices.dart';
 import 'package:sweetmanager/Profiles/hotels/view/hotelView.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class HotelRegistration extends StatefulWidget {
-  const HotelRegistration({super.key});
+  const HotelRegistration({super.key, required this.credentials});
+
+  final SignInEntity credentials;
 
   @override
   State<HotelRegistration> createState() => _HotelRegistrationState();
@@ -17,9 +21,13 @@ class _HotelRegistrationState extends State<HotelRegistration> {
 
   // Declare Services
 
+  late SignInEntity credentials;
+
   final storage = const FlutterSecureStorage();
 
   final _hotelService = HotelService();
+
+  final _authService = AuthService();
 
   // Declare all variables
 
@@ -50,6 +58,8 @@ class _HotelRegistrationState extends State<HotelRegistration> {
   void initState() {
     
     super.initState();
+
+    credentials = widget.credentials;
   }
 
   @override
@@ -167,6 +177,8 @@ class _HotelRegistrationState extends State<HotelRegistration> {
 
                       if(validation != null)
                       {
+                        await _authService.login(credentials.email, credentials.password, 1);
+
                         Navigator.push(context, MaterialPageRoute(builder: (context) => HotelDetailScreen(hotel: validation)));
                       }
                       else

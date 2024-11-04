@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
+import 'package:sweetmanager/IAM/models/sign_in_entity.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
@@ -238,7 +240,8 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
 
                                 if(validation)
                                 {
-                                  Navigator.pushNamed(context, '/subscription');
+
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => SubscriptionPlansView(credentials: SignInEntity(email: email, password: password),)));
                                 }
                                 else
                                 {
