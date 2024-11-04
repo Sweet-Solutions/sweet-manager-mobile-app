@@ -82,7 +82,7 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
       else{
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
-              'Price ${workerAreas["name"]}'),
+              'Something went wrong. ${workerAreas["name"]}'),
         ));
       }
     }
