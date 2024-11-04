@@ -126,33 +126,15 @@ class _RoomTypesSetupState extends State<RoomTypesSetup> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _getRole(),
-      builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.waiting)
-        {
-          return const Center(child: CircularProgressIndicator(),);
-        }
-        if(snapshot.hasData)
-        {
-          String? role = snapshot.data;
-
-          return BaseLayout(
-            role: role,
-            childScreen: getContentView(role)
-          );
-        }
-
-        return const Center(child: Text('Unable to get information', textAlign: TextAlign.center,));
-      }
+    return BaseLayout(
+      role: '',
+      childScreen: getContentView()
     );
   }
 
-  Widget getContentView(String? role)
+  Widget getContentView()
   {
-    if(role == 'ROLE_OWNER')
-    {
-      return Scaffold(
+    return Scaffold(
       body: Column(
         children: [
           Expanded(
@@ -254,11 +236,4 @@ class _RoomTypesSetupState extends State<RoomTypesSetup> {
       ),
     );
     }
-    else
-    {
-      return const Center(
-        child: Text('Sorry you are not authorized'),
-      );
-    }
-  }
 }
