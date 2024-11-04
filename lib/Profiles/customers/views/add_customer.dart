@@ -1,106 +1,197 @@
 import 'package:flutter/material.dart';
-import 'package:sweetmanager/Profiles/customers/models/customer_model.dart';
+import 'package:sweetmanager/Profiles/customers/services/customerservices.dart';
 
-class AddCustomerPage extends StatefulWidget {
-  final String role; // Added to handle user role
-
-  AddCustomerPage({required this.role});
+class CustomerAddScreen extends StatefulWidget {
+  const CustomerAddScreen({super.key});
 
   @override
-  _AddCustomerPageState createState() => _AddCustomerPageState();
+  State<CustomerAddScreen> createState() => _CustomerAddScreenState();
 }
 
-class _AddCustomerPageState extends State<AddCustomerPage> {
-  final _formKey = GlobalKey<FormState>();
-  String idNumber = '';
-  String name = '';
-  String contact = '';
+class _CustomerAddScreenState extends State<CustomerAddScreen> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _surnameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+
+  bool isLoading = false;
+
+  final Customerservice _customerService = Customerservice('https://sweetmanager-api.ryzeon.me');
+
+  Future<void> _addCustomer() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      Map<String, dynamic> newCustomer = {
+        'username': _usernameController.text,
+        'name': _nameController.text,
+        'surname': _surnameController.text,
+        'email': _emailController.text,
+        'phone': int.parse(_phoneController.text),
+        'state': _stateController.text,
+      };
+
+      await _customerService.createCustomer(newCustomer);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cliente agregado exitosamente')),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('Ocurrió un error al agregar el cliente: $e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Check if the user has the owner role
-    if (widget.role != 'ROLE_OWNER') {
-      return Scaffold(
-        body: Center(
-          child: Text(
-            'You do not have permission to add a customer.',
-            style: TextStyle(fontSize: 20, color: Colors.red),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Page title
-            Text(
-              'Add Customer',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Regresar a la pantalla anterior
+                  },
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Agregar Cliente',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF474C74),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 20), // Space between title and form
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'ID Number'),
-                    onChanged: (value) {
-                      setState(() {
-                        idNumber = value;
-                      });
-                    },
-                    validator: (value) {
-                      return value!.isEmpty ? 'This field is required' : null;
-                    },
+            const SizedBox(height: 20),
+            Expanded(
+              child: Center(
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
                   ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Name'),
-                    onChanged: (value) {
-                      setState(() {
-                        name = value;
-                      });
-                    },
-                    validator: (value) {
-                      return value!.isEmpty ? 'This field is required' : null;
-                    },
+                  elevation: 8,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          controller: _usernameController,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.person),
+                            labelText: 'Username',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.person),
+                            labelText: 'Name',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _surnameController,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.person),
+                            labelText: 'Surname',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.email),
+                            labelText: 'Email',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _phoneController,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.phone),
+                            labelText: 'Phone',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _stateController,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.check_circle),
+                            labelText: 'State',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            isLoading
+                                ? const CircularProgressIndicator()
+                                : ElevatedButton(
+                              onPressed: _addCustomer,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF474C74),
+                              ),
+                              child: const Text('Add', style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Contact'),
-                    onChanged: (value) {
-                      setState(() {
-                        contact = value;
-                      });
-                    },
-                    validator: (value) {
-                      return value!.isEmpty ? 'This field is required' : null;
-                    },
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        Customer newCustomer = Customer(
-                          idNumber: idNumber,
-                          name: name,
-                          contact: contact,
-                        );
-                        customers.add(newCustomer);
-                        Navigator.pop(context, 'Customer added successfully');
-                      }
-                    },
-                    child: Text('Save Changes'),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _nameController.dispose();
+    _surnameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _stateController.dispose();
+    super.dispose();
   }
 }
