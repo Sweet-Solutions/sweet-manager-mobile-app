@@ -3,7 +3,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Profiles/hotels/models/hotel.dart';
 import 'package:sweetmanager/Profiles/hotels/service/hotelservices.dart';
-import 'package:sweetmanager/Profiles/hotels/view/hotelView.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class HotelRegistration extends StatefulWidget {
@@ -165,7 +164,7 @@ class _HotelRegistrationState extends State<HotelRegistration> {
 
                       if(validation != null)
                       {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => HotelDetailScreen()));
+                        //Navigator.push(context, MaterialPageRoute(builder: (context) => HotelDetailScreen()));
                       }
                       else
                       {
