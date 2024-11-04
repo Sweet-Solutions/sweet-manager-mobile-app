@@ -1,23 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:sweetmanager/Profiles/providers/models/provider_model.dart';
+import 'package:sweetmanager/Profiles/providers/views/add_provider.dart';
+import 'package:sweetmanager/Profiles/providers/views/edit_provider.dart';
+import 'package:sweetmanager/Profiles/providers/services/providerservices.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'add_provider.dart';
-import 'edit_provider.dart';
-import 'package:sweetmanager/Profiles/providers/views/paymentscreen.dart';
-import 'package:sweetmanager/Profiles/providers/models/provider_model.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
-class ManageProvidersPage extends StatefulWidget {
+class ProvidersManagement extends StatefulWidget {
+  const ProvidersManagement({super.key});
+
   @override
-  _ManageProvidersPageState createState() => _ManageProvidersPageState();
+  State<ProvidersManagement> createState() => _ProvidersManagement();
 }
 
-class _ManageProvidersPageState extends State<ManageProvidersPage> {
-  Provider? selectedProvider;
-  int rowsPerPage = 4;
+class _ProvidersManagement extends State<ProvidersManagement> {
+  late ProviderService _providerService;
+  late AuthService _authService;
   final storage = const FlutterSecureStorage();
+  List<Provider> providers = [];
+  bool isLoading = true;
+  int? hotelId;
   String? role;
-  List<Provider> providers = []; // Inicializa tu lista de proveedores
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = AuthService();
+    _providerService = ProviderService('https://sweetmanager-api.ryzeon.me');
+    _loadHotelId();
+  }
+
+  Future<void> _loadHotelId() async {
+    hotelId = await _getHotelId();
+    if (hotelId != null) {
+      await _fetchProviders();
+    } else {
+      setState(() => isLoading = false);
+      _showSnackBar('Hotel ID not found');
+    }
+  }
 
   Future<String?> _getRole() async {
     String? token = await storage.read(key: 'token');
@@ -28,221 +51,202 @@ class _ManageProvidersPageState extends State<ManageProvidersPage> {
     return null;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadRole();
+  Future<int?> _getHotelId() async {
+    String? token = await storage.read(key: 'token');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      String? locality = decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality'];
+      return locality != null ? int.tryParse(locality) : null;
+    }
+    return null;
   }
 
-  void _loadRole() async {
-    String? userRole = await _getRole();
-    setState(() {
-      role = userRole;
-    });
+  Future<void> _fetchProviders() async {
+    if (hotelId == null) return;
+
+    try {
+      List<dynamic> fetchedProviders = await _providerService.getProvidersByHotelId(hotelId!);
+      setState(() {
+        providers = fetchedProviders.map((data) => Provider.fromJson(data)).toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      _showSnackBar('Failed to load providers: $e');
+    }
+  }
+
+  Future<void> _addProvider() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ProviderAddScreen()),
+    );
+
+    if (result == true) {
+      _fetchProviders();
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
-    return role == null
-        ? const Center(child: CircularProgressIndicator())
-        : BaseLayout(
-      role: role!,
-      childScreen: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Manage Providers',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: PaginatedDataTable(
-                    header: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0), // Reduzco el padding
-                      color: Color(0xFF494E74),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: const [
-                          Expanded(child: Text('Name', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
-                          Expanded(child: Text('Contact', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
-                          Expanded(child: Text('Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
-                          Expanded(child: Text('Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
-                        ],
-                      ),
-                    ),
-                    columnSpacing: 5,
-                    dataRowMinHeight: 40,
-                    rowsPerPage: rowsPerPage,
-                    availableRowsPerPage: const [4],
-                    columns: const [
-                      DataColumn(label: Text('')),
-                      DataColumn(label: Text('')),
-                      DataColumn(label: Text('')),
-                      DataColumn(label: Text('')),
-                    ],
-                    source: _ProviderDataSource(context, showActionsDialog, showDeleteConfirmation, role!),
-                  ),
-                ),
-              ),
-              Text(
-                'Showing ${providers.length} providers',
-                style: TextStyle(fontSize: 16),
-              ),
-              SizedBox(height: 20),
-              Row(
-                children: [
-                  if (role == 'ROLE_OWNER')
-                    ElevatedButton(
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => AddProviderPage(role: role!)),
-                        );
-                        if (result != null) {
-                          setState(() {});
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
-                        }
-                      },
-                      child: Text('Add Provider'),
-                    ),
-                ],
-              ),
-            ],
+    return FutureBuilder<String?>(
+      future: _getRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error loading role'));
+        }
+
+        role = snapshot.data;
+
+        return BaseLayout(
+          role: role,
+          childScreen: Scaffold(
+            body: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 8),
+                _buildProvidersTable(),
+              ],
+            ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Providers',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _addProvider,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void showActionsDialog(BuildContext context, Provider provider) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Actions for ${provider.name}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (role == 'ROLE_OWNER')
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
+  Widget _buildProvidersTable() {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            headingRowColor: WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+              return const Color(0xFF474C74);
+            }),
+            dataRowColor: WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+              if (states.contains(WidgetState.selected)) {
+                return Colors.grey.withOpacity(0.5);
+              }
+              return Colors.white;
+            }),
+            columns: const <DataColumn>[
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    'ID',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProviderPage(provider: provider, role: role!),
-                      ),
-                    );
-                    if (result != null) {
-                      setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
-                    }
-                  },
-                  child: Text('Edit Provider'),
                 ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    'Name',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  showDeleteConfirmation(context, provider);
-                },
-                child: Text('Delete Provider'),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    'Address',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Text(
+                    'Actions',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
             ],
-          ),
-        );
-      },
-    );
-  }
-
-  void showDeleteConfirmation(BuildContext context, Provider provider) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmation'),
-          content: Text('Are you sure you want to delete the provider ${provider.name}?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                setState(() {
-                  providers.remove(provider);
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Provider deleted')));
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-// DataSource for the PaginatedDataTable
-class _ProviderDataSource extends DataTableSource {
-  final BuildContext context;
-  final Function(BuildContext, Provider) showActionsDialog;
-  final Function(BuildContext, Provider) showDeleteConfirmation;
-  final String role;
-
-  _ProviderDataSource(this.context, this.showActionsDialog, this.showDeleteConfirmation, this.role);
-
-  @override
-  DataRow getRow(int index) {
-    final provider = providers[index];
-    return DataRow(
-      cells: [
-        DataCell(Text(provider.name), onTap: () {
-          showActionsDialog(context, provider);
-        }),
-        DataCell(Text(provider.contact)),
-        DataCell(Text(provider.address)),
-        DataCell(
-          Row(
-            children: [
-              Text(provider.product),
-              IconButton(
-                icon: Icon(Icons.money, color: Colors.green), // Icono de dinero junto al producto
-                onPressed: () {
-                  // Al hacer clic en el ícono, navega a la pantalla de pago
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => PaymentScreen()),
-                  );
-                },
-              ),
-            ],
+            rows: providers.map((provider) {
+              return DataRow(
+                cells: [
+                  DataCell(Text(provider.id.toString())),
+                  DataCell(Text(provider.name)),
+                  DataCell(Text(provider.address)),
+                  DataCell(
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProviderEditScreen(provider: provider),
+                              ),
+                            );
+                            if (result == true) {
+                              _fetchProviders();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF474C74),
+                          ),
+                          child: const Text('Edit', style: TextStyle(color: Colors.white)),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
           ),
         ),
-      ],
+      ),
     );
   }
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get rowCount => providers.length;
-
-  @override
-  int get selectedRowCount => 0;
 }

@@ -1,20 +1,41 @@
-class Provider {
+class Provider{
+  int id;
   String name;
-  String contact;
   String address;
-  String product;
+  String email;
+  int phone;
+  String state;
 
   Provider({
+    required this.id,
     required this.name,
-    required this.contact,
     required this.address,
-    required this.product,
-  });
-}
+    required this.email,
+    required this.phone,
+    required this.state
 
-List<Provider> providers = [
-  Provider(name: 'Juan Salgado', contact: '997215124', address: 'Lirios Ave', product: 'Product 1'),
-  Provider(name: 'Max Rodas', contact: '957213124', address: 'Brisas St', product: 'Product 2'),
-  Provider(name: 'Nico Pasos', contact: '912321212', address: 'Flores St', product: 'Product 3'),
-  Provider(name: 'Chaco Perez', contact: '961234567', address: 'Palmeras Ave', product: 'Product 4'),
-];
+  });
+
+  factory Provider.fromJson(Map<String, dynamic>json){
+    return Provider(
+      id: json['id'],
+      name : json ['name'],
+      address: json ['address'],
+      email: json ['email'],
+      phone: json ['phone'],
+      state: json ['state'],
+    );
+  }
+
+  Map<String, dynamic> toJson(){
+    return{
+      'id': id,
+      'name' : name,
+      'address' : address,
+      'email' : email,
+      'phone' : phone,
+      'state' : state,
+    };
+  }
+
+}
