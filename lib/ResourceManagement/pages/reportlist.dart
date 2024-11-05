@@ -31,11 +31,7 @@ class _ReportListState extends State<ReportList> {
   @override
   void initState() {
     super.initState();
-    final authService = AuthService(); 
-    reportService = ReportService(
-      baseUrl: 'https://sweetmanager-api.ryzeon.me/api', 
-      authService: authService,
-    );
+    reportService = ReportService();
     _loadHotelId();
    
   }

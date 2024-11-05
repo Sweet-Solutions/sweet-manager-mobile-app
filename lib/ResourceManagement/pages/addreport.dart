@@ -34,10 +34,7 @@ class _AddReportState extends State<AddReport> {
     super.initState();
     firestore = FirebaseFirestore.instance;
     final authService = AuthService();
-    typesReportService = TypesReportService(
-      baseUrl: 'https://sweetmanager-api.ryzeon.me/api',
-      authService: authService,
-    );
+    typesReportService = TypesReportService();
     reportService = ReportService();
     fetchTypesReports();
   }

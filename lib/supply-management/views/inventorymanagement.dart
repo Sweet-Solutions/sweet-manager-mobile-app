@@ -61,7 +61,7 @@ class _InventoryManagementState extends State<InventoryManagement> {
   void initState() {
     super.initState();
     _authService = AuthService();
-    _supplyService = SupplyService('https://sweetmanager-api.ryzeon.me');
+    _supplyService = SupplyService();
     _loadHotelId();
   }
 

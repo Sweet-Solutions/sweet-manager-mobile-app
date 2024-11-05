@@ -30,7 +30,7 @@ class _SupplyEditScreenState extends State<SupplyEditScreen> {
   void initState() {
     super.initState();
     _authService = AuthService();
-    _supplyService = SupplyService('https://sweetmanager-api.ryzeon.me');
+    _supplyService = SupplyService();
 
     _nameController = TextEditingController(text: widget.supply.name);
     _providersIdController = TextEditingController(text: widget.supply.providersId.toString());

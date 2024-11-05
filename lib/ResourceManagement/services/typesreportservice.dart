@@ -4,10 +4,10 @@ import 'package:sweetmanager/ResourceManagement/models/typereport.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart'; // AuthService import
 
 class TypesReportService {
-  final String baseUrl;
-  final AuthService authService; // AuthService dependency
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api';
+  final authService = AuthService();// AuthService dependency
 
-  TypesReportService({required this.baseUrl, required this.authService});
+  TypesReportService();
 
   // Helper method to get headers with token
   Future<Map<String, String>> _getHeaders() async {

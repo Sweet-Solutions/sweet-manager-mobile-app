@@ -27,7 +27,7 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
   void initState() {
     super.initState();
     _authService = AuthService();
-    _supplyService = SupplyService('https://sweetmanager-api.ryzeon.me');
+    _supplyService = SupplyService();
   }
 
   Future<void> _addSupply() async {
