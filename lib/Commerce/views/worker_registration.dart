@@ -234,8 +234,8 @@ class _WorkerRegistrationState extends State<WorkerRegistration> {
                     var isNotificationCreated = await _notificationService.createNotification(Notifications(
                       1,
                       int.parse(ownersId!),
-                      int.parse(dni),
                       0,
+                      int.parse(dni),
                       'Welcome to SweetManager!',
                       'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!',
                     ));
