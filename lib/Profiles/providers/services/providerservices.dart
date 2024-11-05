@@ -1,121 +1,97 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:http/http.dart' as http;
-import '../models/provider_model.dart';
 
 class ProviderService {
-  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/v1/';
+  final String baseUrl;
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
 
-  Future<List<Provider>> getProviders() async {
-    final response = await http.get(Uri.parse('${baseUrl}providers'));
+  ProviderService(this.baseUrl);
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((providerJson) => Provider(
-        name: providerJson['nombre'],
-        contact: providerJson['contacto'],
-        address: providerJson['direccion'],
-        product: providerJson['producto'],
-      )).toList();
-    } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+  // Helper function to get headers with a token
+  Future<Map<String, String>> _getHeaders() async {
+    final token = await storage.read(key: 'token');
+    if (token == null || JwtDecoder.isExpired(token)) {
+      // Optionally: Redirect to login page if needed
+      throw Exception('Token is missing or expired. Please log in again.');
     }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
   }
 
-  Future<Provider> getProviderById(String name) async {
-    // Validate the name
-    if (name.isEmpty) {
-      throw Exception('The provider name cannot be empty.');
-    }
-
-    final response = await http.get(Uri.parse('${baseUrl}providers/$name'));
-
-    if (response.statusCode == 200) {
-      var providerJson = json.decode(response.body);
-      return Provider(
-        name: providerJson['nombre'],
-        contact: providerJson['contacto'],
-        address: providerJson['direccion'],
-        product: providerJson['producto'],
+  // POST /api/provider/create-provider
+  Future<Map<String, dynamic>> createProvider(Map<String, dynamic> provider) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/provider/create-provider'),
+        headers: headers,
+        body: json.encode(provider),
       );
-    } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+
+      print('POST /api/provider/create-provider status: ${response.statusCode}');
+      print('POST /api/provider/create-provider body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return response.body.isNotEmpty ? json.decode(response.body) : {};
+      } else {
+        throw Exception('Failed to create provider: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error in createProvider: $e');
+      rethrow;
     }
   }
 
-  Future<Provider> createProvider(Provider provider) async {
-    // Validate provider data
-    if (provider.name.isEmpty || provider.contact.isEmpty || provider.address.isEmpty || provider.product.isEmpty) {
-      throw Exception('All fields are required.');
-    }
-
-    final response = await http.post(
-      Uri.parse('${baseUrl}providers'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'nombre': provider.name,
-        'contacto': provider.contact,
-        'direccion': provider.address,
-        'producto': provider.product,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      var providerJson = json.decode(response.body);
-      return Provider(
-        name: providerJson['nombre'],
-        contact: providerJson['contacto'],
-        address: providerJson['direccion'],
-        product: providerJson['producto'],
+  // PUT /api/provider/update-provider
+  Future<Map<String, dynamic>> updateProvider(Map<String, dynamic> provider) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/provider/update-provider'),
+        headers: headers,
+        body: json.encode(provider),
       );
-    } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+
+      print('PUT /api/provider/update-provider status: ${response.statusCode}');
+      print('PUT /api/provider/update-provider body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        return response.body.isNotEmpty ? json.decode(response.body) : {};
+      } else {
+        throw Exception('Failed to update provider: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error in updateProvider: $e');
+      rethrow;
     }
   }
 
-  Future<Provider> updateProvider(String name, Provider provider) async {
-    // Validate the name
-    if (name.isEmpty) {
-      throw Exception('The provider name cannot be empty.');
-    }
-    // Validate provider data
-    if (provider.contact.isEmpty || provider.address.isEmpty || provider.product.isEmpty) {
-      throw Exception('All fields are required.');
-    }
-
-    final response = await http.put(
-      Uri.parse('${baseUrl}providers/$name'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'nombre': provider.name,
-        'contacto': provider.contact,
-        'direccion': provider.address,
-        'producto': provider.product,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      var providerJson = json.decode(response.body);
-      return Provider(
-        name: providerJson['nombre'],
-        contact: providerJson['contacto'],
-        address: providerJson['direccion'],
-        product: providerJson['producto'],
+  // GET /api/provider/get-all/{hotelId}
+  Future<List<dynamic>> getProvidersByHotelId(int hotelId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/provider/get-all/$hotelId'),
+        headers: headers,
       );
-    } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
-    }
-  }
 
-  Future<void> deleteProvider(String name) async {
-    // Validate the name
-    if (name.isEmpty) {
-      throw Exception('The provider name cannot be empty.');
-    }
+      print('GET /api/provider/get-all/$hotelId status: ${response.statusCode}');
+      print('GET /api/provider/get-all/$hotelId body: ${response.body}');
 
-    final response = await http.delete(Uri.parse('${baseUrl}providers/$name'));
-
-    if (response.statusCode != 200) {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load providers by Hotel Id: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error in getProvidersByHotelId: $e');
+      return [];  // Returning an empty list in case of error to avoid crashes
     }
   }
 }
+
+

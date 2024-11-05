@@ -1,18 +1,45 @@
 class Customer {
-  String idNumber;
+  int id;
+  String username;
   String name;
-  String contact;
+  String surname;
+  String email;
+  int phone;
+  String state;
 
   Customer({
-    required this.idNumber,
+    required this.id,
+    required this.username,
     required this.name,
-    required this.contact,
+    required this.surname,
+    required this.email,
+    required this.phone,
+    required this.state,
   });
-}
 
-List<Customer> customers = [
-  Customer(idNumber: '12345678', name: 'Carlos Ruiz', contact: '987654321'),
-  Customer(idNumber: '23456789', name: 'Ana Torres', contact: '987654322'),
-  Customer(idNumber: '34567890', name: 'Luis Miguel', contact: '987654323'),
-  Customer(idNumber: '45678901', name: 'María López', contact: '987654324'),
-];
+  // Factory constructor para crear una instancia desde un JSON
+  factory Customer.fromJson(Map<String, dynamic> json) {
+    return Customer(
+      id: json['id'],
+      username: json['username'],
+      name: json['name'],
+      surname: json['surname'],
+      email: json['email'],
+      phone: json['phone'],
+      state: json['state'],
+    );
+  }
+
+  // Método para convertir una instancia de Customer a JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'name': name,
+      'surname': surname,
+      'email': email,
+      'phone': phone,
+      'state': state,
+    };
+  }
+}

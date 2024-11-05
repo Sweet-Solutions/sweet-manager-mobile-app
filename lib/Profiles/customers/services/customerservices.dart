@@ -1,102 +1,82 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/customer_model.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
-class CustomerService {
-  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/v1/'; // Base URL
+class Customerservice{
+  final String baseUrl;
 
-  Future<List<Customer>> getCustomers() async {
-    final response = await http.get(Uri.parse('${baseUrl}clients'));
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((customerJson) => Customer(
-        idNumber: customerJson['dni'],
-        name: customerJson['nombre'],
-        contact: customerJson['contacto'],
-      )).toList();
-    } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+  Customerservice(this.baseUrl);
+
+  // Helper function to get the headers with the token
+  Future<Map<String, String>> _getHeaders() async {
+    final token = await storage.read(key: 'token');
+    if (token == null || JwtDecoder.isExpired(token)) {
+      throw Exception('Token is missing or expired. Please log in again.');
     }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
   }
 
-  Future<Customer> getCustomerById(String idNumber) async {
-    // Validation for ID number
-    if (idNumber.isEmpty) {
-      throw Exception('ID number cannot be empty.');
-    }
 
-    final response = await http.get(Uri.parse('${baseUrl}clients/$idNumber'));
-
-    if (response.statusCode == 200) {
-      var customerJson = json.decode(response.body);
-      return Customer(
-        idNumber: customerJson['dni'],
-        name: customerJson['nombre'],
-        contact: customerJson['contacto'],
-      );
-    } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
-    }
-  }
-
-  Future<Customer> createCustomer(Customer customer) async {
-    // Validation for customer data
-    if (customer.idNumber.isEmpty || customer.name.isEmpty || customer.contact.isEmpty) {
-      throw Exception('All fields are required.');
-    }
-
+  // POST /api/customer/create-customer
+  Future<dynamic> createCustomer(Map<String, dynamic> customer) async {
+    final headers = await _getHeaders();
     final response = await http.post(
-      Uri.parse('${baseUrl}clients'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'dni': customer.idNumber,
-        'nombre': customer.name,
-        'contacto': customer.contact,
-      }),
+      Uri.parse('$baseUrl/api/customer/create'),
+      headers: headers,
+      body: json.encode(customer),
     );
 
-    if (response.statusCode == 201) {
-      var customerJson = json.decode(response.body);
-      return Customer(
-        idNumber: customerJson['dni'],
-        name: customerJson['nombre'],
-        contact: customerJson['contacto'],
-      );
+    print('POST /api/customer/create response status: ${response.statusCode}');
+    print('POST /api/customer/create response body: ${response.body}');
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return response.body.isNotEmpty ? json.decode(response.body) : {};
     } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      throw Exception('Failed to create customer: ${response.statusCode} - ${response.body}');
     }
   }
 
-  Future<Customer> updateCustomer(String idNumber, Customer customer) async {
-    // Validation for ID number
-    if (idNumber.isEmpty) {
-      throw Exception('ID number cannot be empty.');
-    }
-    // Validation for customer data
-    if (customer.name.isEmpty || customer.contact.isEmpty) {
-      throw Exception('All fields are required.');
-    }
-
+  // PUT /api/customer/update-customer
+  Future<dynamic> updateCustomer(int id,Map<String, dynamic> customer) async {
+    final headers = await _getHeaders();
     final response = await http.put(
-      Uri.parse('${baseUrl}clients/$idNumber'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'dni': customer.idNumber,
-        'nombre': customer.name,
-        'contacto': customer.contact,
-      }),
+      Uri.parse('$baseUrl/api/customer/$id'),
+      headers: headers,
+      body: json.encode(customer),
     );
+
+    print('PUT /api/customer/$id response status: ${response.statusCode}');
+    print('PUT /api/customer/$id response body: ${response.body}');
 
     if (response.statusCode == 200) {
-      var customerJson = json.decode(response.body);
-      return Customer(
-        idNumber: customerJson['dni'],
-        name: customerJson['nombre'],
-        contact: customerJson['contacto'],
-      );
+      return response.body.isNotEmpty ? json.decode(response.body) : {};
     } else {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      throw Exception('Failed to update customer: ${response.statusCode} - ${response.body}');
     }
   }
+
+  // GET /api/customer/get-all/{hotelId}
+  Future<List<dynamic>> getCustomerByHotelId(int hotelId) async {
+    final headers = await _getHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/customer/get-all-customers/$hotelId'),
+      headers: headers,
+    );
+
+    print('GET /api/customer/get-all-customers/$hotelId response status: ${response.statusCode}');
+    print('GET /api/customer/get-all-customers/$hotelId response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load customers by Hotel Id: ${response.statusCode} - ${response.body}');
+    }
+  }
+
 }
