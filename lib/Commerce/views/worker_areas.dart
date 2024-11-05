@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Commerce/services/commerce_service.dart';
+import 'package:sweetmanager/Commerce/views/admin_registration.dart';
 
 import '../../Shared/widgets/base_layout.dart';
 
@@ -21,28 +22,15 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
   final List<Map<String, dynamic>> workAreas = [
     {"name": "Kitchen Staff", "selected": false},
     {"name": "Housekeeping", "selected": false},
-    {"name": "Wait Staff", "selected": false},
     {"name": "Security", "selected": false},
-    {"name": "Room Service", "selected": false},
+/*     {"name": "Room Service", "selected": false},
     {"name": "Reception", "selected": false},
     {"name": "Valet and Bellhop", "selected": false},
     {"name": "Laundry", "selected": false},
     {"name": "Spa Wellness Staff", "selected": false},
     {"name": "Concierge", "selected": false},
+    {"name": "Wait Staff", "selected": false}, */
   ];
-
-  Future<String?> _getRole() async
-  {
-    // Retrieve token from local storage
-
-    String? token = await storage.read(key: 'token');
-
-    Map<String,dynamic> decodedToken = JwtDecoder.decode(token!);
-
-    // Get Role in Claims token
-
-    return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
-  }
 
   Future<String?> _getLocality() async
   {
@@ -71,12 +59,15 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
 
     var hotelId = await _getLocality();
 
+    var isCreated = false;
+
     for(var workerAreas in workAreas.where((wa) => wa["selected"]))
     {
       var val = await _commerceService.registerWorkerAreas(workerAreas["name"], int.parse(hotelId!));
 
       if(val)
       {
+        isCreated = true;
         continue;
       }
       else{
@@ -88,38 +79,24 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
     }
 
     print("Selected Work Areas: $selectedAreas");
+
+    if(isCreated)
+    {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => AdminRegistration(workAreas: selectedAreas,)));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _getRole(),
-      builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.waiting)
-        {
-          return const Center(child: CircularProgressIndicator(),);
-        }
-
-        if(snapshot.hasData)
-        {
-          String? role = snapshot.data;
-
-          return BaseLayout(
-            role: role,
-            childScreen: getContentView(role)
-          );
-        }
-
-        return const Center(child: Text('Unable to get information', textAlign: TextAlign.center,));
-      }
+    return BaseLayout(
+      role: '',
+      childScreen: getContentView()
     );
   }
 
-  Widget getContentView(String? role)
+  Widget getContentView()
   {
-    if(role == 'ROLE_OWNER')
-    {
-      return Scaffold(
+    return Scaffold(
       body: Stack(
         children: [
           // Background image
@@ -194,12 +171,5 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
         ],
       ),
     );
-    }
-    else
-    {
-      return const Scaffold(
-        body: Center(child: Text('You are not authorized!'),),
-      );
-    }
   }
 }
