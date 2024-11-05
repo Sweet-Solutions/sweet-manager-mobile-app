@@ -23,27 +23,21 @@ class EditRoomDialog extends StatefulWidget {
 
 class _EditRoomDialogState extends State<EditRoomDialog> {
 
-
   late RoomService roomService = RoomService();
-
   late TextEditingController id;
-  late TextEditingController typeRoomId;
-  late TextEditingController hotelId;
   late TextEditingController roomState;
 
   @override
   void initState() {
     super.initState();
     id = TextEditingController(text: widget.id.toString());
-    typeRoomId = TextEditingController(text: widget.typeRoomId.toString());
-    hotelId = TextEditingController(text: widget.hotelId.toString());
     roomState = TextEditingController(text: widget.roomState);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Editar habitación"),
+      title: const Text("Update room state"),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -53,37 +47,27 @@ class _EditRoomDialogState extends State<EditRoomDialog> {
             readOnly: true,
           ),
           TextFormField(
-            controller: typeRoomId,
-            decoration: const InputDecoration(labelText: 'Type Room ID'),
-          ),
-          TextFormField(
-            controller: hotelId,
-            decoration: const InputDecoration(labelText: 'Hotel ID'),
-          ),
-          TextFormField(
             controller: roomState,
             decoration: const InputDecoration(labelText: 'Room State'),
+            keyboardType: TextInputType.text,
           ),
         ],
       ),
       actions: <Widget>[
         TextButton(
-          child: const Text("Cancelar"),
+          child: const Text("Cancel"),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
         TextButton(
-          child: const Text("Aceptar"),
+          child: const Text("Accept"),
           onPressed: () {
 
-            final String updatedTypeRoomId = typeRoomId.text;
-            final String updatedHotelId = hotelId.text;
             final String updatedRoomState = roomState.text;
 
             roomService.updateRoom(widget.id,
-                Room(id: widget.id,typeRoomId: int.parse(updatedTypeRoomId),
-                    hotelId: int.parse(updatedHotelId),
+                Room(id: widget.id, typeRoomId: 0, hotelId: 0,
                     roomState: updatedRoomState)
             );
 
@@ -97,8 +81,6 @@ class _EditRoomDialogState extends State<EditRoomDialog> {
   @override
   void dispose() {
     id.dispose();
-    typeRoomId.dispose();
-    hotelId.dispose();
     roomState.dispose();
     super.dispose();
   }

@@ -4,7 +4,7 @@ import '../models/room.dart';
 
 class RoomService {
 
-  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/v1/';
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/rooms/';
 
   Future<bool> createRoom(Room room) async {
 
@@ -15,7 +15,7 @@ class RoomService {
 
     final response = await http.post(
 
-      Uri.parse('${baseUrl}rooms'),
+      Uri.parse('${baseUrl}create-room'),
 
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -41,7 +41,7 @@ class RoomService {
 
     final response = await http.post(
 
-      Uri.parse('${baseUrl}rooms/$id'),
+      Uri.parse('${baseUrl}update-room-state'),
 
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -58,9 +58,10 @@ class RoomService {
     }
   }
 
-  Future<List<Room>> getRooms() async {
+  Future<List<Room>> getRooms(String hotelId) async {
 
-    final response = await http.get(Uri.parse('${baseUrl}rooms'));
+    final response = await http.get(Uri.parse
+      ('${baseUrl}get-all-rooms?hotelId=$hotelId'));
 
     if (response.statusCode == 200) {
 
@@ -82,10 +83,10 @@ class RoomService {
 
     if (id == 0) {
 
-      throw Exception('The provider id cannot be 0.');
+      throw Exception('The room id cannot be 0.');
     }
 
-    final response = await http.get(Uri.parse('${baseUrl}rooms/$id'));
+    final response = await http.get(Uri.parse('${baseUrl}get-room-by-id?id=$id'));
 
     if (response.statusCode == 200) {
 

@@ -11,5 +11,4 @@ class Room {
     required this.hotelId,
     required this.roomState,
   });
-
 }
