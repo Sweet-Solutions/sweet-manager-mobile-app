@@ -256,4 +256,36 @@ class CommerceService {
     }
   }
 
+  Future<bool> registerAssignmentWorker(int workerAreasId, int workersId, int adminsId, String startDate, String finalDate) async
+  {
+    try {
+      final token = await storage.read(key: 'token');
+
+      final response = await http.post(Uri.parse('$baseUrl/api/v1/assignment-worker/create-assignment-worker'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+        'workerAreasId': workerAreasId,
+        'workersId': workersId,
+        'adminsId': adminsId,
+        'startDate': startDate,
+        'finalDate': finalDate,
+        'state': 'ACTIVE'
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
 }
