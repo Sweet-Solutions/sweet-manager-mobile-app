@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sweetmanager/ResourceManagement/models/typereport.dart';
 import 'package:sweetmanager/ResourceManagement/services/typesreportservice.dart';
 import 'package:sweetmanager/ResourceManagement/services/reportservice.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart';
+
 
 class AddReport extends StatefulWidget {
   const AddReport({super.key});
@@ -19,7 +19,7 @@ class _AddReportState extends State<AddReport> {
   final TextEditingController contentController = TextEditingController();
   final TextEditingController adminController = TextEditingController();
   final TextEditingController workerController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
 
   PlatformFile? pickedFile;
   String? base64File;
@@ -33,7 +33,6 @@ class _AddReportState extends State<AddReport> {
   void initState() {
     super.initState();
     firestore = FirebaseFirestore.instance;
-    final authService = AuthService();
     typesReportService = TypesReportService();
     reportService = ReportService();
     fetchTypesReports();

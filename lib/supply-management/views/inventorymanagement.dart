@@ -3,7 +3,6 @@ import 'package:sweetmanager/supply-management/models/supply.dart';
 import 'package:sweetmanager/supply-management/views/supplyaddscreen.dart';
 import 'package:sweetmanager/supply-management/views/supplyeditscreen.dart';
 import 'package:sweetmanager/supply-management/services/supplyservices.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart'; // Import your BaseLayout
@@ -17,7 +16,6 @@ class InventoryManagement extends StatefulWidget {
 
 class _InventoryManagementState extends State<InventoryManagement> {
   late SupplyService _supplyService;
-  late AuthService _authService;
   final storage = const FlutterSecureStorage();
   List<Supply> supplies = [];
   bool isLoading = true;
@@ -60,7 +58,6 @@ class _InventoryManagementState extends State<InventoryManagement> {
   @override
   void initState() {
     super.initState();
-    _authService = AuthService();
     _supplyService = SupplyService();
     _loadHotelId();
   }

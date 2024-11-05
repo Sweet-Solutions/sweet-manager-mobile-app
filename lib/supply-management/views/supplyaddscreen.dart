@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/supply-management/services/supplyservices.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SupplyAddScreen extends StatefulWidget {
@@ -20,13 +19,11 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
   bool isLoading = false;
 
   late SupplyService _supplyService;
-  late AuthService _authService;
   final FlutterSecureStorage storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
-    _authService = AuthService();
     _supplyService = SupplyService();
   }
 

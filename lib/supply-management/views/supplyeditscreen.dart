@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/supply-management/services/supplyservices.dart';
 import 'package:sweetmanager/supply-management/models/supply.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class SupplyEditScreen extends StatefulWidget {
   final Supply supply;
@@ -23,13 +23,21 @@ class _SupplyEditScreenState extends State<SupplyEditScreen> {
   bool isLoading = false;
 
   late SupplyService _supplyService;
-  late AuthService _authService;
   final FlutterSecureStorage storage = const FlutterSecureStorage();
+
+  Future<String?> _getRole() async {
+    String? token = await storage.read(key: 'token');
+
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    }
+    return null;
+  }
 
   @override
   void initState() {
     super.initState();
-    _authService = AuthService();
     _supplyService = SupplyService();
 
     _nameController = TextEditingController(text: widget.supply.name);
