@@ -4,12 +4,15 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Commerce/services/commerce_service.dart';
 import 'package:sweetmanager/Commerce/views/hotel_registration.dart';
 import 'package:sweetmanager/Commerce/widgets/plan_card.dart';
+import 'package:sweetmanager/IAM/models/sign_in_entity.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class CheckoutSubscription extends StatefulWidget {
-  const CheckoutSubscription({super.key, required this.cardIdentifier});
+  const CheckoutSubscription({super.key, required this.cardIdentifier, required this.credentials});
 
   final int cardIdentifier;
+
+  final SignInEntity credentials;
 
   @override
   State<CheckoutSubscription> createState() => CheckoutSubscriptionState();
@@ -23,6 +26,9 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
   final _commerceService = CommerceService();
 
   final storage = const FlutterSecureStorage();
+
+  late SignInEntity credentials;
+
   // Declare all the variables 
 
   final TextEditingController _cardOwnerController = TextEditingController();
@@ -43,6 +49,8 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
 
     // Initialize the cardIdentifier from widget's constructor
     cardIdentifier = widget.cardIdentifier;
+
+    credentials = widget.credentials;
   }
 
   Future<String?> _getIdentity() async
@@ -55,7 +63,7 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
 
     // Get Role in Claims token
 
-    return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/Sid']?.toString();
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid']?.toString();
   }
 
 
@@ -238,7 +246,7 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
                       {
                         await _commerceService.registerContract(cardIdentifier, int.parse(identity));
 
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const HotelRegistration()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => HotelRegistration(credentials: credentials,)));
                       }
                       else
                       {

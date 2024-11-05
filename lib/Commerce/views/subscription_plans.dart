@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Commerce/views/checkout_subscription.dart';
 import 'package:sweetmanager/Commerce/widgets/plan_card.dart';
+import 'package:sweetmanager/IAM/models/sign_in_entity.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class SubscriptionPlansView extends StatelessWidget{
   
 
-  const SubscriptionPlansView({super.key});
+  const SubscriptionPlansView({super.key, required this.credentials});
+
+  final SignInEntity credentials;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +65,7 @@ class SubscriptionPlansView extends StatelessWidget{
                       buttonColor: Colors.black,
                       behavior: () {
                         // Connection to checkout subscription dart view
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutSubscription(cardIdentifier: 1,)));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CheckoutSubscription(cardIdentifier: 1, credentials: credentials,)));
                       },
                       textButton: 'COMENZAR',
                     ),
@@ -82,7 +85,7 @@ class SubscriptionPlansView extends StatelessWidget{
                       buttonColor: Colors.indigo[800]!,
                       behavior: () {
                         // Connection to checkout subscription dart view
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutSubscription(cardIdentifier: 2,)));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CheckoutSubscription(cardIdentifier: 2, credentials: credentials,)));
                       },
                       textButton: 'COMENZAR',
                     ),
@@ -101,7 +104,7 @@ class SubscriptionPlansView extends StatelessWidget{
                       buttonColor: const Color.fromARGB(255, 39, 89, 109),
                       behavior: () {
                         // Connection to checkout subscription dart view
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutSubscription(cardIdentifier: 3,)));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CheckoutSubscription(cardIdentifier: 3,credentials: credentials,)));
                       },
                       textButton: 'COMENZAR',
                     ),

@@ -7,7 +7,7 @@ import 'package:sweetmanager/Commerce/models/payment_customer.dart';
 import 'package:sweetmanager/Commerce/models/payment_owner.dart';
 
 class CommerceService {
-  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/v1';
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me';
 
   final storage = const FlutterSecureStorage();
 
@@ -16,7 +16,7 @@ class CommerceService {
     try {
       final token = await storage.read(key: 'token');
 
-      final response = await http.post(Uri.parse('$baseUrl/contracts/create-contract-owner'), 
+      final response = await http.post(Uri.parse('$baseUrl/create-contract-owner'), 
        headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -43,7 +43,7 @@ class CommerceService {
     try {
       final String? token = await storage.read(key: 'token');
 
-      final response = await http.get(Uri.parse('$baseUrl/contracts/get-contract-by-owner-id?ownerId=$ownersId'), 
+      final response = await http.get(Uri.parse('$baseUrl/get-contract-by-owner-id?ownerId=$ownersId'), 
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
@@ -65,21 +65,23 @@ class CommerceService {
     }
   } 
 
+
+
   Future<bool> createPaymentOwner(int ownersId, String description, double finalAmount) async
   {
     try {
       final token = await storage.read(key: 'token');
 
-      final response = await http.post(Uri.parse('$baseUrl/payment/create-payment-owner'),
+      final response = await http.post(Uri.parse('$baseUrl/create-payment-owner'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
       },
-      body: {
+      body: jsonEncode({
         'ownerId': ownersId,
         'description':description,
         'finalAmount': finalAmount
-      });
+      }));
 
       if(response.statusCode == 200)
       {
@@ -98,7 +100,7 @@ class CommerceService {
     try {
       final token = await storage.read(key: 'token');
 
-      final response = await http.get(Uri.parse('$baseUrl/payment/get-payments-owner-id?ownerId=$ownerId'),
+      final response = await http.get(Uri.parse('$baseUrl/get-payments-owner-id?ownerId=$ownerId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
@@ -125,15 +127,15 @@ class CommerceService {
     try {
       final token = await storage.read(key: 'token');
 
-      final response = await http.post(Uri.parse('$baseUrl/payment/create-payment-customer'),
+      final response = await http.post(Uri.parse('$baseUrl/create-payment-customer'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
       },
-      body: {
+      body: jsonEncode({
         'customerId': customerId,
         'finalAmount': finalAmount
-      });
+      }));
 
       if(response.statusCode == 200)
       {
@@ -151,7 +153,7 @@ class CommerceService {
     try {
       final token = storage.read(key: 'token');
 
-      final response = await http.get(Uri.parse('$baseUrl/payment/get-payments-customer-id?customerId=$customerId'),
+      final response = await http.get(Uri.parse('$baseUrl/get-payments-customer-id?customerId=$customerId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
@@ -177,7 +179,7 @@ class CommerceService {
     try {
       final token = await storage.read(key: 'token');
 
-      final response = await http.get(Uri.parse('$baseUrl/payment/get-payments-customer-hotel-id'),
+      final response = await http.get(Uri.parse('$baseUrl/get-payments-customer-hotel-id'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
@@ -197,5 +199,95 @@ class CommerceService {
       rethrow;
     }
   }
+
+  Future<bool> registerRoomTypes(String name, double price) async 
+  {
+    try {
+      final token = await storage.read(key: 'token');
+
+      final response = await http.post(Uri.parse('$baseUrl/api/types-rooms/create-type-room'),
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+          'description': name,
+          'price': price
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> registerWorkerAreas(String name, int hotelId) async
+  {
+    try {
+      final token = await storage.read(key: 'token');
+
+      final response = await http.post(Uri.parse('$baseUrl/api/v1/worker-area/create-worker-area'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+        'name': name,
+        'hotelId': hotelId
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> registerAssignmentWorker(int workerAreasId, int workersId, int adminsId, String startDate, String finalDate) async
+  {
+    try {
+      final token = await storage.read(key: 'token');
+
+      final response = await http.post(Uri.parse('$baseUrl/api/v1/assignment-worker/create-assignment-worker'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+        'workerAreasId': workerAreasId,
+        'workersId': workersId,
+        'adminsId': adminsId,
+        'startDate': startDate,
+        'finalDate': finalDate,
+        'state': 'ACTIVE'
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  
 
 }
