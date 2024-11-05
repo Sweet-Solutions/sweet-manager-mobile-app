@@ -55,6 +55,8 @@ class MyHomePage extends StatelessWidget {
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
         '/messages': (context) => Messagescreen(),
+        /*'/admin-registration': (context) => const AdminRegistration(),
+        '/worker-registration': (context) => const WorkerRegistration(), */
         // ignore: prefer_const_constructors
         '/reports': (context) => ReportList(),
         '/profiles': (context) => ProfilePage(),
