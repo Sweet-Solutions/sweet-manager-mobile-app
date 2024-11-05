@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Importa Firebase Storage
-import 'package:path/path.dart' as path; // Para obtener el nombre del archivo
+import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sweetmanager/ResourceManagement/models/typereport.dart';
 import 'package:sweetmanager/ResourceManagement/services/typesreportservice.dart';
+import 'package:sweetmanager/ResourceManagement/services/reportservice.dart';
+
 
 class AddReport extends StatefulWidget {
   const AddReport({super.key});
@@ -14,86 +15,119 @@ class AddReport extends StatefulWidget {
 }
 
 class _AddReportState extends State<AddReport> {
-  TextEditingController usernameController = TextEditingController();
-  TextEditingController titleController = TextEditingController();
-  TextEditingController contentController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  File? _imageFile; // Imagen seleccionada
-  final picker = ImagePicker();
-  int? selectedTypeReportId; // ID del tipo de reporte seleccionado
-  List<TypesReport> typesReports = []; // Lista de tipos de reportes
-  final TypesReportService _typesReportService = TypesReportService(); // Servicio para obtener los tipos de reporte
-  String? imageUrl; // URL de la imagen subida a Firebase
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController contentController = TextEditingController();
+  final TextEditingController adminController = TextEditingController();
+  final TextEditingController workerController = TextEditingController();
+
+
+  PlatformFile? pickedFile;
+  String? base64File;
+  int? selectedTypeReportId;
+  List<TypesReport> typesReports = [];
+  late TypesReportService typesReportService;
+  late ReportService reportService;
+  late FirebaseFirestore firestore;
 
   @override
   void initState() {
     super.initState();
-    fetchTypesReports(); // Llamada a la API al iniciar
+    firestore = FirebaseFirestore.instance;
+    typesReportService = TypesReportService();
+    reportService = ReportService();
+    fetchTypesReports();
   }
 
-  // Método para obtener los tipos de reportes
+  Future<void> selectFile() async {
+    final result = await FilePicker.platform.pickFiles();
+    if (result == null) return;
+    
+    setState(() {
+      pickedFile = result.files.first;
+      base64File = base64Encode(pickedFile!.bytes!); // Encode file to Base64
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('File "${pickedFile!.name}" selected')),
+    );
+  }
+
+  Future<void> _submitReport() async {
+  // Check that all required fields are completed
+  if (titleController.text.isEmpty ||
+      contentController.text.isEmpty ||
+      selectedTypeReportId == null ||
+      pickedFile == null ||
+      adminController.text.isEmpty ||
+      workerController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All fields are required, including the file.')),
+    );
+    return;
+  }
+
+  try {
+    // Step 1: Upload the image to Firestore and get its URL
+    String? imageUrl;
+    if (pickedFile != null) {
+      final storageRef = FirebaseFirestore.instance.collection('report_images').doc();
+      await storageRef.set({
+        'fileName': pickedFile!.name,
+        'content': base64File,
+      });
+      imageUrl = storageRef.path;
+    }
+
+    // Step 2: Prepare report data
+    final reportData = {
+      'typesReportsId': selectedTypeReportId,
+      'adminsId': int.parse(adminController.text),
+      'workersId': int.parse(workerController.text),
+      'title': titleController.text,
+      'description': contentController.text,
+      'fileUrl': imageUrl ?? base64File,
+    };
+
+    // Send the report
+    final response = await reportService.createReport(reportData, null);
+
+    // Check response and redirect if successful
+    if (response == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Report submitted successfully')),
+      );
+      Navigator.pop(context, true); // Pass `true` to indicate success
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to submit report')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error submitting report: $e')),
+    );
+    Navigator.pop(context, true); // Pass `false` to indicate failure
+  }
+}
+
+
+
+
+
+
+
+
   Future<void> fetchTypesReports() async {
     try {
-      List<TypesReport> fetchedReports = await _typesReportService.fetchTypesReports();
+      List<TypesReport> fetchedReports = await typesReportService.fetchTypesReports();
       setState(() {
         typesReports = fetchedReports;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al obtener los tipos de reportes')),
+        const SnackBar(content: Text('Error fetching report types')),
       );
     }
-  }
-
-  // Método para seleccionar una imagen y luego subirla a Firebase
-  Future<void> _pickImageAndUpload() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-
-      // Sube la imagen a Firebase Storage
-      String fileName = path.basename(pickedFile.path);
-      try {
-        FirebaseStorage storage = FirebaseStorage.instance;
-        Reference ref = storage.ref().child('report_images/$fileName');
-        UploadTask uploadTask = ref.putFile(_imageFile!);
-
-        // Espera a que la tarea se complete
-        TaskSnapshot snapshot = await uploadTask.whenComplete(() => {});
-        String downloadUrl = await snapshot.ref.getDownloadURL();
-
-        setState(() {
-          imageUrl = downloadUrl; // Guarda la URL de la imagen
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Imagen cargada exitosamente')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar la imagen: $e')),
-        );
-      }
-    }
-  }
-
-  // Método para manejar el envío del formulario
-  void _submitReport() {
-    String username = usernameController.text;
-    String title = titleController.text;
-    String content = contentController.text;
-
-    if (username.isEmpty || title.isEmpty || content.isEmpty || selectedTypeReportId == null || imageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Todos los campos son obligatorios, incluyendo la imagen.')),
-      );
-      return;
-    }
-
-    // Aquí puedes manejar el envío del reporte al backend, incluyendo imageUrl
   }
 
   @override
@@ -104,7 +138,6 @@ class _AddReportState extends State<AddReport> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Flecha y Título centrado
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -117,11 +150,8 @@ class _AddReportState extends State<AddReport> {
                 const Expanded(
                   child: Center(
                     child: Text(
-                      'HACER UN REPORTE',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      'Create Report',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -129,8 +159,6 @@ class _AddReportState extends State<AddReport> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Selección del tipo de reporte
             typesReports.isEmpty
                 ? const CircularProgressIndicator()
                 : DropdownButton<int>(
@@ -138,7 +166,7 @@ class _AddReportState extends State<AddReport> {
                     items: typesReports.map((TypesReport reportType) {
                       return DropdownMenuItem<int>(
                         value: reportType.id,
-                        child: Text(reportType.name),
+                        child: Text(reportType.title),
                       );
                     }).toList(),
                     onChanged: (int? newValue) {
@@ -146,64 +174,65 @@ class _AddReportState extends State<AddReport> {
                         selectedTypeReportId = newValue;
                       });
                     },
-                    hint: const Text('Selecciona el tipo de reporte'),
+                    hint: const Text('Select report type'),
                   ),
-          
-            const SizedBox(height: 16),
-
-            // Campo de Usuario
-            const Text('Usuario'),
+            const SizedBox(height: 8),
+            const Text('Admin ID'),
             TextField(
-              controller: usernameController,
+              controller: adminController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Usuario',
+                labelText: 'Admin ID',
               ),
             ),
             const SizedBox(height: 16),
-
-            // Campo de Título
-            const Text('Título'),
+            const Text('Worker ID'),
+            TextField(
+              controller: workerController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Worker ID',
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Title'),
             TextField(
               controller: titleController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Título',
+                labelText: 'Title',
               ),
             ),
             const SizedBox(height: 16),
-
-            // Campo de Contenido
-            const Text('Contenido'),
+            const Text('Content'),
             TextField(
               controller: contentController,
               maxLines: 5,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Contenido',
+                labelText: 'Content',
               ),
             ),
             const SizedBox(height: 16),
-
-            // Botón para subir imagen
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  onPressed: _pickImageAndUpload, // Método para seleccionar e intentar subir una imagen
+                  onPressed: selectFile,
                   style: ElevatedButton.styleFrom(
                     side: const BorderSide(color: Colors.black),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-                  child: const Text('Subir Imagen'),
+                  child: const Text('Select File'),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-
-            // Botón de enviar el reporte
+            if (pickedFile != null) // Show selected file name
+              Text("Selected: ${pickedFile!.name}"),
+            const SizedBox(height: 16),
             Center(
               child: ElevatedButton(
                 onPressed: _submitReport,
@@ -215,7 +244,7 @@ class _AddReportState extends State<AddReport> {
                   ),
                 ),
                 child: const Text(
-                  'Mandar',
+                  'Submit',
                   style: TextStyle(color: Colors.white),
                 ),
               ),

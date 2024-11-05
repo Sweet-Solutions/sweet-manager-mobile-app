@@ -3,7 +3,6 @@ import 'package:sweetmanager/supply-management/models/supply.dart';
 import 'package:sweetmanager/supply-management/views/supplyaddscreen.dart';
 import 'package:sweetmanager/supply-management/views/supplyeditscreen.dart';
 import 'package:sweetmanager/supply-management/services/supplyservices.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart'; // Import your BaseLayout
@@ -17,7 +16,6 @@ class InventoryManagement extends StatefulWidget {
 
 class _InventoryManagementState extends State<InventoryManagement> {
   late SupplyService _supplyService;
-  late AuthService _authService;
   final storage = const FlutterSecureStorage();
   List<Supply> supplies = [];
   bool isLoading = true;
@@ -60,8 +58,7 @@ class _InventoryManagementState extends State<InventoryManagement> {
   @override
   void initState() {
     super.initState();
-    _authService = AuthService();
-    _supplyService = SupplyService('https://sweetmanager-api.ryzeon.me/');
+    _supplyService = SupplyService();
     _loadHotelId();
   }
 
@@ -107,15 +104,16 @@ class _InventoryManagementState extends State<InventoryManagement> {
   }
 
   Future<void> _addSupply() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SupplyAddScreen()),
-    );
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const SupplyAddScreen()),
+  );
 
-    if (result == true) {
-      _fetchSupplies();
-    }
+  if (result == true) {
+    await _fetchSupplies(); // Refresca la lista después de agregar
   }
+}
+
 
   void _showDeleteConfirmationDialog(Supply supply) {
     showDialog(
@@ -239,14 +237,14 @@ class _InventoryManagementState extends State<InventoryManagement> {
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: DataTable(
-                              headingRowColor: MaterialStateProperty.resolveWith<Color>(
-                                (Set<MaterialState> states) {
+                              headingRowColor: WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                                   return const Color(0xFF474C74);
                                 },
                               ),
-                              dataRowColor: MaterialStateProperty.resolveWith<Color>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.selected)) {
+                              dataRowColor: WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.selected)) {
                                     return Colors.grey.withOpacity(0.5);
                                   }
                                   return Colors.white;

@@ -14,12 +14,16 @@ import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
 import 'package:sweetmanager/Communication/views/writeMessage.dart';
 import 'package:sweetmanager/Communication/views/alertScreen.dart';
 import 'package:sweetmanager/Communication/views/writeAlert.dart';
+import 'firebase_options.dart'; // Import the generated options
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Inicializa Firebase con la configuración correcta para la web
   await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  // Inicializa Firebase con la configuración correcta para la web
+  /*await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyBTGEj8JZrWvn62ZtofnaGr-LluqliNXMc",
       authDomain: "sweet-solutions.firebaseapp.com",
@@ -28,7 +32,7 @@ void main() async {
       messagingSenderId: "180154492305",
       appId: "1:180154492305:web:b156d317f56c1d4f34a630",
     ),
-  );
+  );*/
 
   runApp(const MyHomePage());
 

@@ -1,20 +1,32 @@
 
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart';
 import 'dart:convert';
 import 'package:sweetmanager/ResourceManagement/models/report.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart'; // Ensure you import your AuthService class
 
+class ReportService {
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api';
+  final authService = AuthService();
 
+  // Helper method to get the headers with token
+  Future<Map<String, String>> _getHeaders() async {
+    final token = await authService.storage.read(key: 'token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
 
-class ReportService{
-  final String baseUrl; 
+  // Get all reports
+  Future<List<dynamic>> getReports(int hotelId) async {
+    final headers = await _getHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/reports?hotelId=$hotelId'),
+      headers: headers,
+    );
+        print('response status: ${response.statusCode}');
+    print(' response body: ${response.body}');
 
-  ReportService({required this.baseUrl});
-
-  Future<List<dynamic>> getReports() async {
-    final response = await http.get(Uri.parse('$baseUrl/reports'));
 
     if (response.statusCode == 200) {
       return json.decode(response.body);
@@ -23,49 +35,49 @@ class ReportService{
     }
   }
 
+  // Get a report by ID
   Future<Report> getReportById(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/reports/$id'));
+    final headers = await _getHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/reports/$id'),
+      headers: headers,
+    );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      return Report.fromJson(json.decode(response.body)); // Ensure Report.fromJson exists
     } else {
       throw Exception('Failed to load report');
     }
   }
 
-  //TODO - Implementarle eso de insertar una imagen
-  
-  Future<dynamic> createReport(Map<String, dynamic> report, File? imageFile) async {
-  var uri = Uri.parse('$baseUrl/reports');
-  var request = http.MultipartRequest('POST', uri);
+  // Create a new report, optionally with an image
+  Future<dynamic> createReport(Map<String, dynamic> report, String? base64Image) async {
+  final headers = await _getHeaders();
+  final uri = Uri.parse('$baseUrl/reports/create');
 
-  // Añadir los datos del reporte como campos del formulario
-  report.forEach((key, value) {
-    request.fields[key] = value.toString();
-  });
-
-  if (imageFile != null) {
-    // Determinar el tipo MIME de la imagen
-    var mimeType = lookupMimeType(imageFile.path)?.split('/');
-    
-    // Agregar la imagen como archivo multipart
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'fileUrl', // Nombre del campo en el backend
-        imageFile.path,
-        contentType: MediaType(mimeType![0], mimeType[1]),
-      ),
-    );
+  // Assign the Base64 image to the 'fileUrl' key if not null
+  if (base64Image != null) {
+    report['fileUrl'] = base64Image;
   }
 
-  // Enviar la solicitud y recibir la respuesta
-  var streamedResponse = await request.send();
-  var response = await http.Response.fromStream(streamedResponse);
+  // Print for debugging
+  print("Report Data: $report");
+  print("Headers: $headers");
+
+  final response = await http.post(
+    uri,
+    headers: headers,
+    body: jsonEncode(report),
+  );
 
   if (response.statusCode == 201) {
     return json.decode(response.body);
   } else {
+    print("Error: ${response.body}");
     throw Exception('Failed to create report');
   }
 }
-} 
+
+
+
+}
