@@ -55,7 +55,7 @@ class MyHomePage extends StatelessWidget {
         '/dashboard': (context) => const DashboardScreen(),
         // '/subscription': (context) => const SubscriptionPlansView(),
         '/rooms': (context) => const TableRoom(),
-        '/providers': (context) => ManageProvidersPage(),
+        '/providers': (context) => ProvidersManagement(),
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
         '/messages': (context) => Messagescreen(),
