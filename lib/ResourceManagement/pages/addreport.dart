@@ -38,10 +38,7 @@ class _AddReportState extends State<AddReport> {
       baseUrl: 'https://sweetmanager-api.ryzeon.me/api',
       authService: authService,
     );
-    reportService = ReportService(
-      baseUrl: 'https://sweetmanager-api.ryzeon.me/api',
-      authService: authService,
-    );
+    reportService = ReportService();
     fetchTypesReports();
   }
 
@@ -60,7 +57,7 @@ class _AddReportState extends State<AddReport> {
   }
 
   Future<void> _submitReport() async {
-  // Verifica que todos los campos requeridos estén completos
+  // Check that all required fields are completed
   if (titleController.text.isEmpty ||
       contentController.text.isEmpty ||
       selectedTypeReportId == null ||
@@ -74,7 +71,7 @@ class _AddReportState extends State<AddReport> {
   }
 
   try {
-    // PASO 1: Subir la imagen a Firestore y obtener su URL
+    // Step 1: Upload the image to Firestore and get its URL
     String? imageUrl;
     if (pickedFile != null) {
       final storageRef = FirebaseFirestore.instance.collection('report_images').doc();
@@ -85,7 +82,7 @@ class _AddReportState extends State<AddReport> {
       imageUrl = storageRef.path;
     }
 
-    // PASO 2: Preparar los datos del reporte
+    // Step 2: Prepare report data
     final reportData = {
       'typesReportsId': selectedTypeReportId,
       'adminsId': int.parse(adminController.text),
@@ -95,15 +92,15 @@ class _AddReportState extends State<AddReport> {
       'fileUrl': imageUrl ?? base64File,
     };
 
-    // Enviar el reporte
+    // Send the report
     final response = await reportService.createReport(reportData, null);
 
-    // Verifica la respuesta y redirige si es exitosa
+    // Check response and redirect if successful
     if (response == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Report submitted successfully')),
       );
-      Navigator.pop(context);  // Redirige al usuario al cerrar el formulario
+      Navigator.pop(context, true); // Pass `true` to indicate success
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to submit report')),
@@ -112,11 +109,11 @@ class _AddReportState extends State<AddReport> {
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error submitting report: $e')),
-      
     );
-    Navigator.pop(context); 
+    Navigator.pop(context, true); // Pass `false` to indicate failure
   }
 }
+
 
 
 

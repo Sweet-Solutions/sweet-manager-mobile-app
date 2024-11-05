@@ -25,6 +25,8 @@ class _ReportListState extends State<ReportList> {
   late ReportService reportService;
   final storage = const FlutterSecureStorage();
   String? role;
+  int? hotelId;
+
 
   @override
   void initState() {
@@ -34,7 +36,8 @@ class _ReportListState extends State<ReportList> {
       baseUrl: 'https://sweetmanager-api.ryzeon.me/api', 
       authService: authService,
     );
-    fetchReports();
+    _loadHotelId();
+   
   }
 
   Future<String?> _getRole() async {
@@ -46,9 +49,50 @@ class _ReportListState extends State<ReportList> {
     return null;
   }
 
+  Future<int?> _getHotelId() async {
+    String? token = await storage.read(key: 'token');
+
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+
+      if (decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality'] != null) {
+        try {
+          return int.parse(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']);
+        } catch (e) {
+          print('Failed to Convert Hotel ID $e');
+          return null;
+        }
+      } else {
+        print('Hotel ID not found');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _loadHotelId() async {
+    int? tokenHotelId = await _getHotelId();
+    print('Hotel ID: $tokenHotelId');
+
+    if (tokenHotelId != null) {
+      setState(() {
+        hotelId = tokenHotelId;
+      });
+      fetchReports();
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hotel ID not found')),
+      );
+    }
+  }
+
   Future<void> fetchReports() async {
     try {
-      final List<dynamic> reportData = await reportService.getReports();
+      print('Fetching supplies for hotelId: $hotelId');
+      final List<dynamic> reportData = await reportService.getReports(hotelId!);
       setState(() {
         reports = reportData.map((data) => Report.fromJson(data)).toList();
         filteredReports = reports; 
@@ -145,17 +189,24 @@ class _ReportListState extends State<ReportList> {
                                 });
                               },
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const AddReport(),
-                                  ),
-                                );
-                              },
-                            ),
+                            // Inside the IconButton for adding a report in ReportList
+IconButton(
+  icon: const Icon(Icons.add),
+  onPressed: () async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddReport(),
+      ),
+    );
+
+    // If a new report was successfully added, refresh the report list
+    if (result == true) {
+      _loadHotelId();
+    }
+  },
+),
+
                           ],
                         ),
                       ],

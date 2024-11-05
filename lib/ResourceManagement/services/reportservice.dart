@@ -7,10 +7,8 @@ import 'package:sweetmanager/ResourceManagement/models/report.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart'; // Ensure you import your AuthService class
 
 class ReportService {
-  final String baseUrl;
-  final AuthService authService; // AuthService dependency
-
-  ReportService({required this.baseUrl, required this.authService});
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api';
+  final authService = AuthService();
 
   // Helper method to get the headers with token
   Future<Map<String, String>> _getHeaders() async {
@@ -22,12 +20,15 @@ class ReportService {
   }
 
   // Get all reports
-  Future<List<dynamic>> getReports() async {
+  Future<List<dynamic>> getReports(int hotelId) async {
     final headers = await _getHeaders();
     final response = await http.get(
-      Uri.parse('$baseUrl/reports'),
+      Uri.parse('$baseUrl/reports?hotelId=$hotelId'),
       headers: headers,
     );
+        print('response status: ${response.statusCode}');
+    print(' response body: ${response.body}');
+
 
     if (response.statusCode == 200) {
       return json.decode(response.body);
