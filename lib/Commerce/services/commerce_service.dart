@@ -65,6 +65,8 @@ class CommerceService {
     }
   } 
 
+
+
   Future<bool> createPaymentOwner(int ownersId, String description, double finalAmount) async
   {
     try {
@@ -197,5 +199,95 @@ class CommerceService {
       rethrow;
     }
   }
+
+  Future<bool> registerRoomTypes(String name, double price) async 
+  {
+    try {
+      final token = await storage.read(key: 'token');
+
+      final response = await http.post(Uri.parse('$baseUrl/api/types-rooms/create-type-room'),
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+          'description': name,
+          'price': price
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> registerWorkerAreas(String name, int hotelId) async
+  {
+    try {
+      final token = await storage.read(key: 'token');
+
+      final response = await http.post(Uri.parse('$baseUrl/api/v1/worker-area/create-worker-area'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+        'name': name,
+        'hotelId': hotelId
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> registerAssignmentWorker(int workerAreasId, int workersId, int adminsId, String startDate, String finalDate) async
+  {
+    try {
+      final token = await storage.read(key: 'token');
+
+      final response = await http.post(Uri.parse('$baseUrl/api/v1/assignment-worker/create-assignment-worker'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+        'workerAreasId': workerAreasId,
+        'workersId': workersId,
+        'adminsId': adminsId,
+        'startDate': startDate,
+        'finalDate': finalDate,
+        'state': 'ACTIVE'
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  
 
 }

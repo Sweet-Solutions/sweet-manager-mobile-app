@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../IAM/services/auth_service.dart';
 import '../models/notification.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
 
 class NotificationService {
   final String baseUrl = "https://sweetmanager-api.ryzeon.me"; // Base URL
@@ -32,7 +31,7 @@ class NotificationService {
       body: jsonEncode(notification.toJson()),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       return true;
     } else {
       print('Error: ${response.statusCode}, ${response.body}');
