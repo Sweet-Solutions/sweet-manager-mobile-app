@@ -75,6 +75,77 @@ class AuthService{
 
   }
 
+  Future<bool> signupAdmin(int dni, String username, String name, String surname, String email, String phone, String password) async 
+  {
+    try
+    {
+      final response = await http.post(Uri.parse('$baseUrl/sign-up-admin'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'id': dni,
+        'username': username,
+        'name': name,
+        'surname': surname,
+        'email': email,
+        'phone': phone,
+        'state': 'ACTIVE',
+        'password': password
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    catch(e)
+    {
+      rethrow;
+    }
+
+  }
+
+
+  Future<bool> signupWorker(int dni, String username, String name, String surname, String email, String phone, String password) async 
+  {
+    try
+    {
+      final response = await http.post(Uri.parse('$baseUrl/sign-up-worker'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'id': dni,
+        'username': username,
+        'name': name,
+        'surname': surname,
+        'email': email,
+        'phone': phone,
+        'state': 'ACTIVE',
+        'password': password
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    catch(e)
+    {
+      rethrow;
+    }
+  }
+
+
   Future<void> logout() async{
     await storage.delete(key: 'token');
   }
