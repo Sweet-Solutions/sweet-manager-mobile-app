@@ -20,9 +20,9 @@ class _WorkerAreasSelectionState extends State<WorkerAreasSelection> {
   final _commerceService = CommerceService();
 
   final List<Map<String, dynamic>> workAreas = [
-    {"name": "Reception", "selected": false},
-    {"name": "Housekeeping", "selected": false},
-    {"name": "Security", "selected": false},
+    {"name": "RECEPTION", "selected": false},
+    {"name": "HOUSE_KEEPING", "selected": false},
+    {"name": "SECURITY_STAFF", "selected": false},
 /*     {"name": "Room Service", "selected": false},
     {"name": "Kitchen Staff", "selected": false},
     {"name": "Valet and Bellhop", "selected": false},
