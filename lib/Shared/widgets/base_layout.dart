@@ -234,6 +234,13 @@ class BaseLayout extends StatelessWidget {
               Navigator.pushNamed(context, '/profiles');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.book_online),
+            title: const Text('Bookings'),
+            onTap: () {
+              Navigator.pushNamed(context, '/bookings');
+            },
+          ),
         ];
       }
 
