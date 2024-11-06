@@ -8,11 +8,29 @@ import '../components/addroomdialog.dart';
 import '../models/room.dart';
 import '../services/roomservice.dart';
 
-class TableRoom extends StatelessWidget {
+class TableRoom extends StatefulWidget {
+
+  const TableRoom({super.key});
+
+  @override
+  _TableRoomState createState() => _TableRoomState();
+}
+
+class _TableRoomState extends State<TableRoom> {
 
   final storage = const FlutterSecureStorage();
 
-  const TableRoom({super.key});
+  late Future<String?> role;
+  late Future<String?> hotelId;
+  late DataTableRoom dataTableSource;
+
+  @override
+  void initState() {
+    super.initState();
+    role = _getRole();
+    hotelId = _getHotelId();
+    dataTableSource = DataTableRoom(context, _getRole() as String);
+  }
 
   Future<String?> _getRole() async {
     String? token = await storage.read(key: 'token');
@@ -26,8 +44,13 @@ class TableRoom extends StatelessWidget {
     return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
   }
 
-  Widget getContentView(BuildContext context, String hotelId) {
+  void _refreshTable() {
+    setState(() {
+      dataTableSource = DataTableRoom(context, _getRole() as String);
+    });
+  }
 
+  Widget getContentView(BuildContext context, String hotelId) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -43,13 +66,17 @@ class TableRoom extends StatelessWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    showDialog(
+                  onPressed: () async {
+                    final result = await showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return const AddRoomDialog();
                       },
                     );
+
+                    if (result == true) {
+                      _refreshTable();
+                    }
                   },
                   child: const Text('Add room'),
                 ),
@@ -72,7 +99,7 @@ class TableRoom extends StatelessWidget {
                   DataColumn(label: Text('State')),
                   DataColumn(label: Text('Options')),
                 ],
-                source: DataTableRoom(context, hotelId),
+                source: dataTableSource,
               ),
             ),
           ],
@@ -83,11 +110,9 @@ class TableRoom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return FutureBuilder(
-      future: Future.wait([_getRole(), _getHotelId()]),
+      future: Future.wait([role, hotelId]),
       builder: (context, AsyncSnapshot<List<String?>> snapshot) {
-
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -104,7 +129,6 @@ class TableRoom extends StatelessWidget {
   }
 }
 
-// En DataTableRoom
 class DataTableRoom extends DataTableSource {
 
   late RoomService roomService;
@@ -135,8 +159,8 @@ class DataTableRoom extends DataTableSource {
       DataCell(Text(data.hotelId.toString())),
       DataCell(Text(data.roomState.toString())),
       DataCell(TextButton(
-        onPressed: () {
-          showDialog(
+        onPressed: () async {
+          final result = await showDialog(
             context: context,
             builder: (BuildContext context) {
               return EditRoomDialog(
@@ -147,6 +171,10 @@ class DataTableRoom extends DataTableSource {
               );
             },
           );
+
+          if (result == true){
+            _fetchRooms();
+          }
         },
         child: const Text('Modifier'),
       )),
