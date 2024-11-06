@@ -210,7 +210,7 @@ class BaseLayout extends StatelessWidget {
           ),
         ];
       }
-      else if(response.role == 'RECEPCION')
+      else if(response.role == 'RECEPTION')
       {
         return [
           ListTile(
