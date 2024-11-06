@@ -106,12 +106,12 @@ class _AddBookingDialogState extends State<AddBookingDialog> {
         TextButton(
           child: const Text("Cancel"),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
         ),
         TextButton(
           child: const Text("Accept"),
-          onPressed: () {
+          onPressed: () async {
 
             if (startDate == null || finalDate == null) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -126,7 +126,7 @@ class _AddBookingDialogState extends State<AddBookingDialog> {
             final double newPriceRoom = double.parse(priceRoom.text);
             final int newNightCount = int.parse(nightCount.text);
 
-            bookingService.createBooking(
+            await bookingService.createBooking(
               Booking(
                 id: 0,
                 paymentCustomerId: newPaymentCustomerId,
@@ -141,7 +141,7 @@ class _AddBookingDialogState extends State<AddBookingDialog> {
               ),
             );
 
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           },
         ),
       ],
