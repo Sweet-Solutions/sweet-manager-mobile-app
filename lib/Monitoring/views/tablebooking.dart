@@ -8,9 +8,30 @@ import '../components/addbookingdialog.dart';
 import '../models/booking.dart';
 import '../services/bookingservice.dart';
 
-class TableBooking extends StatelessWidget {
-  final storage = const FlutterSecureStorage();
+class TableBooking extends StatefulWidget {
+
   const TableBooking({super.key});
+
+  @override
+  _TableBooking createState() => _TableBooking();
+}
+
+class _TableBooking extends State<TableBooking> {
+
+  final storage = const FlutterSecureStorage();
+
+  late Future<String?> role;
+  late Future<String?> hotelId;
+  late DataTableBooking dataTableSource;
+
+  @override
+  void initState() {
+    super.initState();
+    role = _getRole();
+    hotelId = _getHotelId();
+    dataTableSource = DataTableBooking
+      (context, _getHotelId() as String, _getRole() == 'ROLE_WORKER');
+  }
 
   Future<String?> _getRole() async {
     String? token = await storage.read(key: 'token');
@@ -24,7 +45,15 @@ class TableBooking extends StatelessWidget {
     return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
   }
 
+  void _refreshTable() {
+    setState(() {
+      dataTableSource = DataTableBooking
+        (context, _getHotelId() as String, _getRole() == 'ROLE_WORKER');
+    });
+  }
+
   Widget getContentView(BuildContext context, String hotelId, String? role) {
+
     bool isWorker = role == 'ROLE_WORKER';
 
     return Scaffold(
@@ -43,13 +72,17 @@ class TableBooking extends StatelessWidget {
                 ),
                 if (isWorker)
                   ElevatedButton(
-                    onPressed: () {
-                      showDialog(
+                    onPressed: () async {
+                      final result = await showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return const AddBookingDialog();
                         },
                       );
+
+                      if (result == true) {
+                        _refreshTable();
+                      }
                     },
                     child: const Text('Add booking'),
                   ),
@@ -106,6 +139,7 @@ class TableBooking extends StatelessWidget {
 }
 
 class DataTableBooking extends DataTableSource {
+
   late BookingService bookingService;
   late List<Booking> _data = [];
   final BuildContext context;
@@ -113,6 +147,7 @@ class DataTableBooking extends DataTableSource {
   final bool isWorker;
 
   DataTableBooking(this.context, this.hotelId, this.isWorker) {
+
     _fetchBookings();
   }
 
@@ -138,8 +173,8 @@ class DataTableBooking extends DataTableSource {
       DataCell(
         isWorker
             ? TextButton(
-          onPressed: () {
-            showDialog(
+          onPressed: () async {
+            final result = showDialog(
               context: context,
               builder: (BuildContext context) {
                 return EditBookingDialog(
@@ -148,6 +183,10 @@ class DataTableBooking extends DataTableSource {
                 );
               },
             );
+
+            if (result == true){
+              _fetchBookings();
+            }
           },
           child: const Text('Modification'),
         )
