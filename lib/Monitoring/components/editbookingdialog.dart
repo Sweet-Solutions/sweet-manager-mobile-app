@@ -51,16 +51,16 @@ class _EditBookingDialogState extends State<EditBookingDialog> {
         TextButton(
           child: const Text("Cancel"),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
         ),
         TextButton(
           child: const Text("Accept"),
-          onPressed: () {
+          onPressed: () async {
 
             final String updatedBookingState = bookingStateController.text;
 
-            bookingService.updateBooking(
+            await bookingService.updateBooking(
               widget.id,
               Booking(
                 id: widget.id,
@@ -76,7 +76,7 @@ class _EditBookingDialogState extends State<EditBookingDialog> {
               ),
             );
 
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           },
         ),
       ],
