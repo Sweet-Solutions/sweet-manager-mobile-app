@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Monitoring/components/detailbooking.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 import '../components/editbookingdialog.dart';
@@ -20,17 +21,28 @@ class _TableBooking extends State<TableBooking> {
 
   final storage = const FlutterSecureStorage();
 
-  late Future<String?> role;
-  late Future<String?> hotelId;
+  late String? role;
+  late String? hotelId;
   late DataTableBooking dataTableSource;
 
   @override
   void initState() {
     super.initState();
-    role = _getRole();
-    hotelId = _getHotelId();
+
+    _getRole().then((roleValue) {
+      setState(() {
+        role = roleValue;
+      });
+    });
+
+    _getHotelId().then((hotelIdValue) {
+      setState(() {
+        hotelId = hotelIdValue;
+      });
+    });
+
     dataTableSource = DataTableBooking
-      (context, _getHotelId() as String, _getRole() == 'ROLE_WORKER');
+      (context, hotelId!, role == 'ROLE_WORKER');
   }
 
   Future<String?> _getRole() async {
@@ -47,8 +59,21 @@ class _TableBooking extends State<TableBooking> {
 
   void _refreshTable() {
     setState(() {
+
+      _getRole().then((roleValue) {
+        setState(() {
+          role = roleValue;
+        });
+      });
+
+      _getHotelId().then((hotelIdValue) {
+        setState(() {
+          hotelId = hotelIdValue;
+        });
+      });
+
       dataTableSource = DataTableBooking
-        (context, _getHotelId() as String, _getRole() == 'ROLE_WORKER');
+        (context, hotelId!, role == 'ROLE_WORKER');
     });
   }
 
@@ -159,7 +184,6 @@ class DataTableBooking extends DataTableSource {
 
   @override
   DataRow getRow(int index) {
-
     final data = _data[index];
 
     return DataRow(cells: [
@@ -172,23 +196,38 @@ class DataTableBooking extends DataTableSource {
       DataCell(Text(data.bookingState)),
       DataCell(
         isWorker
-            ? TextButton(
-          onPressed: () async {
-            final result = showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return EditBookingDialog(
-                  id: data.id,
-                  bookingState: data.bookingState,
+            ? Row(
+          children: [
+            TextButton(
+              onPressed: () async {
+                final result = await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return EditBookingDialog(
+                      id: data.id,
+                      bookingState: data.bookingState,
+                    );
+                  },
+                );
+
+                if (result == true) {
+                  _fetchBookings();
+                }
+              },
+              child: const Text('Modify'),
+            ),
+            TextButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context){
+                    return DetailBooking(id: data.id);
+                  }
                 );
               },
-            );
-
-            if (result == true){
-              _fetchBookings();
-            }
-          },
-          child: const Text('Modification'),
+              child: const Text('Detail'),
+            ),
+          ],
         )
             : const Text('No permitted'),
       ),
