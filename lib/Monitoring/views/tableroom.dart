@@ -29,7 +29,12 @@ class _TableRoomState extends State<TableRoom> {
     super.initState();
     role = _getRole();
     hotelId = _getHotelId();
-    dataTableSource = DataTableRoom(context, _getRole() as String);
+
+    _getHotelId().then((hotelIdValue) {
+      setState(() {
+        dataTableSource = DataTableRoom(context, hotelIdValue!);
+      });
+    });
   }
 
   Future<String?> _getRole() async {
@@ -46,7 +51,11 @@ class _TableRoomState extends State<TableRoom> {
 
   void _refreshTable() {
     setState(() {
-      dataTableSource = DataTableRoom(context, _getRole() as String);
+      _getHotelId().then((hotelIdValue) {
+        setState(() {
+          dataTableSource = DataTableRoom(context, hotelIdValue!);
+        });
+      });
     });
   }
 
