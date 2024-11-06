@@ -194,43 +194,33 @@ class DataTableBooking extends DataTableSource {
       DataCell(Text(data.startDate.toString())),
       DataCell(Text(data.finalDate.toString())),
       DataCell(Text(data.bookingState)),
-      DataCell(
-        isWorker
-            ? Row(
-          children: [
-            TextButton(
-              onPressed: () async {
-                final result = await showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return EditBookingDialog(
-                      id: data.id,
-                      bookingState: data.bookingState,
-                    );
-                  },
-                );
-
-                if (result == true) {
-                  _fetchBookings();
-                }
-              },
-              child: const Text('Modify'),
-            ),
-            TextButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context){
-                    return DetailBooking(id: data.id);
-                  }
-                );
-              },
-              child: const Text('Detail'),
-            ),
-          ],
-        )
-            : const Text('No permitted'),
-      ),
+      DataCell(isWorker ? Row(
+        children: [
+          TextButton(
+            onPressed: () async {
+              final result = await showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return EditBookingDialog(
+                    id: data.id,
+                    bookingState: data.bookingState,
+                  );},
+              );
+              if (result == true) {
+                _fetchBookings();
+              }},
+            child: const Text('Modify'),
+          ),
+          TextButton(
+            onPressed: () {
+              showDialog(context: context, builder: (BuildContext context) {
+                return DetailBooking(id: data.id);
+              });
+            },
+            child: const Text('Detail'),
+          ),
+        ]) : const Text('No permitted'),
+      )
     ]);
   }
 

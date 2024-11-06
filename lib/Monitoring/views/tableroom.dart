@@ -20,21 +20,28 @@ class _TableRoomState extends State<TableRoom> {
 
   final storage = const FlutterSecureStorage();
 
-  late Future<String?> role;
-  late Future<String?> hotelId;
+  late String? role;
+  late String? hotelId;
   late DataTableRoom dataTableSource;
 
   @override
   void initState() {
     super.initState();
-    role = _getRole();
-    hotelId = _getHotelId();
+
+    _getRole().then((roleValue) {
+      setState(() {
+        role = roleValue;
+      });
+    });
 
     _getHotelId().then((hotelIdValue) {
       setState(() {
-        dataTableSource = DataTableRoom(context, hotelIdValue!);
+        hotelId = hotelIdValue;
       });
     });
+
+    dataTableSource = DataTableRoom
+      (context, hotelId!, role == 'ROLE_WORKER');
   }
 
   Future<String?> _getRole() async {
@@ -51,15 +58,28 @@ class _TableRoomState extends State<TableRoom> {
 
   void _refreshTable() {
     setState(() {
-      _getHotelId().then((hotelIdValue) {
+
+      _getRole().then((roleValue) {
         setState(() {
-          dataTableSource = DataTableRoom(context, hotelIdValue!);
+          role = roleValue;
         });
       });
+
+      _getHotelId().then((hotelIdValue) {
+        setState(() {
+          hotelId = hotelIdValue;
+        });
+      });
+
+      dataTableSource = DataTableRoom
+        (context, hotelId!, role == 'ROLE_WORKER');
     });
   }
 
-  Widget getContentView(BuildContext context, String hotelId) {
+  Widget getContentView(BuildContext context, String hotelId, String? role) {
+
+    bool isWorker = role == 'ROLE_WORKER';
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -120,7 +140,7 @@ class _TableRoomState extends State<TableRoom> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Future.wait([role, hotelId]),
+      future: Future.wait([_getRole(), _getHotelId()]),
       builder: (context, AsyncSnapshot<List<String?>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -129,7 +149,7 @@ class _TableRoomState extends State<TableRoom> {
         if (snapshot.hasData) {
           String? role = snapshot.data![0];
           String? hotelId = snapshot.data![1];
-          return BaseLayout(role: role, childScreen: getContentView(context, hotelId!));
+          return BaseLayout(role: role, childScreen: getContentView(context, hotelId!, role));
         }
 
         return const Center(child: Text('Unable to get information', textAlign: TextAlign.center));
@@ -144,8 +164,9 @@ class DataTableRoom extends DataTableSource {
   late List<Room> _data = [];
   final BuildContext context;
   final String hotelId;
+  final bool isWorker;
 
-  DataTableRoom(this.context, this.hotelId) {
+  DataTableRoom(this.context, this.hotelId, this.isWorker) {
 
     _fetchRooms();
   }
@@ -159,7 +180,6 @@ class DataTableRoom extends DataTableSource {
 
   @override
   DataRow getRow(int index) {
-
     final data = _data[index];
 
     return DataRow(cells: [
@@ -167,7 +187,7 @@ class DataTableRoom extends DataTableSource {
       DataCell(Text(data.typeRoomId.toString())),
       DataCell(Text(data.hotelId.toString())),
       DataCell(Text(data.roomState.toString())),
-      DataCell(TextButton(
+      DataCell(isWorker ? TextButton(
         onPressed: () async {
           final result = await showDialog(
             context: context,
@@ -186,9 +206,10 @@ class DataTableRoom extends DataTableSource {
           }
         },
         child: const Text('Modifier'),
-      )),
+      ) : const Text('No permitted'))
     ]);
   }
+
 
   @override
   bool get isRowCountApproximate => false;
