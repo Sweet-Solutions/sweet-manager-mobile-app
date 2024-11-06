@@ -20,6 +20,9 @@ class _TableRoomState extends State<TableRoom> {
 
   final storage = const FlutterSecureStorage();
 
+  late Future<String?> fRole;
+  late Future<String?> fHotelId;
+
   late String? role;
   late String? hotelId;
   late DataTableRoom dataTableSource;
@@ -27,6 +30,9 @@ class _TableRoomState extends State<TableRoom> {
   @override
   void initState() {
     super.initState();
+
+    fRole = _getRole();
+    fHotelId = _getHotelId();
 
     _getRole().then((roleValue) {
       setState(() {
@@ -39,9 +45,6 @@ class _TableRoomState extends State<TableRoom> {
         hotelId = hotelIdValue;
       });
     });
-
-    dataTableSource = DataTableRoom
-      (context, hotelId!, role == 'ROLE_WORKER');
   }
 
   Future<String?> _getRole() async {
@@ -140,7 +143,7 @@ class _TableRoomState extends State<TableRoom> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Future.wait([_getRole(), _getHotelId()]),
+      future: Future.wait([fRole, fHotelId]),
       builder: (context, AsyncSnapshot<List<String?>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -149,7 +152,10 @@ class _TableRoomState extends State<TableRoom> {
         if (snapshot.hasData) {
           String? role = snapshot.data![0];
           String? hotelId = snapshot.data![1];
-          return BaseLayout(role: role, childScreen: getContentView(context, hotelId!, role));
+
+          dataTableSource = DataTableRoom(context, hotelId!, role == 'ROLE_WORKER');
+
+          return BaseLayout(role: role, childScreen: getContentView(context, hotelId, role));
         }
 
         return const Center(child: Text('Unable to get information', textAlign: TextAlign.center));
