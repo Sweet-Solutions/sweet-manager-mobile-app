@@ -44,11 +44,6 @@ class RoomService {
 
     final token = await storage.read(key: 'token');
 
-    if (room.typeRoomId == 0 || room.hotelId == 0 || room.roomState.isEmpty) {
-
-      throw Exception('All fields are required.');
-    }
-
     final response = await http.post(
 
       Uri.parse('${baseUrl}update-room-state'),
@@ -58,8 +53,7 @@ class RoomService {
         'Authorization': 'Bearer $token'
       },
       body: json.encode({
-        'typeRoomId': room.typeRoomId,
-        'hotelId': room.hotelId,
+        'id': id,
         'roomState': room.roomState,
       }),
     );
@@ -76,7 +70,7 @@ class RoomService {
     final token = await storage.read(key: 'token');
 
     final response = await http.get(
-        Uri.parse('${baseUrl}get-all-rooms?hotelId=9'),
+        Uri.parse('${baseUrl}get-all-rooms?hotelId=$hotelId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
