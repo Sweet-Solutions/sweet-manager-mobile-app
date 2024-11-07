@@ -210,7 +210,7 @@ class BaseLayout extends StatelessWidget {
           ),
         ];
       }
-      else if(response.role == 'RECEPCION')
+      else if(response.role == 'RECEPTION')
       {
         return [
           ListTile(
@@ -232,6 +232,13 @@ class BaseLayout extends StatelessWidget {
             title: const Text('Profiles'),
             onTap: () {
               Navigator.pushNamed(context, '/profiles');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.book_online),
+            title: const Text('Bookings'),
+            onTap: () {
+              Navigator.pushNamed(context, '/bookings');
             },
           ),
         ];

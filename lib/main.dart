@@ -6,6 +6,7 @@ import 'package:sweetmanager/Communication/views/messageScreen.dart';
 import 'package:sweetmanager/Communication/views/notificationScreen.dart';
 import 'package:sweetmanager/IAM/views/home.dart';
 import 'package:sweetmanager/IAM/views/login.dart';
+import 'package:sweetmanager/Monitoring/views/tablebooking.dart';
 import 'package:sweetmanager/Monitoring/views/tableroom.dart';
 import 'package:sweetmanager/Profiles/providers/views/management_provider_page.dart';
 import 'package:sweetmanager/Profiles/views/profile.dart';
@@ -66,7 +67,8 @@ class MyHomePage extends StatelessWidget {
         '/alerts': (context) => const AlertsScreen(),
         '/writealert': (context) => WriteAlertScreen(),
         '/notifications': (context) => NotificationsScreen(),
-        '/worker-areas-selection': (context) => const WorkerAreasSelection()
+        '/worker-areas-selection': (context) => const WorkerAreasSelection(),
+        '/bookings': (context) => const TableBooking()
       },
     );
   }

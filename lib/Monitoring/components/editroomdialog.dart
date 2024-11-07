@@ -57,21 +57,21 @@ class _EditRoomDialogState extends State<EditRoomDialog> {
         TextButton(
           child: const Text("Cancel"),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
         ),
         TextButton(
           child: const Text("Accept"),
-          onPressed: () {
+          onPressed: () async {
 
             final String updatedRoomState = roomState.text;
 
-            roomService.updateRoom(widget.id,
+            await roomService.updateRoom(widget.id.toString(),
                 Room(id: widget.id, typeRoomId: 0, hotelId: 0,
                     roomState: updatedRoomState)
             );
 
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           },
         ),
       ],

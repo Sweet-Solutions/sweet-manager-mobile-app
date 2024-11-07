@@ -8,11 +8,44 @@ import '../components/addroomdialog.dart';
 import '../models/room.dart';
 import '../services/roomservice.dart';
 
-class TableRoom extends StatelessWidget {
+class TableRoom extends StatefulWidget {
+
+  const TableRoom({super.key});
+
+  @override
+  _TableRoomState createState() => _TableRoomState();
+}
+
+class _TableRoomState extends State<TableRoom> {
 
   final storage = const FlutterSecureStorage();
 
-  const TableRoom({super.key});
+  late Future<String?> fRole;
+  late Future<String?> fHotelId;
+
+  late String? role;
+  late String? hotelId;
+  late DataTableRoom dataTableSource;
+
+  @override
+  void initState() {
+    super.initState();
+
+    fRole = _getRole();
+    fHotelId = _getHotelId();
+
+    _getRole().then((roleValue) {
+      setState(() {
+        role = roleValue;
+      });
+    });
+
+    _getHotelId().then((hotelIdValue) {
+      setState(() {
+        hotelId = hotelIdValue;
+      });
+    });
+  }
 
   Future<String?> _getRole() async {
     String? token = await storage.read(key: 'token');
@@ -26,7 +59,29 @@ class TableRoom extends StatelessWidget {
     return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
   }
 
-  Widget getContentView(BuildContext context, String hotelId) {
+  void _refreshTable() {
+    setState(() {
+
+      _getRole().then((roleValue) {
+        setState(() {
+          role = roleValue;
+        });
+      });
+
+      _getHotelId().then((hotelIdValue) {
+        setState(() {
+          hotelId = hotelIdValue;
+        });
+      });
+
+      dataTableSource = DataTableRoom
+        (context, hotelId!, role == 'ROLE_WORKER');
+    });
+  }
+
+  Widget getContentView(BuildContext context, String hotelId, String? role) {
+
+    bool isWorker = role == 'ROLE_WORKER';
 
     return Scaffold(
       body: Padding(
@@ -43,13 +98,17 @@ class TableRoom extends StatelessWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    showDialog(
+                  onPressed: () async {
+                    final result = await showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return const AddRoomDialog();
                       },
                     );
+
+                    if (result == true) {
+                      _refreshTable();
+                    }
                   },
                   child: const Text('Add room'),
                 ),
@@ -72,7 +131,7 @@ class TableRoom extends StatelessWidget {
                   DataColumn(label: Text('State')),
                   DataColumn(label: Text('Options')),
                 ],
-                source: DataTableRoom(context, hotelId),
+                source: dataTableSource,
               ),
             ),
           ],
@@ -83,11 +142,9 @@ class TableRoom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return FutureBuilder(
-      future: Future.wait([_getRole(), _getHotelId()]),
+      future: Future.wait([fRole, fHotelId]),
       builder: (context, AsyncSnapshot<List<String?>> snapshot) {
-
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -95,7 +152,10 @@ class TableRoom extends StatelessWidget {
         if (snapshot.hasData) {
           String? role = snapshot.data![0];
           String? hotelId = snapshot.data![1];
-          return BaseLayout(role: role, childScreen: getContentView(context, hotelId!));
+
+          dataTableSource = DataTableRoom(context, hotelId!, role == 'ROLE_WORKER');
+
+          return BaseLayout(role: role, childScreen: getContentView(context, hotelId, role));
         }
 
         return const Center(child: Text('Unable to get information', textAlign: TextAlign.center));
@@ -104,15 +164,15 @@ class TableRoom extends StatelessWidget {
   }
 }
 
-// En DataTableRoom
 class DataTableRoom extends DataTableSource {
 
   late RoomService roomService;
   late List<Room> _data = [];
   final BuildContext context;
   final String hotelId;
+  final bool isWorker;
 
-  DataTableRoom(this.context, this.hotelId) {
+  DataTableRoom(this.context, this.hotelId, this.isWorker) {
 
     _fetchRooms();
   }
@@ -126,7 +186,6 @@ class DataTableRoom extends DataTableSource {
 
   @override
   DataRow getRow(int index) {
-
     final data = _data[index];
 
     return DataRow(cells: [
@@ -134,9 +193,9 @@ class DataTableRoom extends DataTableSource {
       DataCell(Text(data.typeRoomId.toString())),
       DataCell(Text(data.hotelId.toString())),
       DataCell(Text(data.roomState.toString())),
-      DataCell(TextButton(
-        onPressed: () {
-          showDialog(
+      DataCell(isWorker ? TextButton(
+        onPressed: () async {
+          final result = await showDialog(
             context: context,
             builder: (BuildContext context) {
               return EditRoomDialog(
@@ -147,11 +206,16 @@ class DataTableRoom extends DataTableSource {
               );
             },
           );
+
+          if (result == true){
+            _fetchRooms();
+          }
         },
         child: const Text('Modifier'),
-      )),
+      ) : const Text('No permitted'))
     ]);
   }
+
 
   @override
   bool get isRowCountApproximate => false;

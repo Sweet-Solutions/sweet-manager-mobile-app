@@ -51,18 +51,18 @@ class _AddRoomDialogState extends State<AddRoomDialog> {
         TextButton(
           child: const Text("Cancel"),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
         ),
         TextButton(
           child: const Text("Accept"),
-          onPressed: () {
+          onPressed: () async {
 
             final int newTypeRoomId = int.parse(typeRoomId.text);
             final int newHotelId = int.parse(hotelId.text);
             final String newRoomState = roomState.text;
 
-            roomService.createRoom(
+            await roomService.createRoom(
               Room(
                 id: 0,
                 typeRoomId: newTypeRoomId,
@@ -71,7 +71,7 @@ class _AddRoomDialogState extends State<AddRoomDialog> {
               ),
             );
 
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           },
         ),
       ],
