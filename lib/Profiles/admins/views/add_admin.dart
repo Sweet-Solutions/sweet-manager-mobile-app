@@ -1,58 +1,95 @@
 import 'package:flutter/material.dart';
-import 'package:sweetmanager/Profiles/customers/services/customerservices.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Communication/models/notification.dart';
+import 'package:sweetmanager/Communication/services/NotificationService.dart';
+import 'package:sweetmanager/Profiles/admins/services/adminservices.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class CustomerAddScreen extends StatefulWidget {
-  const CustomerAddScreen({super.key});
+class AdminAddScreen extends StatefulWidget {
+  const AdminAddScreen({super.key});
 
   @override
-  State<CustomerAddScreen> createState() => _CustomerAddScreenState();
+  State<AdminAddScreen> createState() => _AdminAddScreenState();
 }
 
-class _CustomerAddScreenState extends State<CustomerAddScreen> {
+class _AdminAddScreenState extends State<AdminAddScreen> {
+  final TextEditingController _idController = TextEditingController();  // Controlador para el ID
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final _notificationService = NotificationService();
 
   bool isLoading = false;
 
-  final Customerservice _customerService = Customerservice('https://sweetmanager-api.ryzeon.me');
+  late AdminService _adminService;
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
 
-  Future<void> _addCustomer() async {
+  @override
+  void initState() {
+    super.initState();
+    _adminService = AdminService();
+  }
+
+  Future<void> _addAdmin() async {
     setState(() {
       isLoading = true;
     });
 
     try {
-      Map<String, dynamic> newCustomer = {
+      Map<String, dynamic> newAdmin = {
+        'id': _idController.text.isNotEmpty ? int.parse(_idController.text) : null,
         'username': _usernameController.text,
         'name': _nameController.text,
         'surname': _surnameController.text,
         'email': _emailController.text,
         'phone': int.parse(_phoneController.text),
         'state': _stateController.text,
+        'password': _passwordController.text,
       };
 
-      await _customerService.createCustomer(newCustomer);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cliente agregado exitosamente')),
-      );
-      Navigator.of(context).pop();
+      final response = await _adminService.createAdmin(newAdmin);
+
+      String? ownersId = await _getIdentity();
+
+      int adminId = int.parse(_idController.text);
+
+      // Crear la notificación
+      var isNotificationCreated = await _notificationService.createNotification(Notifications(
+        1,  // Tipo de notificación
+        int.parse(ownersId!),  // OwnerId
+        adminId,  // AdminId desde el input
+        0,  // workersId (puedes cambiarlo si lo necesitas)
+        'Welcome to SweetManager!',  // Título
+        'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!',  // Descripción
+      ));
+
+      // Comprobar si la notificación fue creada
+      if (isNotificationCreated) {
+        // Mostrar mensaje de éxito
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Admin added and notification sent successfully!')),
+        );
+      } else {
+        // Mostrar error si la notificación no se pudo crear
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to create notification!')),
+        );
+      }
+
+      // Mostrar respuesta de la creación del administrador
+      print('Admin added response: $response');
+
+      // Regresar a la pantalla anterior
+      Navigator.of(context).pop(true);
+
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('Ocurrió un error al agregar el cliente: $e'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+      // En caso de error, mostrar mensaje de error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add admin: $e')),
       );
     } finally {
       setState(() {
@@ -74,12 +111,12 @@ class _CustomerAddScreenState extends State<CustomerAddScreen> {
                 IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black),
                   onPressed: () {
-                    Navigator.of(context).pop(); // Regresar a la pantalla anterior
+                    Navigator.of(context).pop();
                   },
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'Agregar Cliente',
+                  'Add Admin',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -103,6 +140,16 @@ class _CustomerAddScreenState extends State<CustomerAddScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextField(
+                          controller: _idController,  // Campo para ID
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.key),
+                            labelText: 'ID',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
                           controller: _usernameController,
                           decoration: const InputDecoration(
                             icon: Icon(Icons.person),
@@ -114,7 +161,7 @@ class _CustomerAddScreenState extends State<CustomerAddScreen> {
                         TextField(
                           controller: _nameController,
                           decoration: const InputDecoration(
-                            icon: Icon(Icons.person),
+                            icon: Icon(Icons.badge),
                             labelText: 'Name',
                             border: OutlineInputBorder(),
                           ),
@@ -123,7 +170,7 @@ class _CustomerAddScreenState extends State<CustomerAddScreen> {
                         TextField(
                           controller: _surnameController,
                           decoration: const InputDecoration(
-                            icon: Icon(Icons.person),
+                            icon: Icon(Icons.badge_outlined),
                             labelText: 'Surname',
                             border: OutlineInputBorder(),
                           ),
@@ -157,6 +204,16 @@ class _CustomerAddScreenState extends State<CustomerAddScreen> {
                             border: OutlineInputBorder(),
                           ),
                         ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _passwordController,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.lock),
+                            labelText: 'Password',
+                            border: OutlineInputBorder(),
+                          ),
+                          obscureText: true,
+                        ),
                         const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -164,11 +221,14 @@ class _CustomerAddScreenState extends State<CustomerAddScreen> {
                             isLoading
                                 ? const CircularProgressIndicator()
                                 : ElevatedButton(
-                              onPressed: _addCustomer,
+                              onPressed: _addAdmin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF474C74),
                               ),
-                              child: const Text('Add', style: TextStyle(color: Colors.white)),
+                              child: const Text(
+                                'Add Admin',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ],
                         ),
@@ -186,12 +246,23 @@ class _CustomerAddScreenState extends State<CustomerAddScreen> {
 
   @override
   void dispose() {
+    _idController.dispose();
     _usernameController.dispose();
     _nameController.dispose();
     _surnameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _stateController.dispose();
+    _passwordController.dispose();
     super.dispose();
+  }
+  Future<String?> _getIdentity() async {
+    // Retrieve token from local storage
+    String? token = await storage.read(key: 'token');
+
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token!);
+
+    // Get Role in Claims token
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid']?.toString();
   }
 }

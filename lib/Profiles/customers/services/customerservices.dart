@@ -4,11 +4,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class Customerservice{
-  final String baseUrl;
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me';
 
   final FlutterSecureStorage storage = const FlutterSecureStorage();
 
-  Customerservice(this.baseUrl);
+  Customerservice();
 
   // Helper function to get the headers with the token
   Future<Map<String, String>> _getHeaders() async {

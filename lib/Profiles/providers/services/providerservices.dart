@@ -4,10 +4,10 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:http/http.dart' as http;
 
 class ProviderService {
-  final String baseUrl;
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
 
-  ProviderService(this.baseUrl);
+  ProviderService();
 
   // Helper function to get headers with a token
   Future<Map<String, String>> _getHeaders() async {

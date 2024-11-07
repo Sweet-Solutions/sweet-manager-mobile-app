@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Profiles/providers/models/provider_model.dart';
-import 'package:sweetmanager/Profiles/providers/views/add_provider.dart';
-import 'package:sweetmanager/Profiles/providers/views/edit_provider.dart';
 import 'package:sweetmanager/Profiles/providers/services/providerservices.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -28,7 +26,7 @@ class _ProvidersManagement extends State<ProvidersManagement> {
   void initState() {
     super.initState();
     _authService = AuthService();
-    _providerService = ProviderService('https://sweetmanager-api.ryzeon.me');
+    _providerService = ProviderService();
     _loadHotelId();
   }
 
@@ -73,17 +71,6 @@ class _ProvidersManagement extends State<ProvidersManagement> {
     } catch (e) {
       setState(() => isLoading = false);
       _showSnackBar('Failed to load providers: $e');
-    }
-  }
-
-  Future<void> _addProvider() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ProviderAddScreen()),
-    );
-
-    if (result == true) {
-      _fetchProviders();
     }
   }
 
@@ -151,10 +138,6 @@ class _ProvidersManagement extends State<ProvidersManagement> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: _addProvider,
-            ),
           ],
         ),
       ),
@@ -162,6 +145,15 @@ class _ProvidersManagement extends State<ProvidersManagement> {
   }
 
   Widget _buildProvidersTable() {
+    if (providers.isEmpty) {
+      return const Center(
+        child: Text(
+          'There are no providers records yet',
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+        ),
+      );
+    }
+
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -202,14 +194,6 @@ class _ProvidersManagement extends State<ProvidersManagement> {
                   ),
                 ),
               ),
-              DataColumn(
-                label: Expanded(
-                  child: Text(
-                    'Actions',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
             ],
             rows: providers.map((provider) {
               return DataRow(
@@ -217,30 +201,6 @@ class _ProvidersManagement extends State<ProvidersManagement> {
                   DataCell(Text(provider.id.toString())),
                   DataCell(Text(provider.name)),
                   DataCell(Text(provider.address)),
-                  DataCell(
-                    Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProviderEditScreen(provider: provider),
-                              ),
-                            );
-                            if (result == true) {
-                              _fetchProviders();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF474C74),
-                          ),
-                          child: const Text('Edit', style: TextStyle(color: Colors.white)),
-                        ),
-                        const SizedBox(width: 10),
-                      ],
-                    ),
-                  ),
                 ],
               );
             }).toList(),

@@ -2,53 +2,168 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ProfilePage extends StatefulWidget {
-  ProfilePage({super.key});
+  ProfilePage({Key? key}) : super(key: key);
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Initializing the secure storage
   final storage = const FlutterSecureStorage();
+  final String baseUrl = 'https://sweetmanager-api.ryzeon.me';
+
+  Future<String?> _getIdentity() async {
+    try {
+      String? token = await storage.read(key: 'token');
+      if (token == null) return null;
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      var id = decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid'];
+      if (id != null) {
+        // Asegurarse de que el ID sea una cadena
+        return id.toString();
+      }
+      return null;
+    } catch (e) {
+      print('Error getting identity: $e');
+      return null;
+    }
+  }
+
+  Future<String?> _getLocality() async {
+    try {
+      String? token = await storage.read(key: 'token');
+      if (token == null) return null;
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      String? locality = decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
+      print('Locality: $locality'); // Para depuración
+      return locality;
+    } catch (e) {
+      print('Error getting locality: $e');
+      return null;
+    }
+  }
 
   Future<String?> _getRole() async {
-    // Retrieve token from local storage
     String? token = await storage.read(key: 'token');
-
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
     }
+    return null;
+  }
 
-    return null; // Return null if no token is found
+  Future<Map<String, dynamic>> _getUserInfo() async {
+    try {
+      String? identity = await _getIdentity();
+      String? role = await _getRole();
+      String? locality = await _getLocality();
+      String? token = await storage.read(key: 'token');
+
+      print('Identity: $identity');
+      print('Role: $role');
+      print('Locality: $locality');
+
+      if (identity == null || role == null || locality == null || token == null) {
+        throw Exception('Missing required information');
+      }
+
+      // Seleccionar el endpoint correcto según el rol
+      String endpoint;
+      switch (role) {
+        case 'ROLE_ADMIN':
+          endpoint = '/api/v1/user/get-all-admins';
+          break;
+        case 'ROLE_WORKER':
+          endpoint = '/api/v1/user/get-all-workers';
+          break;
+        default:
+          throw Exception('Unknown role: $role');
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl$endpoint?hotelId=$locality'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        List<dynamic> users = json.decode(response.body);
+
+        // Imprimir todos los IDs para debug
+        print('Available IDs: ${users.map((user) => user['id']).toList()}');
+        print('Looking for ID: $identity');
+
+        // Buscar el usuario actual
+        Map<String, dynamic>? currentUser;
+        try {
+          currentUser = users.firstWhere(
+                (user) {
+              // Convertir ambos valores a String para la comparación
+              String userId = user['id'].toString();
+              print('Comparing user ID: $userId with identity: $identity');
+              return userId == identity;
+            },
+          );
+        } catch (e) {
+          print('User not found: $e');
+          currentUser = null;
+        }
+
+        if (currentUser != null) {
+          return {
+            'role': role,
+            'name': currentUser['name']?.toString() ?? 'N/A',
+            'username': currentUser['username']?.toString() ?? 'N/A',
+            'email': currentUser['email']?.toString() ?? 'N/A',
+            'phone': currentUser['phone']?.toString() ?? 'N/A',
+          };
+        } else {
+          throw Exception('User not found in the list');
+        }
+      } else {
+        throw Exception('Failed to load user info. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in _getUserInfo: $e');
+      rethrow;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _getRole(),
+      future: _getUserInfo(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
+        if (snapshot.hasError) {
+          print('Error: ${snapshot.error}');
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
         if (snapshot.hasData) {
-          String? role = snapshot.data;
+          Map<String, dynamic> userInfo = snapshot.data as Map<String, dynamic>;
           return BaseLayout(
-            role: role!,
-            childScreen: _buildProfilePage(role),
+            role: userInfo['role'],
+            childScreen: _buildProfilePage(userInfo),
           );
         }
 
-        return const Center(child: Text('Unable to retrieve role'));
+        return const Center(child: Text('No user information available'));
       },
     );
   }
 
-  Widget _buildProfilePage(String role) {
+
+  Widget _buildProfilePage(Map<String, dynamic> userInfo) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -56,7 +171,6 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with user icon, name, and "View organization" button
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -72,50 +186,29 @@ class _ProfilePageState extends State<ProfilePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Jane Doe',
+                        userInfo['name'] ?? 'N/A',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       SizedBox(height: 4),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OrganizationInfoScreen(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'View organization',
-                          style: TextStyle(
-                            color: Colors.blue[900],
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ],
               ),
               SizedBox(height: 20),
+              buildEditableField('Name', userInfo['name'] ?? 'N/A', 'Change name'),
+              buildEditableField('Username', userInfo['username'] ?? 'N/A', 'Change username'),
+              buildEditableField('Email', userInfo['email'] ?? 'N/A', 'Change email'),
+              buildEditableField('Phone', userInfo['phone'] ?? 'N/A', 'Change phone'),
 
-              // Editable fields for the profile page
-              buildEditableField('Name', 'Jane Doe', 'Change name'),
-              buildEditableField('Username', 'JaneDoe123', 'Change username'),
-              buildEditableField('Email', 'janedoe@peruagro.com', 'Change email'),
-              buildEditableField('Phone', '77777777', 'Change phone'),
-
-              // Show "Supervision Areas" only if the user is an "owner"
-              if (role == 'ROLE_OWNER')
+              if (userInfo['role'] == 'ROLE_OWNER')
                 buildEditableField('Supervision Areas', 'SECURITY STAFF', 'Change supervision areas'),
 
-              // Show "Assigned Area" only if the user is a "worker"
-              if (role == 'ROLE_WORKER')
+              if (userInfo['role'] == 'ROLE_WORKER')
                 buildInfoField('Assigned Area', 'SECURITY STAFF'),
 
-              // Password section
               buildPasswordField(),
               SizedBox(height: 20),
             ],
@@ -156,7 +249,7 @@ class _ProfilePageState extends State<ProfilePage> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () {
-                // Action to change the field value
+                // Acción para cambiar el valor del campo
               },
               child: Text(
                 actionLabel,
@@ -216,112 +309,13 @@ class _ProfilePageState extends State<ProfilePage> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () {
-                // Action to change the password
+                // Acción para cambiar la contraseña
               },
               child: Text(
                 'Change password',
                 style: TextStyle(color: Colors.blue[900]),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Organization Information Screen
-class OrganizationInfoScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    'Sweet Manager',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1C4257),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: NetworkImage(
-                      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Logo_de_Campoalegre_FC.svg/1024px-Logo_de_Campoalegre_FC.svg.png',
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'My organization',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Business name: Peru Agro J&V S.A.C',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Divider(color: Colors.black),
-            SizedBox(height: 16),
-            Text(
-              'HOTEL INFO',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            Divider(color: Colors.black),
-            SizedBox(height: 8),
-            _buildInfoRow('Name', 'Heden Golf'),
-            _buildInfoRow('Address', 'Av. La mar'),
-            _buildInfoRow('Phone Number', '941 691 025'),
-            _buildInfoRow('Email', 'hedengolf@gmail.com'),
-            _buildInfoRow('Timezone (Country)', 'Perú'),
-            _buildInfoRow('Language', 'English'),
-            _buildInfoRow(
-              'Description',
-              'Ofrece habitaciones confortables con vistas al océano o acceso directo a la playa.',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(value),
           ),
         ],
       ),
