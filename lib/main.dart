@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sweetmanager/Commerce/views/current_subscription.dart';
 import 'package:sweetmanager/Commerce/views/dashboard.dart';
 import 'package:sweetmanager/Commerce/views/worker_areas.dart';
 import 'package:sweetmanager/Communication/views/messageScreen.dart';
@@ -8,8 +9,11 @@ import 'package:sweetmanager/IAM/views/home.dart';
 import 'package:sweetmanager/IAM/views/login.dart';
 import 'package:sweetmanager/Monitoring/views/tablebooking.dart';
 import 'package:sweetmanager/Monitoring/views/tableroom.dart';
+import 'package:sweetmanager/Profiles/admins/views/management_admin_page.dart';
+import 'package:sweetmanager/Profiles/customers/views/management_customer_page.dart';
 import 'package:sweetmanager/Profiles/providers/views/management_provider_page.dart';
 import 'package:sweetmanager/Profiles/views/profile.dart';
+import 'package:sweetmanager/Profiles/workers/views/management_worker_page.dart';
 import 'package:sweetmanager/ResourceManagement/pages/reportlist.dart';
 import 'package:sweetmanager/supply-management/views/inventorymanagement.dart';
 import 'package:sweetmanager/Communication/views/writeMessage.dart';
@@ -56,7 +60,7 @@ class MyHomePage extends StatelessWidget {
         '/dashboard': (context) => const DashboardScreen(),
         // '/subscription': (context) => const SubscriptionPlansView(),
         '/rooms': (context) => const TableRoom(),
-        '/providers': (context) => ProvidersManagement(),
+        '/providers': (context) => const ProvidersManagement(),
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
         '/messages': (context) => Messagescreen(),
@@ -68,7 +72,11 @@ class MyHomePage extends StatelessWidget {
         '/writealert': (context) => WriteAlertScreen(),
         '/notifications': (context) => NotificationsScreen(),
         '/worker-areas-selection': (context) => const WorkerAreasSelection(),
-        '/bookings': (context) => const TableBooking()
+        '/bookings': (context) => const TableBooking(),
+        '/admins-management': (context) => const AdminManagement(),
+        '/workers-management': (context) => const WorkerManagement(),
+        '/customers-management': (context) => const CustomersManagement(),
+        '/current-subscription': (context) => const CurrentSubscription(),
       },
     );
   }
