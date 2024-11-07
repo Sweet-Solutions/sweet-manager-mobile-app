@@ -81,7 +81,7 @@ class BaseLayout extends StatelessWidget {
           leading: const Icon(Icons.subscriptions),
           title: const Text('Current Subscription'),
           onTap: () {
-            Navigator.pushNamed(context, '/current_subscription');
+            Navigator.pushNamed(context, '/current-subscription');
           },
         ),
         ListTile(
@@ -103,6 +103,27 @@ class BaseLayout extends StatelessWidget {
           title: const Text('Rooms Management'),
           onTap: () {
             Navigator.pushNamed(context, '/rooms');
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.admin_panel_settings),
+          title: const Text('Admins Management'),
+          onTap: () {
+            Navigator.pushNamed(context, '/admins-management');
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.work),
+          title: const Text('Workers Management'),
+          onTap: () {
+            Navigator.pushNamed(context, '/workers-management');
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.back_hand),
+          title: const Text('Customers Management'),
+          onTap: () {
+            Navigator.pushNamed(context, '/customers-management');
           },
         ),
         ListTile(
