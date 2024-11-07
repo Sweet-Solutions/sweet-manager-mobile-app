@@ -39,7 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (token == null) return null;
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       String? locality = decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
-      print('Locality: $locality'); // Para depuración
+      print('Locality: $locality');
       return locality;
     } catch (e) {
       print('Error getting locality: $e');
@@ -67,8 +67,19 @@ class _ProfilePageState extends State<ProfilePage> {
       print('Role: $role');
       print('Locality: $locality');
 
-      if (identity == null || role == null || locality == null || token == null) {
+      if (identity == null || role == null || token == null) {
         throw Exception('Missing required information');
+      }
+
+      // Manejar el rol OWNER directamente
+      if (role == 'ROLE_OWNER') {
+        return {
+          'role': role,
+          'name': 'John Doe', // Nombre ficticio
+          'username': 'johndoe', // Nombre de usuario ficticio
+          'email': 'johndoe@example.com', // Correo electrónico ficticio
+          'phone': '(123) 456-7890', // Teléfono ficticio
+        };
       }
 
       // Seleccionar el endpoint correcto según el rol
@@ -100,9 +111,9 @@ class _ProfilePageState extends State<ProfilePage> {
         print('Looking for ID: $identity');
 
         // Buscar el usuario actual
-        Map<String, dynamic>? currentUser;
+        Map<String, dynamic>? currentUser ;
         try {
-          currentUser = users.firstWhere(
+          currentUser  = users.firstWhere(
                 (user) {
               // Convertir ambos valores a String para la comparación
               String userId = user['id'].toString();
@@ -111,26 +122,26 @@ class _ProfilePageState extends State<ProfilePage> {
             },
           );
         } catch (e) {
-          print('User not found: $e');
-          currentUser = null;
+          print('User  not found: $e');
+          currentUser  = null;
         }
 
-        if (currentUser != null) {
+        if (currentUser  != null) {
           return {
             'role': role,
-            'name': currentUser['name']?.toString() ?? 'N/A',
-            'username': currentUser['username']?.toString() ?? 'N/A',
-            'email': currentUser['email']?.toString() ?? 'N/A',
-            'phone': currentUser['phone']?.toString() ?? 'N/A',
+            'name': currentUser ['name']?.toString() ?? 'N/A',
+            'username': currentUser ['username']?.toString() ?? 'N/A',
+            'email': currentUser ['email']?.toString() ?? 'N/A',
+            'phone': currentUser ['phone']?.toString() ?? 'N/A',
           };
         } else {
-          throw Exception('User not found in the list');
+          throw Exception('User  not found in the list');
         }
       } else {
         throw Exception('Failed to load user info. Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error in _getUserInfo: $e');
+      print('Error in _getUser Info: $e');
       rethrow;
     }
   }
@@ -164,6 +175,61 @@ class _ProfilePageState extends State<ProfilePage> {
 
 
   Widget _buildProfilePage(Map<String, dynamic> userInfo) {
+    // Verificar si el rol es OWNER
+    if (userInfo['role'] == 'ROLE_OWNER') {
+      return Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      child: Icon(
+                        Icons.person,
+                        size: 50,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Owner Name: John Doe',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Owner Email: johndoe@example.com',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                buildInfoField('Business Name', 'Sweet Manager Inc.'),
+                buildInfoField('Location', '123 Sweet St, Candyland'),
+                buildInfoField('Contact Number', '(123) 456-7890'),
+                buildInfoField('Total Employees', '50'),
+                buildInfoField('Supervision Areas', 'All Areas'),
+                SizedBox(height: 20),
+                buildPasswordField(),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Si no es OWNER, mostrar la vista normal
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -202,9 +268,6 @@ class _ProfilePageState extends State<ProfilePage> {
               buildEditableField('Username', userInfo['username'] ?? 'N/A', 'Change username'),
               buildEditableField('Email', userInfo['email'] ?? 'N/A', 'Change email'),
               buildEditableField('Phone', userInfo['phone'] ?? 'N/A', 'Change phone'),
-
-              if (userInfo['role'] == 'ROLE_OWNER')
-                buildEditableField('Supervision Areas', 'SECURITY STAFF', 'Change supervision areas'),
 
               if (userInfo['role'] == 'ROLE_WORKER')
                 buildInfoField('Assigned Area', 'SECURITY STAFF'),
