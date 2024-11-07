@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Profiles/customers/models/customer_model.dart';
-import 'package:sweetmanager/Profiles/customers/views/add_customer.dart';
-import 'package:sweetmanager/Profiles/customers/views/edit_customer.dart';
 import 'package:sweetmanager/Profiles/customers/services/customerservices.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -28,7 +26,7 @@ class _CustomersManagementState extends State<CustomersManagement> {
   void initState() {
     super.initState();
     _authService = AuthService();
-    _customerService = Customerservice('https://sweetmanager-api.ryzeon.me');
+    _customerService = Customerservice();
     _loadHotelId();
   }
 
@@ -73,17 +71,6 @@ class _CustomersManagementState extends State<CustomersManagement> {
     } catch (e) {
       setState(() => isLoading = false);
       _showSnackBar('Failed to load customers: $e');
-    }
-  }
-
-  Future<void> _addCustomer() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CustomerAddScreen()),
-    );
-
-    if (result == true) {
-      await _fetchCustomers();
     }
   }
 
@@ -141,27 +128,27 @@ class _CustomersManagementState extends State<CustomersManagement> {
           ],
         ),
         padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Customers',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: _addCustomer,
-            ),
-          ],
+        child: const Text(
+          'Customers',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
   }
 
   Widget _buildCustomersTable() {
+    if (customers.isEmpty) {
+      return const Center(
+        child: Text(
+          'There are no customer records yet',
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+        ),
+      );
+    }
+
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -202,14 +189,6 @@ class _CustomersManagementState extends State<CustomersManagement> {
                   ),
                 ),
               ),
-              DataColumn(
-                label: Expanded(
-                  child: Text(
-                    'Actions',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
             ],
             rows: customers.map((customer) {
               return DataRow(
@@ -217,30 +196,6 @@ class _CustomersManagementState extends State<CustomersManagement> {
                   DataCell(Text(customer.id.toString())),
                   DataCell(Text(customer.name)),
                   DataCell(Text(customer.email)),
-                  DataCell(
-                    Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CustomerEditScreen(customer: customer),
-                              ),
-                            );
-                            if (result == true) {
-                              _fetchCustomers();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF474C74),
-                          ),
-                          child: const Text('Edit', style: TextStyle(color: Colors.white)),
-                        ),
-                        const SizedBox(width: 10),
-                      ],
-                    ),
-                  ),
                 ],
               );
             }).toList(),
