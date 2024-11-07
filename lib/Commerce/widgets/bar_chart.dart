@@ -75,12 +75,18 @@ class BarChartSample2State extends State<BarChartTest> {
 
     chartData = await _dashboardService.fetchComparativeIncomesData(hotelId);
 
+    print(chartData);
+
+    /* int date = int.parse(DateFormat('w').format(DateTime.now()));
+
+    print(date); */
+
     setState(() {
       showingBarGroups = chartData.map((data){
         return makeGroupData(
-          data.weekNumber - int.parse(DateFormat('w').format(DateTime.now())),
-          data.totalIncome.toDouble() / 10,
-          data.totalExpense / 10
+          data.weekNumber - 44,
+          data.totalIncome.toDouble() / 50,
+          data.totalExpense / 50
         );
       }).toList();
     });
@@ -118,140 +124,417 @@ class BarChartSample2State extends State<BarChartTest> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text('Hello, $role'),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.lightBlue[100],
-                borderRadius: BorderRadius.circular(12),
+    if(role == 'ROLE_OWNER')
+    {
+      return Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Text('WELCOME, OWNER!'),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.lightBlue[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Subscription Plan',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subscriptionPlan,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Subscription Plan',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subscriptionPlan,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
+                  buildStatCard('Rooms', roomCount.toString() , Colors.blue),
+                  buildStatCard('Admins', adminCount.toString() , Colors.black87),
+                  buildStatCard('Workers', workerCount.toString() , Colors.deepPurple),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                buildStatCard('Rooms', roomCount.toString() , Colors.blue),
-                buildStatCard('Admins', adminCount.toString() , Colors.black87),
-                buildStatCard('Workers', workerCount.toString() , Colors.deepPurple),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Card(
-                color: Colors.grey[200],
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          makeTransactionsIcon(),
-                          const SizedBox(width: 38),
-                          const Text(
-                            'Comparison: Incomes vs Expenses (Weekly)',
-                            style: TextStyle(color: Color(0xff77839a), fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 38),
-                      Expanded(
-                        child: BarChart(
-                          BarChartData(
-                            maxY: 7, // 7 represents 7K as the max Y value for clarity
-                            barTouchData: BarTouchData(
-                              touchTooltipData: BarTouchTooltipData(
-                                getTooltipColor: (BarChartGroupData data){
-                                  return Colors.blueGrey;
-                                },
-                                getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                  final data = chartData[groupIndex];
-                                  final isIncome = rodIndex == 0;
-                                  final amount = isIncome ? data.totalIncome : data.totalExpense;
-                                  return BarTooltipItem(
-                                    '${isIncome ? 'Income' : 'Expense'}: \$${amount}',
-                                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                                  );
-                                },
-                              ),
-                              touchCallback: (FlTouchEvent event, response) {
-                                if (response == null || response.spot == null) {
-                                  setState(() {
-                                    touchedGroupIndex = -1;
-                                  });
-                                  return;
-                                }
+              const SizedBox(height: 16),
+              Expanded(
+                child: Card(
+                  color: Colors.grey[200],
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            makeTransactionsIcon(),
+                            const SizedBox(width: 38),
+                            const Text(
+                              'Comparison: Incomes vs Expenses (Weekly)',
+                              style: TextStyle(color: Color(0xff77839a), fontSize: 16),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 38),
+                        Expanded(
+                          child: BarChart(
+                            BarChartData(
+                              maxY: 7, // 7 represents 7K as the max Y value for clarity
+                              barTouchData: BarTouchData(
+                                touchTooltipData: BarTouchTooltipData(
+                                  getTooltipColor: (BarChartGroupData data){
+                                    return Colors.blueGrey;
+                                  },
+                                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                    final data = chartData[groupIndex];
+                                    final isIncome = rodIndex == 0;
+                                    final amount = isIncome ? data.totalIncome : data.totalExpense;
+                                    return BarTooltipItem(
+                                      '${isIncome ? 'Income' : 'Expense'}: \$${amount}',
+                                      const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                    );
+                                  },
+                                ),
+                                touchCallback: (FlTouchEvent event, response) {
+                                  if (response == null || response.spot == null) {
+                                    setState(() {
+                                      touchedGroupIndex = -1;
+                                    });
+                                    return;
+                                  }
 
-                                setState(() {
-                                  touchedGroupIndex = response.spot!.touchedBarGroupIndex;
-                                });
-                              },
-                            ),
-                            titlesData: FlTitlesData(
-                              show: true,
-                              rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
+                                  setState(() {
+                                    touchedGroupIndex = response.spot!.touchedBarGroupIndex;
+                                  });
+                                },
                               ),
-                              topTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: bottomTitles,
-                                  reservedSize: 42,
+                              titlesData: FlTitlesData(
+                                show: true,
+                                rightTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                topTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: bottomTitles,
+                                    reservedSize: 42,
+                                  ),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 28,
+                                    interval: 1,
+                                    getTitlesWidget: leftTitles,
+                                  ),
                                 ),
                               ),
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 28,
-                                  interval: 1,
-                                  getTitlesWidget: leftTitles,
-                                ),
+                              borderData: FlBorderData(
+                                show: false,
                               ),
+                              barGroups: showingBarGroups,
+                              gridData: const FlGridData(show: false),
                             ),
-                            borderData: FlBorderData(
-                              show: false,
-                            ),
-                            barGroups: showingBarGroups,
-                            gridData: const FlGridData(show: false),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
+                        const SizedBox(height: 12),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
+    else if(role == 'ROLE_ADMIN')
+    {
+      return Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Text('WELCOME, ADMIN!'),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.lightBlue[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Subscription Plan',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subscriptionPlan,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  buildStatCard('Rooms', roomCount.toString() , Colors.blue),
+                  buildStatCard('Admins', adminCount.toString() , Colors.black87),
+                  buildStatCard('Workers', workerCount.toString() , Colors.deepPurple),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Card(
+                  color: Colors.grey[200],
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            makeTransactionsIcon(),
+                            const SizedBox(width: 38),
+                            const Text(
+                              'Comparison: Incomes vs Expenses (Weekly)',
+                              style: TextStyle(color: Color(0xff77839a), fontSize: 16),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 38),
+                        Expanded(
+                          child: BarChart(
+                            BarChartData(
+                              maxY: 7, // 7 represents 7K as the max Y value for clarity
+                              barTouchData: BarTouchData(
+                                touchTooltipData: BarTouchTooltipData(
+                                  getTooltipColor: (BarChartGroupData data){
+                                    return Colors.blueGrey;
+                                  },
+                                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                    final data = chartData[groupIndex];
+                                    final isIncome = rodIndex == 0;
+                                    final amount = isIncome ? data.totalIncome : data.totalExpense;
+                                    return BarTooltipItem(
+                                      '${isIncome ? 'Income' : 'Expense'}: \$${amount}',
+                                      const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                    );
+                                  },
+                                ),
+                                touchCallback: (FlTouchEvent event, response) {
+                                  if (response == null || response.spot == null) {
+                                    setState(() {
+                                      touchedGroupIndex = -1;
+                                    });
+                                    return;
+                                  }
+
+                                  setState(() {
+                                    touchedGroupIndex = response.spot!.touchedBarGroupIndex;
+                                  });
+                                },
+                              ),
+                              titlesData: FlTitlesData(
+                                show: true,
+                                rightTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                topTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: bottomTitles,
+                                    reservedSize: 42,
+                                  ),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 28,
+                                    interval: 1,
+                                    getTitlesWidget: leftTitles,
+                                  ),
+                                ),
+                              ),
+                              borderData: FlBorderData(
+                                show: false,
+                              ),
+                              barGroups: showingBarGroups,
+                              gridData: const FlGridData(show: false),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    else
+    {
+      return Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Text('WELCOME, WORKER!'),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.lightBlue[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Subscription Plan',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subscriptionPlan,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  buildStatCard('Rooms', roomCount.toString() , Colors.blue),
+                  buildStatCard('Admins', adminCount.toString() , Colors.black87),
+                  buildStatCard('Workers', workerCount.toString() , Colors.deepPurple),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Card(
+                  color: Colors.grey[200],
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            makeTransactionsIcon(),
+                            const SizedBox(width: 38),
+                            const Text(
+                              'Comparison: Incomes vs Expenses (Weekly)',
+                              style: TextStyle(color: Color(0xff77839a), fontSize: 16),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 38),
+                        Expanded(
+                          child: BarChart(
+                            BarChartData(
+                              maxY: 7, // 7 represents 7K as the max Y value for clarity
+                              barTouchData: BarTouchData(
+                                touchTooltipData: BarTouchTooltipData(
+                                  getTooltipColor: (BarChartGroupData data){
+                                    return Colors.blueGrey;
+                                  },
+                                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                    final data = chartData[groupIndex];
+                                    final isIncome = rodIndex == 0;
+                                    final amount = isIncome ? data.totalIncome : data.totalExpense;
+                                    return BarTooltipItem(
+                                      '${isIncome ? 'Income' : 'Expense'}: \$${amount}',
+                                      const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                    );
+                                  },
+                                ),
+                                touchCallback: (FlTouchEvent event, response) {
+                                  if (response == null || response.spot == null) {
+                                    setState(() {
+                                      touchedGroupIndex = -1;
+                                    });
+                                    return;
+                                  }
+
+                                  setState(() {
+                                    touchedGroupIndex = response.spot!.touchedBarGroupIndex;
+                                  });
+                                },
+                              ),
+                              titlesData: FlTitlesData(
+                                show: true,
+                                rightTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                topTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: bottomTitles,
+                                    reservedSize: 42,
+                                  ),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 28,
+                                    interval: 1,
+                                    getTitlesWidget: leftTitles,
+                                  ),
+                                ),
+                              ),
+                              borderData: FlBorderData(
+                                show: false,
+                              ),
+                              barGroups: showingBarGroups,
+                              gridData: const FlGridData(show: false),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   Widget buildStatCard(String title, String value, Color color) {
