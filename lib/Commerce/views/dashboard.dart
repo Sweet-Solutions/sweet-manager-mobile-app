@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Commerce/widgets/bar_chart.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class DashboardScreen extends StatefulWidget{
@@ -57,11 +58,11 @@ class DashboardScreenState extends State<DashboardScreen>
   Widget getContentView(String? role)
   {
     if (role == 'ROLE_ADMIN') {
-      return const Center(child: Text('Hello Admin, here will be the dashboard dont worry :)', textAlign: TextAlign.center,),);
+      return BarChartTest(role: role!,);
     } else if (role == 'ROLE_WORKER') {
-      return const Center(child: Text('Hello Worker, here will be the dashboard dont worry :)', textAlign: TextAlign.center,),);
+      return BarChartTest(role: role!,);
     } else if (role == 'ROLE_OWNER') {
-      return const Center(child: Text('Hello Owner, here will be the dashboard dont worry :)', textAlign: TextAlign.center,),);
+      return BarChartTest(role: role!,);
     } else {
       return const Text('Check code');
     }
