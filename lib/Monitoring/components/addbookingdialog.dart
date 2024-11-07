@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Monitoring/models/booking.dart';
+import 'package:sweetmanager/Monitoring/models/customerr.dart';
 import 'package:sweetmanager/Monitoring/services/bookingservice.dart';
 
 class AddBookingDialog extends StatefulWidget {
@@ -13,7 +14,13 @@ class AddBookingDialog extends StatefulWidget {
 class _AddBookingDialogState extends State<AddBookingDialog> {
 
   late BookingService bookingService = BookingService();
-  late TextEditingController paymentCustomerId;
+  late TextEditingController customerId;
+  late TextEditingController username;
+  late TextEditingController name;
+  late TextEditingController surname;
+  late TextEditingController email;
+  late TextEditingController phone;
+  late TextEditingController state;
   late TextEditingController roomId;
   late TextEditingController description;
   late TextEditingController priceRoom;
@@ -25,7 +32,13 @@ class _AddBookingDialogState extends State<AddBookingDialog> {
   @override
   void initState() {
     super.initState();
-    paymentCustomerId = TextEditingController();
+    customerId = TextEditingController();
+    username = TextEditingController();
+    name = TextEditingController();
+    surname = TextEditingController();
+    email = TextEditingController();
+    phone = TextEditingController();
+    state = TextEditingController();
     roomId = TextEditingController();
     description = TextEditingController();
     priceRoom = TextEditingController();
@@ -61,9 +74,34 @@ class _AddBookingDialogState extends State<AddBookingDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextFormField(
-            controller: paymentCustomerId,
+            controller: customerId,
             decoration: const InputDecoration(labelText: 'ClientId'),
             keyboardType: TextInputType.number,
+          ),
+          TextFormField(
+            controller: username,
+            decoration: const InputDecoration(labelText: 'Username')
+          ),
+          TextFormField(
+            controller: name,
+            decoration: const InputDecoration(labelText: 'Name')
+          ),
+          TextFormField(
+            controller: surname,
+            decoration: const InputDecoration(labelText: 'Surname')
+          ),
+          TextFormField(
+            controller: email,
+            decoration: const InputDecoration(labelText: 'Email')
+          ),
+          TextFormField(
+            controller: phone,
+            decoration: const InputDecoration(labelText: 'Phone'),
+            keyboardType: TextInputType.number
+          ),
+          TextFormField(
+            controller: state,
+            decoration: const InputDecoration(labelText: 'State')
           ),
           TextFormField(
             controller: roomId,
@@ -120,25 +158,28 @@ class _AddBookingDialogState extends State<AddBookingDialog> {
               return;
             }
 
-            final int newPaymentCustomerId = int.parse(paymentCustomerId.text);
-            final int newRoomId = int.parse(roomId.text);
-            final String newDescription = description.text;
-            final double newPriceRoom = double.parse(priceRoom.text);
-            final int newNightCount = int.parse(nightCount.text);
-
             await bookingService.createBooking(
               Booking(
                 id: 0,
-                paymentCustomerId: newPaymentCustomerId,
-                roomId: newRoomId,
-                description: newDescription,
+                paymentCustomerId: 0,
+                roomId: int.parse(roomId.text),
+                description: description.text,
                 startDate: startDate!,
                 finalDate: finalDate!,
-                priceRoom: newPriceRoom,
-                nightCount: newNightCount,
+                priceRoom: double.parse(priceRoom.text),
+                nightCount: int.parse(nightCount.text),
                 amount: 0,
                 bookingState: ''
               ),
+              Customerr(
+                id : int.parse(customerId.text),
+                username: username.text,
+                name: name.text,
+                surname: surname.text,
+                email: email.text,
+                phone: int.parse(phone.text),
+                state: state.text
+              )
             );
 
             Navigator.of(context).pop(true);
@@ -150,7 +191,7 @@ class _AddBookingDialogState extends State<AddBookingDialog> {
 
   @override
   void dispose() {
-    paymentCustomerId.dispose();
+    customerId.dispose();
     roomId.dispose();
     description.dispose();
     priceRoom.dispose();

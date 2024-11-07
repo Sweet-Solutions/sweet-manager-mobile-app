@@ -17,8 +17,8 @@ class DetailBooking extends StatefulWidget {
 class _DetailBookingState extends State<DetailBooking> {
   late int id;
   Map<String, dynamic>? information;
-  late RoomService roomService = RoomService();
-  late BookingService bookingService = BookingService();
+  late RoomService roomService;
+  late BookingService bookingService;
 
   @override
   void initState() {
@@ -28,8 +28,12 @@ class _DetailBookingState extends State<DetailBooking> {
   }
 
   Future<void> _getInformationById(int id) async {
-    Booking booking = await bookingService.getBookingById(id);
-    Room room = await roomService.getRoomById(booking.roomId);
+
+    bookingService = BookingService();
+    roomService = RoomService();
+
+    Booking booking = await bookingService.getBookingById(id.toString());
+    Room room = await roomService.getRoomById(booking.roomId.toString());
 
     setState(() {
       information = {
@@ -56,7 +60,7 @@ class _DetailBookingState extends State<DetailBooking> {
             height: 150.0,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/room.jpg'),
+                image: AssetImage('assets/images/deluxe_bedroom.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -110,7 +114,7 @@ class _DetailBookingState extends State<DetailBooking> {
             height: 150.0,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/room.jpg'),
+                image: AssetImage('assets/images/suite_executive.jpg'),
                 fit: BoxFit.cover,
               ),
             ),

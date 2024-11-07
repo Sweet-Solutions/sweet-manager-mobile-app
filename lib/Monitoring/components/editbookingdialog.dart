@@ -61,7 +61,7 @@ class _EditBookingDialogState extends State<EditBookingDialog> {
             final String updatedBookingState = bookingStateController.text;
 
             await bookingService.updateBooking(
-              widget.id,
+              widget.id.toString(),
               Booking(
                 id: widget.id,
                 paymentCustomerId: 0,

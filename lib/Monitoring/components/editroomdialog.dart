@@ -66,7 +66,7 @@ class _EditRoomDialogState extends State<EditRoomDialog> {
 
             final String updatedRoomState = roomState.text;
 
-            await roomService.updateRoom(widget.id,
+            await roomService.updateRoom(widget.id.toString(),
                 Room(id: widget.id, typeRoomId: 0, hotelId: 0,
                     roomState: updatedRoomState)
             );

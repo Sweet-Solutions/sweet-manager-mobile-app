@@ -160,7 +160,7 @@ class _TableBooking extends State<TableBooking> {
 
           dataTableSource = DataTableBooking(context, hotelId!, role == 'ROLE_WORKER');
 
-          return BaseLayout(role: role, childScreen: getContentView(context, hotelId!, role));
+          return BaseLayout(role: role, childScreen: getContentView(context, hotelId, role));
         }
 
         return const Center(child: Text('Unable to get information', textAlign: TextAlign.center));
@@ -184,7 +184,7 @@ class DataTableBooking extends DataTableSource {
 
   Future<void> _fetchBookings() async {
     bookingService = BookingService();
-    _data = await bookingService.getBookingsByHotelId(hotelId as int);
+    _data = await bookingService.getBookingsByHotelId(hotelId);
     notifyListeners();
   }
 

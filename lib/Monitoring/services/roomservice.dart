@@ -40,7 +40,7 @@ class RoomService {
     }
   }
 
-  Future<bool> updateRoom(int id, Room room) async {
+  Future<bool> updateRoom(String id, Room room) async {
 
     final token = await storage.read(key: 'token');
 
@@ -93,7 +93,7 @@ class RoomService {
     }
   }
 
-  Future<Room> getRoomById(int id) async {
+  Future<Room> getRoomById(String id) async {
 
     final token = await storage.read(key: 'token');
 

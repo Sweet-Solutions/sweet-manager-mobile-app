@@ -3,24 +3,65 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:sweetmanager/Monitoring/models/booking.dart';
 
+import '../models/customerr.dart';
+
 class BookingService {
 
   final String baseUrl = 'https://sweetmanager-api.ryzeon.me/api/bookings/';
 
   final storage = const FlutterSecureStorage();
 
-  Future<bool> createBooking(Booking booking) async {
+  Future<bool> createBooking(Booking booking, Customerr customer) async {
 
     final token = await storage.read(key: 'token');
 
-    final response = await http.post(
+    var response = await http.post(
+      Uri.parse('https://sweetmanager-api.ryzeon.me/api/customer/create-customer'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: json.encode({
+        'id': customer.id,
+        'username': customer.username,
+        'name': customer.name,
+        'surname': customer.surname,
+        'email': customer.email,
+        'phone': customer.phone,
+        'state': customer.state
+      }),
+    );
+
+    response = await http.post(
+      Uri.parse('https://sweetmanager-api.ryzeon.me/create-payment-customer'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: json.encode({
+        'customerId': customer.id,
+        'finalAmount': booking.priceRoom * booking.nightCount
+      }),
+    );
+
+    final paymentJson = await http.get(
+        Uri.parse('https://sweetmanager-api.ryzeon.me/get-payments-customer-id?id=${customer.id}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        }
+    );
+
+    var payment = json.decode(paymentJson.body);
+
+    response = await http.post(
       Uri.parse('${baseUrl}create-booking'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
       },
       body: json.encode({
-        'paymentCustomerId': booking.paymentCustomerId,
+        'paymentCustomerId': payment['id'],
         'roomId': booking.roomId,
         'description': booking.description,
         'startDate': booking.startDate.toIso8601String(),
@@ -37,12 +78,12 @@ class BookingService {
     }
   }
 
-  Future<bool> updateBooking(int id, Booking booking) async {
+  Future<bool> updateBooking(String id, Booking booking) async {
 
     final token = await storage.read(key: 'token');
 
     final response = await http.put(
-      Uri.parse('${baseUrl}update-booking?id=$id'),
+      Uri.parse('${baseUrl}update-booking-state'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
@@ -60,7 +101,7 @@ class BookingService {
     }
   }
 
-  Future<List<Booking>> getBookingsByHotelId(int hotelId) async {
+  Future<List<Booking>> getBookingsByHotelId(String hotelId) async {
 
     final token = await storage.read(key: 'token');
 
@@ -87,11 +128,12 @@ class BookingService {
         bookingState: bookingJson['bookingState'],
       )).toList();
     } else {
+
       throw Exception('Error ${response.statusCode}: ${response.body}');
     }
   }
 
-  Future<Booking> getBookingById(int id) async {
+  Future<Booking> getBookingById(String id) async {
 
     final token = await storage.read(key: 'token');
 
@@ -100,7 +142,7 @@ class BookingService {
     }
 
     final response = await http.get(
-      Uri.parse('${baseUrl}get-booking-by-id?id=$id'),
+      Uri.parse('${baseUrl}get-booking-id?id=$id'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
