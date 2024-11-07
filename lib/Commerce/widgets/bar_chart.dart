@@ -1,12 +1,9 @@
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Commerce/models/comparative_incomes.dart';
 import 'package:sweetmanager/Commerce/services/dashboard_service.dart';
-
-import 'package:intl/intl.dart';
 
 class BarChartTest extends StatefulWidget {
   const BarChartTest({super.key, required this.role});
@@ -67,6 +64,15 @@ class BarChartSample2State extends State<BarChartTest> {
     loadData();
   }
 
+  int getCurrentWeekNumber() {
+    final now = DateTime.now();
+    final firstDayOfYear = DateTime(now.year, 1, 1);
+    final daysSinceYearStart = now.difference(firstDayOfYear).inDays;
+    
+    // Dividimos el total de días entre 7 y sumamos 1 para obtener la semana actual.
+    return (daysSinceYearStart / 7).ceil();
+  }
+
   Future<void> fetchChartData() async
   {
     String? requestHotelId = await _getLocality();
@@ -77,14 +83,14 @@ class BarChartSample2State extends State<BarChartTest> {
 
     print(chartData);
 
-    /* int date = int.parse(DateFormat('w').format(DateTime.now()));
+    int week = getCurrentWeekNumber() - 1;
 
-    print(date); */
+    print(week); 
 
     setState(() {
       showingBarGroups = chartData.map((data){
         return makeGroupData(
-          data.weekNumber - 44,
+          data.weekNumber - week,
           data.totalIncome.toDouble() / 50,
           data.totalExpense / 50
         );
@@ -136,7 +142,7 @@ class BarChartSample2State extends State<BarChartTest> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.lightBlue[100],
+                  color: Colors.yellow,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
