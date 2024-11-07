@@ -16,7 +16,7 @@ class BookingService {
     final token = await storage.read(key: 'token');
 
     var response = await http.post(
-      Uri.parse('https://sweetmanager-api.ryzeon.me/api/customer/create-customer'),
+      Uri.parse('https://sweetmanager-api.ryzeon.me/api/customer/create'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
@@ -45,14 +45,16 @@ class BookingService {
     );
 
     final paymentJson = await http.get(
-        Uri.parse('https://sweetmanager-api.ryzeon.me/get-payments-customer-id?id=${customer.id}'),
+        Uri.parse('https://sweetmanager-api.ryzeon.me/get-payments-customer-id?customerId=${customer.id}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
         }
     );
 
-    var payment = json.decode(paymentJson.body);
+    List<dynamic> payments = json.decode(paymentJson.body);
+
+    var maxId = payments.map((payment) => payment['id']).reduce((a, b) => a > b ? a : b);
 
     response = await http.post(
       Uri.parse('${baseUrl}create-booking'),
@@ -61,7 +63,7 @@ class BookingService {
         'Authorization': 'Bearer $token'
       },
       body: json.encode({
-        'paymentCustomerId': payment['id'],
+        'paymentCustomerId': maxId,
         'roomId': booking.roomId,
         'description': booking.description,
         'startDate': booking.startDate.toIso8601String(),
