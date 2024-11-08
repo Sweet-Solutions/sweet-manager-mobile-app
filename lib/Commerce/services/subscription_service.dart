@@ -10,6 +10,35 @@ class SubscriptionService {
 
   final storage = const FlutterSecureStorage();
 
+  Future<bool> createContractOwner(ContractOwners contractOwner) async
+  {
+    try {
+      var token = await storage.read(key: 'token');
+
+      final response = await http.post(Uri.parse('$baseUrl/create-contract-owner'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+        'subscriptionId': contractOwner.subscriptionId,
+        'ownersId': contractOwner.ownersId,
+        'state': 'ACTIVE'
+      }));
+
+      if(response.statusCode == 200)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<ContractOwners?> fetchContractByOwnerId(int ownerId) async
   {
     try {
