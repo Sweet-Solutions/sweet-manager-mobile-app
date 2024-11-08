@@ -195,7 +195,7 @@ class BarChartSample2State extends State<BarChartTest> {
                         Expanded(
                           child: BarChart(
                             BarChartData(
-                              maxY: 7, // 7 represents 7K as the max Y value for clarity
+                              maxY: 100, // 7 represents 7K as the max Y value for clarity
                               barTouchData: BarTouchData(
                                 touchTooltipData: BarTouchTooltipData(
                                   getTooltipColor: (BarChartGroupData data){
@@ -574,15 +574,15 @@ class BarChartSample2State extends State<BarChartTest> {
     const style = TextStyle(
       color: Color(0xff7589a2),
       fontWeight: FontWeight.bold,
-      fontSize: 14,
+      fontSize: 12,
     );
     String text;
     if (value == 0) {
       text = '0K';
-    } else if (value == 3.5) {
-      text = '3.5K';
-    } else if (value == 7) {
-      text = '7K';
+    } else if (value == 50) {
+      text = '2.5K';
+    } else if (value == 100) {
+      text = '5K';
     } else {
       return Container();
     }
