@@ -46,7 +46,7 @@ class BarChartSample2State extends State<BarChartTest> {
 
   int adminCount = 0;
 
-  int workerCount = 0;  
+  int workerCount = 0;
 
   late List<ComparativeIncomes> chartData;
 
@@ -54,14 +54,20 @@ class BarChartSample2State extends State<BarChartTest> {
 
   int touchedGroupIndex = -1;
 
+
+  late Future<int> _operation;
+
   @override
   void initState() {
     super.initState();
-    role = widget.role;
 
+    role = widget.role;
+    
     fetchChartData();
 
     loadData();
+
+    _operation = operation();
   }
 
   int getCurrentWeekNumber() {
@@ -114,6 +120,7 @@ class BarChartSample2State extends State<BarChartTest> {
 
   Future<void> loadData() async 
   {
+
     String? requestHotelId = await _getLocality();
 
     int hotelId = requestHotelId != null? int.parse(requestHotelId) : 0;   
@@ -125,11 +132,36 @@ class BarChartSample2State extends State<BarChartTest> {
     workerCount = await _dashboardService.fetchWorkersCount(hotelId);
 
     adminCount = await  _dashboardService.fetchAdminsCount(hotelId);
+  }
 
+  Future<int> operation() async 
+  {
+    await Future.delayed(const Duration(seconds: 2));
+
+    return 1;
   }
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _operation,
+      builder: (context, snapshot){
+        if(snapshot.connectionState == ConnectionState.waiting)
+        {
+          return const Center(child: CircularProgressIndicator(),);
+        }
+        if(snapshot.hasData)
+        {
+          return getContentView();
+        }
+
+        return const Center(child: Text('Unable to get information', textAlign: TextAlign.center,));
+      }
+    );
+  }
+
+  Widget getContentView()
+  {
     if(role == 'ROLE_OWNER')
     {
       return Scaffold(
@@ -542,6 +574,7 @@ class BarChartSample2State extends State<BarChartTest> {
       );
     }
   }
+
 
   Widget buildStatCard(String title, String value, Color color) {
     return Expanded(
