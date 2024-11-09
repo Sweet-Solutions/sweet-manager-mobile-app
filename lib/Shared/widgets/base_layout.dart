@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Commerce/services/work_area_service.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart';
 
 class BaseLayout extends StatelessWidget {
   final Widget childScreen; // The content of the screen
@@ -12,6 +13,8 @@ class BaseLayout extends StatelessWidget {
   final _workAreaService = WorkAreaService();
   
   final storage = const FlutterSecureStorage();
+
+  final _authService = AuthService();
 
   Future<String?> _getIdentity() async {
     // Retrieve token from local storage
@@ -133,6 +136,15 @@ class BaseLayout extends StatelessWidget {
             Navigator.pushNamed(context, '/profiles');
           },
         ),
+        ListTile(
+          leading: const Icon(Icons.exit_to_app),
+          title: const Text('Sign Out'),
+          onTap: () {
+            _authService.logout();
+
+            Navigator.pushNamed(context, '/home');
+          },
+        ),
       ];
     } else if (role == 'ROLE_WORKER') {
       // Fetch identity data for worker role options
@@ -189,6 +201,15 @@ class BaseLayout extends StatelessWidget {
               Navigator.pushNamed(context, '/profiles');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.exit_to_app),
+            title: const Text('Sign Out'),
+            onTap: () {
+              _authService.logout();
+              
+              Navigator.pushNamed(context, '/home');
+            },
+          ),
         ];
       }
       else if(response.role == 'SECURITYSTAFF')
@@ -229,6 +250,15 @@ class BaseLayout extends StatelessWidget {
               Navigator.pushNamed(context, '/profiles');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.exit_to_app),
+            title: const Text('Sign Out'),
+            onTap: () {
+              _authService.logout();
+              
+              Navigator.pushNamed(context, '/home');
+            },
+          ),
         ];
       }
       else if(response.role == 'RECEPTION')
@@ -260,6 +290,15 @@ class BaseLayout extends StatelessWidget {
             title: const Text('Bookings'),
             onTap: () {
               Navigator.pushNamed(context, '/bookings');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.exit_to_app),
+            title: const Text('Sign Out'),
+            onTap: () {
+              _authService.logout();
+              
+              Navigator.pushNamed(context, '/home');
             },
           ),
         ];
@@ -320,6 +359,15 @@ class BaseLayout extends StatelessWidget {
           title: const Text('Profiles'),
           onTap: () {
             Navigator.pushNamed(context, '/profiles');
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.exit_to_app),
+          title: const Text('Sign Out'),
+          onTap: () {
+            _authService.logout();
+              
+            Navigator.pushNamed(context, '/home');
           },
         ),
       ];

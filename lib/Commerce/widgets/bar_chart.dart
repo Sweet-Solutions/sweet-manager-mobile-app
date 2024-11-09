@@ -46,7 +46,7 @@ class BarChartSample2State extends State<BarChartTest> {
 
   int adminCount = 0;
 
-  int workerCount = 0;  
+  int workerCount = 0;
 
   late List<ComparativeIncomes> chartData;
 
@@ -54,14 +54,20 @@ class BarChartSample2State extends State<BarChartTest> {
 
   int touchedGroupIndex = -1;
 
+
+  late Future<int> _operation;
+
   @override
   void initState() {
     super.initState();
-    role = widget.role;
 
+    role = widget.role;
+    
     fetchChartData();
 
     loadData();
+
+    _operation = operation();
   }
 
   int getCurrentWeekNumber() {
@@ -114,6 +120,7 @@ class BarChartSample2State extends State<BarChartTest> {
 
   Future<void> loadData() async 
   {
+
     String? requestHotelId = await _getLocality();
 
     int hotelId = requestHotelId != null? int.parse(requestHotelId) : 0;   
@@ -125,11 +132,36 @@ class BarChartSample2State extends State<BarChartTest> {
     workerCount = await _dashboardService.fetchWorkersCount(hotelId);
 
     adminCount = await  _dashboardService.fetchAdminsCount(hotelId);
+  }
 
+  Future<int> operation() async 
+  {
+    await Future.delayed(const Duration(seconds: 2));
+
+    return 1;
   }
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _operation,
+      builder: (context, snapshot){
+        if(snapshot.connectionState == ConnectionState.waiting)
+        {
+          return const Center(child: CircularProgressIndicator(),);
+        }
+        if(snapshot.hasData)
+        {
+          return getContentView();
+        }
+
+        return const Center(child: Text('Unable to get information', textAlign: TextAlign.center,));
+      }
+    );
+  }
+
+  Widget getContentView()
+  {
     if(role == 'ROLE_OWNER')
     {
       return Scaffold(
@@ -195,7 +227,7 @@ class BarChartSample2State extends State<BarChartTest> {
                         Expanded(
                           child: BarChart(
                             BarChartData(
-                              maxY: 7, // 7 represents 7K as the max Y value for clarity
+                              maxY: 100, // 7 represents 7K as the max Y value for clarity
                               barTouchData: BarTouchData(
                                 touchTooltipData: BarTouchTooltipData(
                                   getTooltipColor: (BarChartGroupData data){
@@ -543,6 +575,7 @@ class BarChartSample2State extends State<BarChartTest> {
     }
   }
 
+
   Widget buildStatCard(String title, String value, Color color) {
     return Expanded(
       child: Container(
@@ -574,15 +607,15 @@ class BarChartSample2State extends State<BarChartTest> {
     const style = TextStyle(
       color: Color(0xff7589a2),
       fontWeight: FontWeight.bold,
-      fontSize: 14,
+      fontSize: 12,
     );
     String text;
     if (value == 0) {
       text = '0K';
-    } else if (value == 3.5) {
-      text = '3.5K';
-    } else if (value == 7) {
-      text = '7K';
+    } else if (value == 50) {
+      text = '2.5K';
+    } else if (value == 100) {
+      text = '5K';
     } else {
       return Container();
     }
