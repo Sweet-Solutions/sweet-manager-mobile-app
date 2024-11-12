@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../IAM/services/auth_service.dart';
 import '../models/notification.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
@@ -10,51 +12,39 @@ class NotificationService {
 
   NotificationService();
 
-  // Helper method to get the headers with the token
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
+
   Future<Map<String, String>> _getHeaders() async {
-    final token = await authService.storage.read(key: 'token');
-    if (token == null) {
-      throw Exception('Authorization token is missing');
+    final token = await storage.read(key: 'token');
+    if (token == null || JwtDecoder.isExpired(token)) {
+      print('Token is missing or expired. Please log in again.');
+      throw Exception('Token is missing or expired. Please log in again.');
     }
+    print('Retrieved token: $token'); // Debug log
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     };
   }
 
+
   // Create a new notification
   Future<bool> createNotification(Notifications notification) async {
     final url = Uri.parse("$baseUrl/api/notifications"); // Endpoint
     final headers = await _getHeaders(); // Fetch headers with token
+
+
     final response = await http.post(
       url,
       headers: headers,
       body: jsonEncode(notification.toJson()),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       return true;
     } else {
       print('Error: ${response.statusCode}, ${response.body}');
       throw Exception('Failed to create notification');
-    }
-  }
-
-  // Get all notifications filtered by typesNotificationsId = 2 (Alerts)
-  Future<List<Notifications>> getAlertNotifications(int hotelId) async {
-    final url = Uri.parse("$baseUrl/api/notifications/get-all-notifications?hotelId=$hotelId"); // Adjust this endpoint
-    final headers = await _getHeaders();
-    final response = await http.get(url, headers: headers).timeout(Duration(seconds: 15)); // Added timeout
-
-    if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data
-          .map((json) => Notifications.fromJson(json))
-          .where((notification) => notification.typesNotificationsId == 2)
-          .toList();
-    } else {
-      print('Error: ${response.statusCode}, ${response.body}');
-      throw Exception('Failed to load notifications');
     }
   }
 
@@ -69,7 +59,7 @@ class NotificationService {
       body: jsonEncode(notification.toJson()),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       return true; // Success
     } else {
       print('Error: ${response.statusCode}, ${response.body}');
@@ -91,11 +81,30 @@ class NotificationService {
     }
   }
 
+  // Fetch all notifications (no filter by type)
+  Future<List<Notifications>> getAllNotifications(int hotelId) async {
+    final headers = await _getHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/notifications/get-all-notifications?hotelId=$hotelId'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Notifications.fromJson(json)).toList();
+    } else {
+      print('Error: ${response.statusCode}, ${response.body}');
+      throw Exception('Failed to load notifications');
+    }
+  }
+
   // Get all notifications filtered by typesNotificationsId = 1 (Messages)
   Future<List<Notifications>> getMessages(int hotelId) async {
-    final url = Uri.parse("$baseUrl/api/notifications/get-all-notifications?hotelId=$hotelId"); // Correct endpoint
     final headers = await _getHeaders();
-    final response = await http.get(url, headers: headers).timeout(Duration(seconds: 15)); // Added timeout
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/notifications/get-all-notifications?hotelId=$hotelId'),
+      headers: headers,
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
@@ -105,22 +114,27 @@ class NotificationService {
           .toList();
     } else {
       print('Error: ${response.statusCode}, ${response.body}');
-      throw Exception('Failed to load messages');
+      throw Exception('Failed to load notifications');
     }
   }
 
-  // Fetch all notifications (no filter by type)
-  Future<List<Notifications>> getAllNotifications(int hotelId) async {
-    final url = Uri.parse("$baseUrl/api/notifications/get-all-notifications?hotelId=$hotelId"); // Correct endpoint
+  // Fetch all notifications filtered by typesNotificationsId = 2 (Alerts)
+  Future<List<Notifications>> getAlertNotifications(int hotelId) async {
     final headers = await _getHeaders();
-    final response = await http.get(url, headers: headers).timeout(Duration(seconds: 15)); // Added timeout
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/notifications/get-all-notifications?hotelId=$hotelId'),
+      headers: headers,
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Notifications.fromJson(json)).toList();
+      return data
+          .map((json) => Notifications.fromJson(json))
+          .where((notification) => notification.typesNotificationsId == 2) // Filtra solo las alertas
+          .toList();
     } else {
       print('Error: ${response.statusCode}, ${response.body}');
-      throw Exception('Failed to load notifications');
+      throw Exception('Failed to load alert notifications');
     }
   }
 
