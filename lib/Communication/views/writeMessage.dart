@@ -1,9 +1,9 @@
-
-
+// writeMessage.dart
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Communication/services/NotificationService.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
 import '../models/notification.dart';
+import 'messageScreen.dart'; // Import MessagesScreen
 
 class WriteMessage extends StatelessWidget {
   @override
@@ -40,7 +40,6 @@ class _ComposeMessageState extends State<ComposeMessage> {
   final _formKey = GlobalKey<FormState>();
 
   // Text controllers to capture form values
-  final TextEditingController _toController = TextEditingController();
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
@@ -53,15 +52,14 @@ class _ComposeMessageState extends State<ComposeMessage> {
   void initState() {
     super.initState();
     final authService = AuthService(); // Instantiate AuthService
-    notificationService = NotificationService(
-    );
+    notificationService = NotificationService();
   }
 
   // Submit the message notification
   Future<void> _submitMessage() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Convert form values to int for IDs
-      int typesNotificationsId = int.tryParse(_toController.text) ?? 0;
+      // Set typesNotificationsId to 1 by default
+      int typesNotificationsId = 1;
       int ownersId = int.tryParse(_fromController.text) ?? 0;
       int adminsId = int.tryParse(_subjectController.text) ?? 0;
       int workersId = int.tryParse(_messageController.text) ?? 0;
@@ -80,19 +78,13 @@ class _ComposeMessageState extends State<ComposeMessage> {
         // Call the service to send the message
         bool success = await notificationService.createNotification(newMessage);
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Message sent successfully!')),
-          );
+          _showSuccessDialog();
           // Clear form fields after submission
-          _toController.clear();
           _fromController.clear();
           _subjectController.clear();
           _messageController.clear();
           _titleController.clear();
           _descriptionController.clear();
-
-          // Return to the previous screen
-          Navigator.of(context).pop();
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -102,6 +94,27 @@ class _ComposeMessageState extends State<ComposeMessage> {
     }
   }
 
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Message Created'),
+          content: Text('Your message has been created successfully!'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(true); // Return true to indicate success
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,11 +122,13 @@ class _ComposeMessageState extends State<ComposeMessage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.of(context).pop(true);
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => MessagesScreen()),
+            );
           },
         ),
         title: const Text(
-          'Compose Message',
+          'Write Message',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
         ),
         backgroundColor: Colors.white,
@@ -128,12 +143,6 @@ class _ComposeMessageState extends State<ComposeMessage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLabel('To (typesNotificationsId):'),
-              _buildTextField(
-                  hintText: 'Enter notification type ID',
-                  controller: _toController,
-                  icon: Icons.email),
-              const SizedBox(height: 16),
               _buildLabel('From (ownersId):'),
               _buildTextField(
                   hintText: 'Enter your owner ID',
@@ -199,8 +208,8 @@ class _ComposeMessageState extends State<ComposeMessage> {
 
   Widget _buildTextField(
       {required String hintText,
-      required TextEditingController controller,
-      required IconData icon}) {
+        required TextEditingController controller,
+        required IconData icon}) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
