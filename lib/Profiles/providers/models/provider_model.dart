@@ -1,41 +1,41 @@
-class Provider{
-  int id;
-  String name;
-  String address;
-  String email;
-  int phone;
-  String state;
+class Provider {
+  int? id;
+  String? name;
+  String? address;
+  String? email;
+  int? phone;
+  String? state;
 
   Provider({
-    required this.id,
-    required this.name,
-    required this.address,
-    required this.email,
-    required this.phone,
-    required this.state
-
+    this.id,
+    this.name,
+    this.address,
+    this.email,
+    this.phone,
+    this.state,
   });
 
-  factory Provider.fromJson(Map<String, dynamic>json){
+  // Constructor para crear una instancia desde un JSON
+  factory Provider.fromJson(Map<String, dynamic> json) {
     return Provider(
-      id: json['id'],
-      name : json ['name'],
-      address: json ['address'],
-      email: json ['email'],
-      phone: json ['phone'],
-      state: json ['state'],
+      id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
+      name: json['name'] as String?,
+      address: json['address'] as String?,
+      email: json['email'] as String?,
+      phone: json['phone'] != null ? int.tryParse(json['phone'].toString()) : null,
+      state: json['state'] as String?,
     );
   }
 
-  Map<String, dynamic> toJson(){
-    return{
+  // Método para convertir una instancia de Provider a un mapa JSON
+  Map<String, dynamic> toJson() {
+    return {
       'id': id,
-      'name' : name,
-      'address' : address,
-      'email' : email,
-      'phone' : phone,
-      'state' : state,
+      'name': name,
+      'address': address,
+      'email': email,
+      'phone': phone,
+      'state': state,
     };
   }
-
 }
