@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Communication/services/NotificationService.dart';
 import '../models/notification.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
-import '../components/dotsIndicator.dart';
+import 'package:sweetmanager/IAM/services/auth_service.dart';
 import '../components/notificationCard.dart';
-import 'package:sweetmanager/Shared/widgets/base_layout.dart'; 
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -13,10 +12,12 @@ class NotificationsScreen extends StatefulWidget {
   _NotificationsScreenState createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  int _currentPage = 0;
+class _NotificationsScreenState extends State<NotificationsScreen> with SingleTickerProviderStateMixin {
+  int? hotelId;
   bool isLoading = true;
-  List<List<Notifications>> paginatedNotifications = []; // List of paginated notifications
+  List<Notifications> notifications = [];
+  List<Notifications> _messages = []; // Define _messages
+  List<Notifications> _filteredMessages = []; // Define _filteredMessages
 
   late NotificationService notificationService;
   final storage = const FlutterSecureStorage();
@@ -25,13 +26,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    final authService = AuthService(); // Instantiate AuthService
-    notificationService = NotificationService(
-    );
-    fetchNotifications(); // Fetch notifications on init
+    final authService = AuthService();
+    notificationService = NotificationService();
+    _loadHotelId();
   }
 
-  // Método para obtener el rol del token
   Future<String?> _getRole() async {
     String? token = await storage.read(key: 'token');
     if (token != null) {
@@ -41,12 +40,66 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return null;
   }
 
-  // Fetch all notifications
-  Future<void> fetchNotifications() async {
-    try {
-      final notifications = await notificationService.getAllNotifications(1); // Pass the correct hotel ID
+  Future<int?> _getHotelId() async {
+    String? token = await storage.read(key: 'token');
+
+    if (token == null || JwtDecoder.isExpired(token)) {
+      print('Token is missing or expired.');
+      return null;
+    }
+
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    if (decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality'] != null) {
+      try {
+        return int.parse(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']);
+      } catch (e) {
+        print('Failed to Convert Hotel ID $e');
+      }
+    }
+    print('Hotel ID not found');
+    return null;
+  }
+
+  Future<void> _loadHotelId() async {
+    int? tokenHotelId = await _getHotelId();
+    print('Hotel ID: $tokenHotelId');
+
+    if (tokenHotelId != null) {
       setState(() {
-        paginatedNotifications = _paginateNotifications(notifications); // Paginate the notifications
+        hotelId = tokenHotelId;
+      });
+      fetchNotifications(); // Asegúrate de que fetchNotifications esté implementada
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Hotel ID not found')),
+        );
+      });
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // Fetch notifications from the backend
+  Future<void> fetchNotifications() async {
+    if (hotelId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hotel ID not found')),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final fetchedNotifications = await notificationService.getAllNotifications(hotelId!); // Fetch notifications using hotelId
+      setState(() {
+        notifications = fetchedNotifications; // Assign fetched notifications to the list
+        _messages = fetchedNotifications; // Assign to _messages
+        _filteredMessages = fetchedNotifications; // Assign to _filteredMessages
         isLoading = false;
       });
     } catch (e) {
@@ -60,22 +113,35 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  // Paginate the notifications into chunks of 2 (or any number per page)
-  List<List<Notifications>> _paginateNotifications(List<Notifications> notifications) {
-    List<List<Notifications>> pages = [];
-    int pageSize = 2;
-
-    for (var i = 0; i < notifications.length; i += pageSize) {
-      pages.add(notifications.sublist(i, i + pageSize > notifications.length ? notifications.length : i + pageSize));
+  // Fetch messages from the backend
+  Future<void> fetchMessages() async {
+    if (hotelId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hotel ID not found')),
+      );
+      return;
     }
-    return pages;
-  }
 
-  // Change page for pagination
-  void _changePage(int pageIndex) {
     setState(() {
-      _currentPage = pageIndex;
+      isLoading = true;
     });
+
+    try {
+      final fetchedMessages = await notificationService.getMessages(hotelId!); // Fetch messages using hotelId
+      setState(() {
+        _messages = fetchedMessages; // Update _messages with fetched messages
+        _filteredMessages = fetchedMessages; // Update _filteredMessages with fetched messages
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load messages: $e')),
+      );
+      print("Error fetching messages: $e");
+    }
   }
 
   @override
@@ -97,101 +163,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           role: role,
           childScreen: Scaffold(
             body: isLoading
-                ? const Center(child: CircularProgressIndicator()) // Show loading spinner
-                : Column(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 200),
-                          child: ListView(
-                            key: ValueKey<int>(_currentPage),
-                            padding: const EdgeInsets.all(16),
-                            children: paginatedNotifications.isNotEmpty
-                                ? paginatedNotifications[_currentPage].map((notification) {
-                                    return NotificationCard(notification: notification);
-                                  }).toList()
-                                : [],
-                          ),
-                        ),
+                ? const Center(child: CircularProgressIndicator())
+                : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 20.0, bottom: 12.0),
+                    child: Text(
+                      'Notifications',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
-                      DotsIndicator(
-                        currentPage: _currentPage,
-                        onPageSelected: _changePage,
-                      ),
-                      SupportSection(),
-                    ],
+                    ),
                   ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: notifications.length, // Use notifications here
+                      itemBuilder: (context, index) {
+                        return NotificationCard(notification: notifications[index]);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
     );
   }
 }
-
-class SupportSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Report a Problem',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Color(0xFF091E3D),
-            ),
-          ),
-          SizedBox(height: 12),
-          TextField(
-            maxLines: 5,
-            decoration: InputDecoration(
-              hintText: 'Describe your issue...',
-              filled: true,
-              fillColor: Color(0xFF2196F3).withOpacity(0.1),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Color(0xFF183952)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Color(0xFF0066CC)),
-              ),
-            ),
-          ),
-          SizedBox(height: 8),
-          Center(
-            child: SizedBox(
-              width: 180,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Add report submission logic if needed
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF183952),
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
-                child: const Text(
-                  'Send',
-                  style: TextStyle(
-                    fontFamily: 'Be Vietnam Pro',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
