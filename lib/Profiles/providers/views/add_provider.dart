@@ -50,9 +50,17 @@ class _ProviderAddScreenState extends State<ProviderAddScreen> {
         state: _stateController.text,
       );
 
-      await _providerService.createProvider(newProvider.toJson());
-      Navigator.of(context).pop(true); // Regresa a la pantalla anterior con éxito
-
+      bool success = await _providerService.createProvider(newProvider.toJson());
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Provider added successfully!')),
+        );
+        Navigator.of(context).pop(true); // Regresa a la pantalla anterior con éxito
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to add provider. Please try again.')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to add provider: $e')),
@@ -119,7 +127,7 @@ class _ProviderAddScreenState extends State<ProviderAddScreen> {
                               isLoading
                                   ? const CircularProgressIndicator()
                                   : ElevatedButton(
-                                onPressed: _addProvider,
+                                onPressed: isLoading ? null : _addProvider,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF474C74),
                                 ),
@@ -163,7 +171,7 @@ class _ProviderAddScreenState extends State<ProviderAddScreen> {
             return 'Enter a valid email';
           }
           if (inputType == TextInputType.number && value != null && int.tryParse(value) == null) {
-            return 'Enter a valid number';
+            return 'Enter a valid phone number';
           }
           return null;
         },

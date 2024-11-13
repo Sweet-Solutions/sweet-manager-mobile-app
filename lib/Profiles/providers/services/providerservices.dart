@@ -23,7 +23,7 @@ class ProviderService {
 
   // Creates a new provider
   // Endpoint: POST /api/provider/create-provider
-  Future<dynamic> createProvider(Map<String, dynamic> providerData) async {
+  Future<bool> createProvider(Map<String, dynamic> providerData) async {
     final headers = await _getHeaders();
     final response = await http.post(
       Uri.parse('$baseUrl/api/provider/create-provider'),
@@ -34,59 +34,57 @@ class ProviderService {
     print('POST /api/provider/create-provider response status: ${response.statusCode}');
     print('POST /api/provider/create-provider response body: ${response.body}');
 
+    // Verifica si la creación fue exitosa
     if (response.statusCode == 201 || response.statusCode == 200) {
-      return response.body.isNotEmpty ? json.decode(response.body) : {};
+      return true;
     } else {
-      throw Exception('Failed to create provider: ${response.statusCode} - ${response.body}');
+      print('Failed to create provider: ${response.statusCode} - ${response.body}');
+      return false;
     }
   }
 
   // Updates an existing provider
   // Endpoint: PUT /api/provider/update-provider
   Future<Map<String, dynamic>> updateProvider(Map<String, dynamic> provider) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/api/provider/update-provider'),
-        headers: headers,
-        body: json.encode(provider),
-      );
+    final headers = await _getHeaders();
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/provider/update-provider'),
+      headers: headers,
+      body: json.encode(provider),
+    );
 
-      print('PUT /api/provider/update-provider status: ${response.statusCode}');
-      print('PUT /api/provider/update-provider body: ${response.body}');
+    print('PUT /api/provider/update-provider status: ${response.statusCode}');
+    print('PUT /api/provider/update-provider body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        return response.body.isNotEmpty ? json.decode(response.body) : {};
-      } else {
-        throw Exception('Failed to update provider: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      print('Error in updateProvider: $e');
-      rethrow;
+    if (response.statusCode == 200) {
+      return response.body.isNotEmpty ? json.decode(response.body) : {};
+    } else {
+      // Manejo de errores más detallado
+      final errorData = response.body.isNotEmpty ? json.decode(response.body) : {};
+      print('Error details: $errorData');
+      throw Exception('Failed to update provider: ${response.statusCode} - $errorData');
     }
   }
 
   // Retrieves all providers for a specific hotel
   // Endpoint: GET /api/provider/get-all/{hotelId}
   Future<List<dynamic>> getProvidersByHotelId(int hotelId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/provider/get-all/$hotelId'),
-        headers: headers,
-      );
+    final headers = await _getHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/provider/get-all/$hotelId'),
+      headers: headers,
+    );
 
-      print('GET /api/provider/get-all/$hotelId status: ${response.statusCode}');
-      print('GET /api/provider/get-all/$hotelId body: ${response.body}');
+    print('GET /api/provider/get-all/$hotelId status: ${response.statusCode}');
+    print('GET /api/provider/get-all/$hotelId body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to load providers by Hotel Id: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      print('Error in getProvidersByHotelId: $e');
-      return [];  // Returning an empty list in case of error to avoid crashes
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      // Manejo de errores más detallado
+      final errorData = response.body.isNotEmpty ? json.decode(response.body) : {};
+      print('Error details: $errorData');
+      throw Exception('Failed to load providers by Hotel Id: ${response.statusCode} - $errorData');
     }
   }
 }
