@@ -22,7 +22,7 @@ class PaymentOwnerService {
     };
   }
 
-  Future<dynamic> createSupply(Map<String, dynamic> paymentowner) async {
+  Future<dynamic> createPaymentOwner(Map<String, dynamic> paymentowner) async {
     final headers = await _getHeaders();
     final response = await http.post(
       Uri.parse('$baseUrl/create-payment-owner'),
@@ -39,5 +39,23 @@ class PaymentOwnerService {
       throw Exception('Failed to create payment owner: ${response.statusCode} - ${response.body}');
     }
   }
+
+  Future<List<dynamic>> getPaymentsByOwnerId(int ownerId) async {
+  final headers = await _getHeaders();
+  final response = await http.get(
+    Uri.parse('$baseUrl/get-payments-owner-id?ownerId=$ownerId'),
+    headers: headers,
+  );
+
+  print('GET /get-payments-owner-id?ownerId=$ownerId response status: ${response.statusCode}');
+  print('GET /get-payments-owner-id?ownerId=$ownerId response body: ${response.body}');
+
+  if (response.statusCode == 200) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to load payments by Owner ID: ${response.statusCode} - ${response.body}');
+  }
+}
+
 
 } 
