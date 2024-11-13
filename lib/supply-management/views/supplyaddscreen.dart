@@ -5,6 +5,7 @@ import 'package:sweetmanager/supply-management/services/supplyrequestservices.da
 import 'package:sweetmanager/supply-management/services/supplyservices.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'dart:convert';
 
 class SupplyAddScreen extends StatefulWidget {
   const SupplyAddScreen({super.key});
@@ -111,33 +112,44 @@ Future<void> _addSupply() async {
 
     // Paso 2: Obtener el SupplyId del Supply recién creado usando el providerId
     final supplies = await _supplyService.getSuppliesByProviderId(providerId);
-    if (supplies.isNotEmpty) {
-      final int newSupplyId = supplies.last['id']; // Suponiendo que el último es el más reciente
+if (supplies.isNotEmpty) {
+  final int newSupplyId = int.parse(supplies.last['id'].toString()); // Convierte el ID a int si es necesario
+
 
       // Paso 3: Crear el PaymentOwner
       if (ownerid != null) {
         Map<String, dynamic> newPaymentOwner = {
-          'ownerId': tokenHotelId,
+          'ownerId': ownerid,
           'description': 'Payment for supply ${_nameController.text}',
           'finalAmount': double.parse(_priceController.text),
         };
 
-        final paymentOwnerResponse = await _paymentOwnerService.createPaymentOwner(newPaymentOwner);
-        final int newPaymentOwnerId = paymentOwnerResponse['id']; // Obtener el ID del PaymentOwner
+        await _paymentOwnerService.createPaymentOwner(newPaymentOwner);
+        
+        // Paso 4: Obtener el ID del último PaymentOwner creado usando getPaymentsByOwnerId
+        final payments = await _paymentOwnerService.getPaymentsByOwnerId(int.parse(ownerid));
+        if (payments.isNotEmpty) {
+          final int newPaymentOwnerId = int.parse(payments.last['id'].toString()); // Último PaymentOwner creado
 
-        // Paso 4: Crear el SupplyRequest con los IDs obtenidos
-        Map<String, dynamic> newSupplyRequest = {
-          'paymentOwnersId': newPaymentOwnerId,
-          'suppliesId': newSupplyId,
-          'count': int.parse(_stockController.text),
-          'amount': double.parse(_priceController.text),
-        };
-        await _supplyRequestService.createSupplyRequest(newSupplyRequest);
+          // Paso 5: Crear el SupplyRequest con los IDs obtenidos
+          Map<String, dynamic> newSupplyRequest = {
+            'paymentsOwnersId': newPaymentOwnerId,
+            'suppliesId': newSupplyId,
+            'count': int.parse(_stockController.text),
+            'amount': double.parse(_priceController.text).toStringAsFixed(2), // Asegura que amount sea un decimal con dos dígitos
+          };
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Supply, Payment Owner, and Supply Request added successfully')),
-        );
-        Navigator.of(context).pop(true);
+print("Sending supplyRequest: ${json.encode(newSupplyRequest)}"); // Imprime el JSON enviado
+
+          await _supplyRequestService.createSupplyRequest(newSupplyRequest);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Supply added successfully')),
+          );
+          Navigator.of(context).pop(true);
+        } else {
+          throw Exception("No se encontraron pagos para el Owner ID especificado.");
+        }
       } else {
         throw Exception('Owner ID is null');
       }
@@ -154,7 +166,6 @@ Future<void> _addSupply() async {
     });
   }
 }
-
 
 
 
