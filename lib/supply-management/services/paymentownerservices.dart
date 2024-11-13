@@ -40,7 +40,7 @@ class PaymentOwnerService {
     }
   }
 
-  Future<List<dynamic>> getPaymentsByOwnerId(int ownerId) async {
+  Future<List<dynamic>> getPaymentsByOwnerId(int? ownerId) async {
   final headers = await _getHeaders();
   final response = await http.get(
     Uri.parse('$baseUrl/get-payments-owner-id?ownerId=$ownerId'),
