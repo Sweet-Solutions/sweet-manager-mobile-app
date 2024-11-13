@@ -63,7 +63,7 @@ class MyHomePage extends StatelessWidget {
         '/providers': (context) => const ProvidersManagement(),
         // ignore: prefer_const_constructors
         '/supplies': (context) => InventoryManagement() ,
-        '/messages': (context) => Messagescreen(),
+        '/messages': (context) => MessagesScreen(),
         // ignore: prefer_const_constructors
         '/reports': (context) => ReportList(),
         '/profiles': (context) => ProfilePage(),

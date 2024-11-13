@@ -93,7 +93,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage('assets/images/back_login.png'), // Replace with your background image URL
+                image: AssetImage('assets/images/back_login.png'), // Replace with your background image URL
                 fit: BoxFit.cover,
               ),
             ),
