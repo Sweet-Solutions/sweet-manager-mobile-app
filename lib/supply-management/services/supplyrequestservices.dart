@@ -22,7 +22,7 @@ class SupplyRequestService {
     };
   }
 
-  Future<dynamic> createSupply(Map<String, dynamic> supplyRequest) async {
+  Future<dynamic> createSupplyRequest(Map<String, dynamic> supplyRequest) async {
     final headers = await _getHeaders();
     final response = await http.post(
       Uri.parse('$baseUrl/api/supplies-request'),
@@ -39,5 +39,23 @@ class SupplyRequestService {
       throw Exception('Failed to create supply request: ${response.statusCode} - ${response.body}');
     }
   }
+
+  Future<List<dynamic>> getSupplyRequestByHotelId(int? hotelId) async {
+  final headers = await _getHeaders();
+  final response = await http.get(
+    Uri.parse('$baseUrl/api/supplies-request/hotelid/$hotelId'),
+    headers: headers,
+  );
+
+  print('GET /api/supplies-request/hotelid/$hotelId response status: ${response.statusCode}');
+  print('GET /api/supplies-request/hotelid/$hotelId response body: ${response.body}');
+
+  if (response.statusCode == 200) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to load supplies by Hotel ID: ${response.statusCode} - ${response.body}');
+  }
+}
+
 
 } 
