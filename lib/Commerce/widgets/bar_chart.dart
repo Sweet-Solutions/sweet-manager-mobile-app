@@ -89,7 +89,7 @@ class BarChartSample2State extends State<BarChartTest> {
 
     print(chartData);
 
-    int week = getCurrentWeekNumber() - 1;
+    int week = getCurrentWeekNumber() - 2;
 
     print(week); 
 
@@ -229,33 +229,31 @@ class BarChartSample2State extends State<BarChartTest> {
                             BarChartData(
                               maxY: 100, // 7 represents 7K as the max Y value for clarity
                               barTouchData: BarTouchData(
-                                touchTooltipData: BarTouchTooltipData(
-                                  getTooltipColor: (BarChartGroupData data){
-                                    return Colors.blueGrey;
-                                  },
-                                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                    final data = chartData[groupIndex];
-                                    final isIncome = rodIndex == 0;
-                                    final amount = isIncome ? data.totalIncome : data.totalExpense;
-                                    return BarTooltipItem(
-                                      '${isIncome ? 'Income' : 'Expense'}: \$${amount}',
-                                      const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                                    );
-                                  },
-                                ),
-                                touchCallback: (FlTouchEvent event, response) {
-                                  if (response == null || response.spot == null) {
-                                    setState(() {
-                                      touchedGroupIndex = -1;
-                                    });
-                                    return;
+                              touchTooltipData: BarTouchTooltipData(
+                                getTooltipColor: (BarChartGroupData data) {
+                                  return Colors.blueGrey;
+                                },
+                                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                  // Prevent accessing an invalid index by checking touchedGroupIndex
+                                  if (touchedGroupIndex < 0 || touchedGroupIndex >= chartData.length) {
+                                    return null;
                                   }
-
-                                  setState(() {
-                                    touchedGroupIndex = response.spot!.touchedBarGroupIndex;
-                                  });
+                                  final data = chartData[groupIndex];
+                                  final isIncome = rodIndex == 0;
+                                  final amount = isIncome ? data.totalIncome : data.totalExpense;
+                                  return BarTooltipItem(
+                                    '${isIncome ? 'Income' : 'Expense'}: \$${amount}',
+                                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                  );
                                 },
                               ),
+                              touchCallback: (FlTouchEvent event, response) {
+                                setState(() {
+                                  // Set touchedGroupIndex based on the event's validity
+                                  touchedGroupIndex = response?.spot?.touchedBarGroupIndex ?? -1;
+                                });
+                              },
+                            ),
                               titlesData: FlTitlesData(
                                 show: true,
                                 rightTitles: const AxisTitles(
