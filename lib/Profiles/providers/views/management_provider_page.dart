@@ -5,6 +5,8 @@ import 'package:sweetmanager/IAM/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
+import 'package:sweetmanager/Profiles/providers/views/add_provider.dart';
+import 'package:sweetmanager/supply-management/views/supplyaddscreen.dart';
 
 class ProvidersManagement extends StatefulWidget {
   const ProvidersManagement({super.key});
@@ -27,10 +29,10 @@ class _ProvidersManagement extends State<ProvidersManagement> {
     super.initState();
     _authService = AuthService();
     _providerService = ProviderService();
-    _loadHotelId();
+    _initializeData();
   }
 
-  Future<void> _loadHotelId() async {
+  Future<void> _initializeData() async {
     hotelId = await _getHotelId();
     if (hotelId != null) {
       await _fetchProviders();
@@ -74,6 +76,24 @@ class _ProvidersManagement extends State<ProvidersManagement> {
     }
   }
 
+  Future<void> _addProvider() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ProviderAddScreen()),
+    );
+
+    if (result == true) {
+      await _fetchProviders();
+      _showSnackBar('Provider created successfully.');
+
+      // Navega a SupplyAddScreen tras la creación del proveedor
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const SupplyAddScreen()),
+      );
+    }
+  }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
@@ -104,6 +124,11 @@ class _ProvidersManagement extends State<ProvidersManagement> {
                 const SizedBox(height: 8),
                 _buildProvidersTable(),
               ],
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: _addProvider,
+              backgroundColor: const Color(0xFF474C74),
+              child: const Icon(Icons.add, color: Colors.white),
             ),
           ),
         );
@@ -138,6 +163,10 @@ class _ProvidersManagement extends State<ProvidersManagement> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Color(0xFF474C74)),
+              onPressed: _fetchProviders,
+            ),
           ],
         ),
       ),
@@ -146,10 +175,12 @@ class _ProvidersManagement extends State<ProvidersManagement> {
 
   Widget _buildProvidersTable() {
     if (providers.isEmpty) {
-      return const Center(
-        child: Text(
-          'There are no providers records yet',
-          style: TextStyle(fontSize: 18, color: Colors.grey),
+      return const Expanded(
+        child: Center(
+          child: Text(
+            'There are no provider records yet.',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
         ),
       );
     }
@@ -171,27 +202,39 @@ class _ProvidersManagement extends State<ProvidersManagement> {
             }),
             columns: const <DataColumn>[
               DataColumn(
-                label: Expanded(
-                  child: Text(
-                    'ID',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
+                label: Text(
+                  'ID',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
               DataColumn(
-                label: Expanded(
-                  child: Text(
-                    'Name',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
+                label: Text(
+                  'Name',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
               DataColumn(
-                label: Expanded(
-                  child: Text(
-                    'Address',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
+                label: Text(
+                  'Address',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Email',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Phone',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'State',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -199,8 +242,11 @@ class _ProvidersManagement extends State<ProvidersManagement> {
               return DataRow(
                 cells: [
                   DataCell(Text(provider.id.toString())),
-                  DataCell(Text(provider.name)),
-                  DataCell(Text(provider.address)),
+                  DataCell(Text(provider.name ?? '')),
+                  DataCell(Text(provider.address ?? '')),
+                  DataCell(Text(provider.email ?? '')),
+                  DataCell(Text(provider.phone.toString())),
+                  DataCell(Text(provider.state ?? '')),
                 ],
               );
             }).toList(),
