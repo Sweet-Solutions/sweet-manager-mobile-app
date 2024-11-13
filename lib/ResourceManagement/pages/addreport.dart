@@ -1,10 +1,14 @@
+import 'package:camera/camera.dart';
+import 'package:image_picker/image_picker.dart';  // Correcto
+
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:file_picker/file_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sweetmanager/ResourceManagement/models/typereport.dart';
 import 'package:sweetmanager/ResourceManagement/services/typesreportservice.dart';
 import 'package:sweetmanager/ResourceManagement/services/reportservice.dart';
+
+import 'dart:io'; // Para File
 
 
 class AddReport extends StatefulWidget {
@@ -19,32 +23,31 @@ class _AddReportState extends State<AddReport> {
   final TextEditingController contentController = TextEditingController();
   final TextEditingController adminController = TextEditingController();
   final TextEditingController workerController = TextEditingController();
+  ImagePicker imagePicker = ImagePicker(); 
 
-
-  PlatformFile? pickedFile;
-  String? base64File;
+  XFile? pickedFile;  // Usamos Xfile en lugar de PlatformFile
+  String imageurl = ''; // Esta variable contendrá la URL de la imagen después de subirla
   int? selectedTypeReportId;
   List<TypesReport> typesReports = [];
   late TypesReportService typesReportService;
   late ReportService reportService;
-  late FirebaseFirestore firestore;
 
   @override
   void initState() {
     super.initState();
-    firestore = FirebaseFirestore.instance;
     typesReportService = TypesReportService();
     reportService = ReportService();
     fetchTypesReports();
   }
 
+  // Método para seleccionar la imagen
   Future<void> selectFile() async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result == null) return;
-    
+    final ImagePicker imagePicker = ImagePicker();
+    final XFile? file = await imagePicker.pickImage(source: ImageSource.camera); // Usamos cámara para la selección
+    if (file == null) return;
+
     setState(() {
-      pickedFile = result.files.first;
-      base64File = base64Encode(pickedFile!.bytes!); // Encode file to Base64
+      pickedFile = file;  // Asignamos el archivo seleccionado directamente
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -52,71 +55,67 @@ class _AddReportState extends State<AddReport> {
     );
   }
 
+  // Método para enviar el reporte
   Future<void> _submitReport() async {
-  // Check that all required fields are completed
-  if (titleController.text.isEmpty ||
-      contentController.text.isEmpty ||
-      selectedTypeReportId == null ||
-      pickedFile == null ||
-      adminController.text.isEmpty ||
-      workerController.text.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('All fields are required, including the file.')),
-    );
-    return;
-  }
-
-  try {
-    // Step 1: Upload the image to Firestore and get its URL
-    String? imageUrl;
-    if (pickedFile != null) {
-      final storageRef = FirebaseFirestore.instance.collection('report_images').doc();
-      await storageRef.set({
-        'fileName': pickedFile!.name,
-        'content': base64File,
-      });
-      imageUrl = storageRef.path;
+    // Verificar que todos los campos obligatorios están completos
+    if (titleController.text.isEmpty ||
+        contentController.text.isEmpty ||
+        selectedTypeReportId == null ||
+        pickedFile == null ||
+        adminController.text.isEmpty ||
+        workerController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All fields are required, including the file.')),
+      );
+      return;
     }
 
-    // Step 2: Prepare report data
-    final reportData = {
-      'typesReportsId': selectedTypeReportId,
-      'adminsId': int.parse(adminController.text),
-      'workersId': int.parse(workerController.text),
-      'title': titleController.text,
-      'description': contentController.text,
-      'fileUrl': imageUrl ?? base64File,
-    };
+    try {
+      // Subir la imagen a Firebase Storage y obtener su URL
+      String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+      final referenceRoot = FirebaseStorage.instance.ref();
+      final referenceDirImages = referenceRoot.child('images');
+      final referenceImageToUpload = referenceDirImages.child(uniqueFileName);
 
-    // Send the report
-    final response = await reportService.createReport(reportData, null);
+      // Subir el archivo a Firebase Storage
+      await referenceImageToUpload.putFile(File(pickedFile!.path));
 
-    // Check response and redirect if successful
-    if (response == true) {
+      // Obtener la URL de la imagen subida
+      imageurl = await referenceImageToUpload.getDownloadURL();
+
+      // Preparar los datos del reporte
+      final reportData = {
+        'typesReportsId': selectedTypeReportId,
+        'adminsId': int.parse(adminController.text),
+        'workersId': int.parse(workerController.text),
+        'title': titleController.text,
+        'description': contentController.text,
+        'fileUrl': imageurl, // Guardamos la URL de la imagen subida
+      };
+
+      // Enviar el reporte
+      final response = await reportService.createReport(reportData, null);
+
+      // Comprobar respuesta y redirigir si es exitoso
+      if (response == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Report submitted successfully')),
+        );
+        Navigator.pop(context, true); // Pasamos `true` para indicar éxito
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to submit report')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Report submitted successfully')),
+        SnackBar(content: Text('Error submitting report: $e')),
       );
-      Navigator.pop(context, true); // Pass `true` to indicate success
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to submit report')),
-      );
+      Navigator.pop(context, true); // Pasamos `false` para indicar error
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error submitting report: $e')),
-    );
-    Navigator.pop(context, true); // Pass `false` to indicate failure
   }
-}
 
-
-
-
-
-
-
-
+  // Método para obtener los tipos de reporte
   Future<void> fetchTypesReports() async {
     try {
       List<TypesReport> fetchedReports = await typesReportService.fetchTypesReports();
@@ -230,7 +229,7 @@ class _AddReportState extends State<AddReport> {
               ],
             ),
             const SizedBox(height: 16),
-            if (pickedFile != null) // Show selected file name
+            if (pickedFile != null) // Mostrar el nombre del archivo seleccionado
               Text("Selected: ${pickedFile!.name}"),
             const SizedBox(height: 16),
             Center(

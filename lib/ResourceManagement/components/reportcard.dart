@@ -17,7 +17,9 @@ class ReportCard extends StatelessWidget {
           children: [
             Text(report.description, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4), 
-            Text(report.fileUrl,),
+            report.fileUrl.isNotEmpty
+                ? Image.network(report.fileUrl) // Usamos la URL de Firebase Storage
+                : const Text('No image available'), // Mensaje si no hay URL
           ],
         ),
         trailing: const Icon(Icons.more_vert), 
