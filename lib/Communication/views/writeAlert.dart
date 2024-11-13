@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Communication/services/NotificationService.dart';
-import '../models/notification.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
+import '../models/notification.dart';
 
 class WriteAlertScreen extends StatefulWidget {
   @override
@@ -9,10 +9,14 @@ class WriteAlertScreen extends StatefulWidget {
 }
 
 class _WriteAlertScreenState extends State<WriteAlertScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  // Text controllers to capture form values
+  final TextEditingController _ownerIdController = TextEditingController();
+  final TextEditingController _adminIdController = TextEditingController();
+  final TextEditingController _workerIdController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  String _selectedSeverity = 'Important';
 
   late NotificationService notificationService;
 
@@ -20,204 +24,168 @@ class _WriteAlertScreenState extends State<WriteAlertScreen> {
   void initState() {
     super.initState();
     final authService = AuthService(); // Instantiate AuthService
-    notificationService = NotificationService(
-
-    );
+    notificationService = NotificationService();
   }
 
   // Submit the alert notification
   Future<void> _submitNotification() async {
-  if (_titleController.text.isNotEmpty && _descriptionController.text.isNotEmpty) {
-    try {
-      // Obtén todas las IDs de admins y workers
-      List<int> adminIds = await notificationService.getAllAdminIds();
-      List<int> workerIds = await notificationService.getAllWorkerIds();
-      int ownersId = 1; 
-  if (ownersId == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Unable to get owner ID. Please log in again.')),
-    );
-    return;
-  }
+    if (_formKey.currentState?.validate() ?? false) {
+      // Convert form values to int for IDs
+      int ownersId = int.tryParse(_ownerIdController.text) ?? 0;
+      int adminsId = int.tryParse(_adminIdController.text) ?? 0;
+      int workersId = int.tryParse(_workerIdController.text) ?? 0;
 
-      // Crea y envía una notificación para cada admin y worker
-      for (int adminId in adminIds) {
-        for (int workerId in workerIds) {
-          Notifications newNotification = Notifications(
-            2, // typesNotificationsId para alertas
-            ownersId,
-            adminId, // ID del administrador
-            workerId, // ID del trabajador
-            _titleController.text,
-            _descriptionController.text,
+      // Create a new notification instance
+      Notifications newNotification = Notifications(
+        2, // typesNotificationsId for alerts
+        ownersId,
+        adminsId,
+        workersId,
+        _titleController.text,
+        _descriptionController.text, // Description of the notification
+      );
+
+      try {
+        // Call the service to send the alert
+        bool success = await notificationService.createAlert(newNotification);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Alert sent successfully!')),
           );
-          bool success = await notificationService.createAlert(newNotification);
-          if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Alert sent successfully!')),
-            );
-          }
+          // Clear form fields after submission
+          _ownerIdController.clear();
+          _adminIdController.clear();
+          _workerIdController.clear();
+          _titleController.clear();
+          _descriptionController.clear();
+          Navigator.of(context).pop(true); // Return true to indicate success
         }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send alert: $e')),
+        );
       }
-
-      // Limpiar campos después de enviar
-      _titleController.clear();
-      _descriptionController.clear();
-      setState(() {
-        _selectedSeverity = 'Important';
-      });
-
-    } catch (e) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send alert: $e')),
+        const SnackBar(content: Text('Please complete all fields.')),
       );
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please complete all fields.')),
-    );
   }
-
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('REGISTER ALERT'),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue[900],
         elevation: 0,
         centerTitle: true,
         titleTextStyle: const TextStyle(
-          color: Color(0xFF183952),
-          fontSize: 16,
+          color: Colors.white,
+          fontSize: 20,
           fontWeight: FontWeight.bold,
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              'Alert',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(
-                labelText: 'Username',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLabel('Owner ID:'),
+              _buildTextField(
+                  hintText: 'Enter owner ID',
+                  controller: _ownerIdController,
+                  icon: Icons.person),
+              const SizedBox(height: 16),
+              _buildLabel('Admin ID:'),
+              _buildTextField(
+                  hintText: 'Enter admin ID',
+                  controller: _adminIdController,
+                  icon: Icons.admin_panel_settings),
+              const SizedBox(height: 16),
+              _buildLabel('Worker ID:'),
+              _buildTextField(
+                  hintText: 'Enter worker ID',
+                  controller: _workerIdController,
+                  icon: Icons.people),
+              const SizedBox(height: 16),
+              _buildLabel('Title:'),
+              _buildTextField(
+                  hintText: 'Enter title',
+                  controller: _titleController,
+                  icon: Icons.title),
+              const SizedBox(height: 16),
+              _buildLabel('Description:'),
+              _buildTextField(
+                  hintText: 'Enter description',
+                  controller: _descriptionController,
+                  icon: Icons.description),
+              const SizedBox(height: 16),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _submitNotification,
+                  child: const Text('Send',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[900],
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    shadowColor: Colors.black,
+                    elevation: 5,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2C5282),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'YOUR ALERT WILL BE SENT TO ALL WORKERS AND ADMINISTRATORS',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Severity',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Color(0xFF183952),
-                ),
-              ),
-            ),
-            Column(
-              children: [
-                RadioListTile(
-                  value: 'Important',
-                  groupValue: _selectedSeverity,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedSeverity = value.toString();
-                    });
-                  },
-                  title: const Text('Important', style: TextStyle(color: Color(0xFF183952))),
-                ),
-                RadioListTile(
-                  value: 'Extreme',
-                  groupValue: _selectedSeverity,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedSeverity = value.toString();
-                    });
-                  },
-                  title: const Text('Extreme', style: TextStyle(color: Color(0xFF183952))),
-                ),
-                RadioListTile(
-                  value: 'Warning',
-                  groupValue: _selectedSeverity,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedSeverity = value.toString();
-                    });
-                  },
-                  title: const Text('Warning', style: TextStyle(color: Color(0xFF183952))),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: 'Describe the incident',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: _submitNotification,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2C5282),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'SEND',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      {required String hintText,
+        required TextEditingController controller,
+        required IconData icon}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: hintText,
+        prefixIcon: Icon(icon, color: Colors.blue[900]),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        filled: true,
+        fillColor: Colors.grey[200],
+        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'This field is required';
+        }
+        return null;
+      },
     );
   }
 }

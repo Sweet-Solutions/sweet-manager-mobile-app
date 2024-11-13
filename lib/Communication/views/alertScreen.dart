@@ -4,6 +4,7 @@ import '../models/notification.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'writeAlert.dart'; // Import WriteAlertScreen
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({Key? key}) : super(key: key);
@@ -13,21 +14,20 @@ class AlertsScreen extends StatefulWidget {
 }
 
 class _AlertsScreenState extends State<AlertsScreen> {
-  List<Notifications> alertNotifications = []; // List of fetched notifications
+  List<Notifications> alertNotifications = []; // List of fetched alert notifications
   bool isLoading = true;
   late NotificationService notificationService;
   final storage = const FlutterSecureStorage();
   String? role;
+  int? hotelId; // Added hotelId to fetch alerts
 
   @override
   void initState() {
     super.initState();
-    notificationService = NotificationService(
-    );
-    fetchAlertNotifications(); 
+    notificationService = NotificationService();
+    _loadHotelId(); // Load the hotel ID on initialization
   }
 
-  // MÃ©todo para obtener el rol del token
   Future<String?> _getRole() async {
     String? token = await storage.read(key: 'token');
     if (token != null) {
@@ -37,11 +37,57 @@ class _AlertsScreenState extends State<AlertsScreen> {
     return null;
   }
 
-  Future<void> fetchAlertNotifications() async {
-    try {
-      final notifications = await notificationService.getAlertNotifications(1); // Pass the correct hotel ID
+  Future<void> _loadHotelId() async {
+    hotelId = await _getHotelId(); // Fetch the hotel ID
+    if (hotelId != null) {
+      fetchAlertNotifications(); // Fetch notifications if hotel ID is available
+    } else {
       setState(() {
-        alertNotifications = notifications;
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hotel ID not found')),
+      );
+    }
+  }
+
+  Future<int?> _getHotelId() async {
+    String? token = await storage.read(key: 'token');
+    if (token == null || JwtDecoder.isExpired(token)) {
+      return null; // Token is missing or expired
+    }
+
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    if (decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality'] != null) {
+      try {
+        return int.parse(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']);
+      } catch (e) {
+        print('Failed to convert Hotel ID: $e');
+      }
+    }
+    return null;
+  }
+
+  Future<void> fetchAlertNotifications() async {
+    if (hotelId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hotel ID not found')),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      // Fetching all notifications using the hotel ID
+      final notifications = await notificationService.getAllNotifications(hotelId!);
+
+      // Filter the notifications to only include those with typesNotificationsId == 2
+      alertNotifications = notifications.where((notification) => notification.typesNotificationsId == 2).toList();
+
+      setState(() {
         isLoading = false;
       });
     } catch (e) {
@@ -51,6 +97,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load notifications: $e')),
       );
+      print("Error fetching notifications: $e");
     }
   }
 
@@ -92,8 +139,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/writealert');
+                    onPressed: () async {
+                      final result = await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => WriteAlertScreen()),
+                      );
+                      if (result == true) {
+                        fetchAlertNotifications(); // Reload alerts if a new alert was created
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2C5282),
@@ -111,17 +163,17 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   isLoading
                       ? const Center(child: CircularProgressIndicator()) // Show a loading spinner
                       : Expanded(
-                          child: ListView.builder(
-                            itemCount: alertNotifications.length,
-                            itemBuilder: (context, index) {
-                              return NotificationCard(
-                                notification: alertNotifications[index],
-                                index: index,
-                                removeNotification: removeNotification,
-                              );
-                            },
-                          ),
-                        ),
+                    child: ListView.builder(
+                      itemCount: alertNotifications.length,
+                      itemBuilder: (context, index) {
+                        return NotificationCard(
+                          notification: alertNotifications[index],
+                          index: index,
+                          removeNotification: removeNotification,
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -149,6 +201,7 @@ class NotificationCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
       child: ListTile(
+        leading: const Icon(Icons.notification_important, color: Colors.red),
         title: Text(
           notification.title,
           style: const TextStyle(fontWeight: FontWeight.bold),
