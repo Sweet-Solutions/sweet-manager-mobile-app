@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sweetmanager/supply-management/services/paymentownerservices.dart';
+import 'package:sweetmanager/supply-management/services/supplyrequestservices.dart';
 import 'package:sweetmanager/supply-management/services/supplyservices.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class SupplyAddScreen extends StatefulWidget {
   const SupplyAddScreen({super.key});
@@ -15,10 +18,13 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
   final TextEditingController _stockController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stateController = TextEditingController();
+  int? hotelId;
 
   bool isLoading = false;
 
   late SupplyService _supplyService;
+  late SupplyRequestService _supplyRequestService;
+  late PaymentOwnerService _paymentOwnerService;
   final FlutterSecureStorage storage = const FlutterSecureStorage();
 
   @override
@@ -27,38 +33,117 @@ class _SupplyAddScreenState extends State<SupplyAddScreen> {
     _supplyService = SupplyService();
   }
 
-  Future<void> _addSupply() async {
-    setState(() {
-      isLoading = true;
-    });
+  Future<String?> _getIdentity() async
+  {
+    // Retrieve token from local storage
 
-    try {
-  Map<String, dynamic> newSupply = {
-    'name': _nameController.text,
-    'providersId': int.parse(_providersIdController.text),
-    'stock': int.parse(_stockController.text),
-    'price': double.parse(_priceController.text),
-    'state': _stateController.text,
-  };
+    String? token = await storage.read(key: 'token');
 
-  final response = await _supplyService.createSupply(newSupply);
-  print('Supply added response: $response'); // Imprime el resultado
+    Map<String,dynamic> decodedToken = JwtDecoder.decode(token!);
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Supply added successfully')),
-  );
-  Navigator.of(context).pop(true);
-} catch (e) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Failed to add supply: $e')),
-  );
-}
- finally {
+    // Get Role in Claims token
+
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid']?.toString();
+  }
+
+  Future<int?> _getHotelId() async {
+    String? token = await storage.read(key: 'token');
+
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+
+      if (decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality'] != null) {
+        try {
+          return int.parse(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']);
+        } catch (e) {
+          print('Failed to Convert Hotel ID $e');
+          return null;
+        }
+      } else {
+        print('Hotel ID not found');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _loadHotelId() async {
+    int? tokenHotelId = await _getHotelId();
+    print('Hotel ID: $tokenHotelId');
+
+    if (tokenHotelId != null) {
+      setState(() {
+        hotelId = tokenHotelId;
+      });
+      _addSupply();
+    } else {
       setState(() {
         isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hotel ID not found')),
+      );
     }
   }
+
+  Future<void> _addSupply() async {
+    int? tokenHotelId = await _getHotelId();
+  setState(() {
+    isLoading = true;
+  });
+
+  try {
+    // Paso 1: Crear newSupply
+    Map<String, dynamic> newSupply = {
+      'name': _nameController.text,
+      'providersId': int.parse(_providersIdController.text),
+      'stock': int.parse(_stockController.text),
+      'price': double.parse(_priceController.text),
+      'state': _stateController.text,
+    };
+    await _supplyService.createSupply(newSupply);
+
+    // Paso 2: Obtener el ID del último Supply creado
+    final supplies = await _supplyService.getSuppliesByHotelId(tokenHotelId);
+    final int newSupplyId = supplies.last['id']; // Asumiendo que el último es el creado
+
+    // Paso 3: Crear newPaymentOwner
+    Map<String, dynamic> newPaymentOwner = {
+      'ownerId': hotelId,
+      'description': 'Payment for supply ${_nameController.text}',
+      'finalAmount': double.parse(_priceController.text),
+    };
+    await _paymentOwnerService.createPaymentOwner(newPaymentOwner);
+
+    // Paso 4: Obtener el ID del último PaymentOwner creado
+    final paymentOwners = await _paymentOwnerService.getPaymentsByOwnerId();
+    final int newPaymentOwnerId = paymentOwners.last['id']; // Último creado
+
+    // Paso 5: Crear newSupplyRequest con los IDs obtenidos
+    Map<String, dynamic> newSupplyRequest = {
+      'paymentOwnersId': newPaymentOwnerId,
+      'suppliesId': newSupplyId,
+      'count': int.parse(_stockController.text),
+      'amount': double.parse(_priceController.text),
+    };
+    await _supplyRequestService.createSupplyRequest(newSupplyRequest);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Supply, Payment Owner, and Supply Request added successfully')),
+    );
+    Navigator.of(context).pop(true);
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to add supply: $e')),
+    );
+  } finally {
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
