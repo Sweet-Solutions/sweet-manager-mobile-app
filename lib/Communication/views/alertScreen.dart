@@ -203,10 +203,10 @@ class NotificationCard extends StatelessWidget {
       child: ListTile(
         leading: const Icon(Icons.notification_important, color: Colors.red),
         title: Text(
-          notification.title,
+          notification.title!,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(notification.description),
+        subtitle: Text(notification.description!),
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () => removeNotification(index),

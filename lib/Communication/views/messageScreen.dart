@@ -2,8 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Communication/services/NotificationService.dart';
 import '../models/notification.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart';
-import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'writeMessage.dart'; // Import WriteMessage
@@ -17,7 +15,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   List<Notifications> _messages = []; // Lista de mensajes
   List<Notifications> _filteredMessages = [];
   String _searchQuery = '';
-  Set<int> _selectedMessageIndices = {};
+  final Set<int> _selectedMessageIndices = {};
   bool isLoading = true;
   late NotificationService notificationService;
   final storage = const FlutterSecureStorage();
@@ -75,7 +73,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     setState(() {
       _searchQuery = query; // Actualiza la consulta de búsqueda
       _filteredMessages = _messages.where((notification) {
-        return notification.title.toLowerCase().contains(query.toLowerCase().trim());
+        return notification.title!.toLowerCase().contains(query.toLowerCase().trim());
       }).toList();
     });
   }
@@ -141,20 +139,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 itemBuilder: (context, index) {
                   final notification = _filteredMessages[index];
                   return Dismissible(
-                    key: Key(notification.title),
+                    key: Key(notification.title!),
                     onDismissed: (direction) {
                       setState(() {
                         _filteredMessages.removeAt(index);
                         _selectedMessageIndices.remove(index);
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Mensaje eliminado')),
+                        const SnackBar(content: Text('Mensaje eliminado')),
                       );
                     },
                     background: Container(color: Colors.red),
                     child: MessageTile(
-                      title: notification.title,
-                      recipient: notification.description,
+                      title: notification.title!,
+                      recipient: notification.description!,
                       date: notification.typesNotificationsId.toString(),
                       isSelected: _selectedMessageIndices.contains(index),
                       onSelect: () => _selectMessage(index),
@@ -220,7 +218,7 @@ class MessageTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onSelect;
 
-  const MessageTile({
+  const MessageTile({super.key, 
     required this.title,
     required this.recipient,
     required this.date,

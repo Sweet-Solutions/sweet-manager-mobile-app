@@ -4,7 +4,7 @@ import '../models/notification.dart';
 class NotificationCard extends StatefulWidget {
   final Notifications notification;
 
-  const NotificationCard({Key? key, required this.notification}) : super(key: key);
+  const NotificationCard({super.key, required this.notification});
 
   @override
   _NotificationCardState createState() => _NotificationCardState();
@@ -54,7 +54,7 @@ class _NotificationCardState extends State<NotificationCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.notification.title,
+                      widget.notification.title!,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -63,7 +63,7 @@ class _NotificationCardState extends State<NotificationCard> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      widget.notification.description,
+                      widget.notification.description!,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade700,
@@ -95,8 +95,8 @@ class _NotificationCardState extends State<NotificationCard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(notification.title),
-        content: Text(notification.description),
+        title: Text(notification.title!),
+        content: Text(notification.description!),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

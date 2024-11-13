@@ -1,10 +1,10 @@
 class Notifications {
-  final int typesNotificationsId;
-  final int ownersId;
-  final int adminsId;
-  final int workersId;
-  final String title;
-  final String description;
+  final int? typesNotificationsId;
+  final int? ownersId;
+  final int? adminsId;
+  final int? workersId;
+  final String? title;
+  final String? description;
 
   Notifications(
       this.typesNotificationsId,

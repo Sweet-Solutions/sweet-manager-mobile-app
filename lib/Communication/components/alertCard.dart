@@ -45,7 +45,7 @@ class AlertCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                alert.title,
+                alert.title!,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -53,7 +53,7 @@ class AlertCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                alert.description,
+                alert.description!,
                 style: const TextStyle(fontSize: 14, color: Colors.black87),
               ),
               const SizedBox(height: 8),
