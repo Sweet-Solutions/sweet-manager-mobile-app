@@ -23,10 +23,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios; // Devuelve la configuración para iOS
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -64,5 +61,14 @@ class DefaultFirebaseOptions {
     messagingSenderId: '180154492305',
     projectId: 'sweet-solutions',
     storageBucket: 'sweet-solutions.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDnDns4J0VpWEpIpckq2WmdVm2guy0h0K8', // API_KEY del plist
+    appId: '1:180154492305:ios:3ca09082ded9f37934a630', // GOOGLE_APP_ID del plist
+    messagingSenderId: '180154492305', // GCM_SENDER_ID del plist
+    projectId: 'sweet-solutions', // PROJECT_ID del plist
+    storageBucket: 'sweet-solutions.firebasestorage.app', // STORAGE_BUCKET del plist
+    iosBundleId: 'Sweetmanager', // BUNDLE_ID del plist
   );
 }
