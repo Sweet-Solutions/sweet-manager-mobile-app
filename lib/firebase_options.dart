@@ -23,11 +23,17 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        return ios; // Devuelve la configuración para iOS
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -57,31 +63,12 @@ class DefaultFirebaseOptions {
     storageBucket: 'sweet-solutions.firebasestorage.app',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDnDns4J0VpWEpIpckq2WmdVm2guy0h0K8',
-    appId: '1:180154492305:ios:98679932998594f634a630',
-    messagingSenderId: '180154492305',
-    projectId: 'sweet-solutions',
-    storageBucket: 'sweet-solutions.firebasestorage.app',
-    iosBundleId: 'com.example.sweetmanager',
-  );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDnDns4J0VpWEpIpckq2WmdVm2guy0h0K8',
-    appId: '1:180154492305:ios:3ca09082ded9f37934a630',
-    messagingSenderId: '180154492305',
-    projectId: 'sweet-solutions',
-    storageBucket: 'sweet-solutions.firebasestorage.app',
-    iosBundleId: 'Sweetmanager',
+    apiKey: 'AIzaSyDnDns4J0VpWEpIpckq2WmdVm2guy0h0K8', // API_KEY del plist
+    appId: '1:180154492305:ios:3ca09082ded9f37934a630', // GOOGLE_APP_ID del plist
+    messagingSenderId: '180154492305', // GCM_SENDER_ID del plist
+    projectId: 'sweet-solutions', // PROJECT_ID del plist
+    storageBucket: 'sweet-solutions.firebasestorage.app', // STORAGE_BUCKET del plist
+    iosBundleId: 'Sweetmanager', // BUNDLE_ID del plist
   );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBTGEj8JZrWvn62ZtofnaGr-LluqliNXMc',
-    appId: '1:180154492305:web:491da353e9d6eb2434a630',
-    messagingSenderId: '180154492305',
-    projectId: 'sweet-solutions',
-    authDomain: 'sweet-solutions.firebaseapp.com',
-    storageBucket: 'sweet-solutions.firebasestorage.app',
-  );
-
 }
