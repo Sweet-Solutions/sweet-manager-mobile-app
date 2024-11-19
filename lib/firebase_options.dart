@@ -23,20 +23,11 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -65,4 +56,32 @@ class DefaultFirebaseOptions {
     projectId: 'sweet-solutions',
     storageBucket: 'sweet-solutions.firebasestorage.app',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDnDns4J0VpWEpIpckq2WmdVm2guy0h0K8',
+    appId: '1:180154492305:ios:98679932998594f634a630',
+    messagingSenderId: '180154492305',
+    projectId: 'sweet-solutions',
+    storageBucket: 'sweet-solutions.firebasestorage.app',
+    iosBundleId: 'com.example.sweetmanager',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDnDns4J0VpWEpIpckq2WmdVm2guy0h0K8',
+    appId: '1:180154492305:ios:3ca09082ded9f37934a630',
+    messagingSenderId: '180154492305',
+    projectId: 'sweet-solutions',
+    storageBucket: 'sweet-solutions.firebasestorage.app',
+    iosBundleId: 'Sweetmanager',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyBTGEj8JZrWvn62ZtofnaGr-LluqliNXMc',
+    appId: '1:180154492305:web:491da353e9d6eb2434a630',
+    messagingSenderId: '180154492305',
+    projectId: 'sweet-solutions',
+    authDomain: 'sweet-solutions.firebaseapp.com',
+    storageBucket: 'sweet-solutions.firebasestorage.app',
+  );
+
 }
