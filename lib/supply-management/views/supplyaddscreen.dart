@@ -174,8 +174,9 @@ print("Sending supplyRequest: ${json.encode(newSupplyRequest)}"); // Imprime el 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 32.0, left: 16.0, right: 16.0),
         child: Column(
           children: [
             Row(
@@ -286,6 +287,7 @@ print("Sending supplyRequest: ${json.encode(newSupplyRequest)}"); // Imprime el 
           ],
         ),
       ),
+    )
     );
   }
 
