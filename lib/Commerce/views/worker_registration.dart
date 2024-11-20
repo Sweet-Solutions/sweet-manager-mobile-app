@@ -83,6 +83,28 @@ class _WorkerRegistrationState extends State<WorkerRegistration> {
     );
   }
 
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Organization Registered Succesfully!'),
+          content: const Text('The organization\'s set-up process has finished correctly.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(true); // Return true to indicate success
+              },
+            ),
+          ],
+          icon: const Icon(Icons.add_home_sharp),
+        );
+      },
+    );
+  }
+
   Widget getContentView()
   {
     return Scaffold(
@@ -93,198 +115,196 @@ class _WorkerRegistrationState extends State<WorkerRegistration> {
             fit: BoxFit.cover,
           ),
         ),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Invite your First Worker",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueGrey[800],
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Full Name Field
-              TextField(
-                controller: _fullNameController,
-                decoration: const InputDecoration(
-                  labelText: "Worker's Full Name",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Email Field
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Phone Number and DNI Fields (Side by Side)
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _phoneNumberController,
-                      decoration: const InputDecoration(
-                        labelText: "Phone Number",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _dniController,
-                      decoration: const InputDecoration(
-                        labelText: "DNI",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
+        child: SingleChildScrollView( 
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              // Username Field
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  labelText: "Username",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Password Field
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 20),
-              DropdownButtonFormField<int>(
-                value: _selectedWorkAreaId,
-                items: widget.workAreas.asMap().entries.map((entry) {
-                  int id = entry.key + 1; // ID starts at 1
-                  String area = entry.value;
-                  return DropdownMenuItem<int>(
-                    value: id,
-                    child: Text(area),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedWorkAreaId = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: 'Work Area',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Invite your First Worker",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueGrey[800],
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              // Invite Button
-              ElevatedButton(
-                onPressed: () async {
-                  // Implement your invite logic here
-                  String dni = _dniController.text;
-                  String username = _usernameController.text;
-                  String phoneNumber = _phoneNumberController.text;
-                  String email = _emailController.text;
-                  String name = _fullNameController.text;
-                  String password = _passwordController.text;
-
-                  if (username.isEmpty || phoneNumber.isEmpty || email.isEmpty || name.isEmpty || password.isEmpty || !name.contains(',')) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please fill all the corresponding fields following the requested instructions.')),
+                const SizedBox(height: 20),
+                // Full Name Field
+                TextField(
+                  controller: _fullNameController,
+                  decoration: const InputDecoration(
+                    labelText: "Worker's Full Name",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Email Field
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: "Email",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Phone Number and DNI Fields (Side by Side)
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _phoneNumberController,
+                        decoration: const InputDecoration(
+                          labelText: "Phone Number",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: _dniController,
+                        decoration: const InputDecoration(
+                          labelText: "DNI",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Password Field
+                TextField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(
+                    labelText: "Password",
+                    border: OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<int>(
+                  value: _selectedWorkAreaId,
+                  items: widget.workAreas.asMap().entries.map((entry) {
+                    int id = entry.key + 1; // ID starts at 1
+                    String area = entry.value;
+                    return DropdownMenuItem<int>(
+                      value: id,
+                      child: Text(area),
                     );
-                    return;
-                  }
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedWorkAreaId = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Work Area',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Invite Button
+                ElevatedButton(
+                  onPressed: () async {
+                    // Implement your invite logic here
+                    String dni = _dniController.text;
+                    String username = _usernameController.text;
+                    String phoneNumber = _phoneNumberController.text;
+                    String email = _emailController.text;
+                    String name = _fullNameController.text;
+                    String password = _passwordController.text;
 
-                  List<String> parts = name.split(',');
-                  name = parts[0].trim();
-                  String surname = parts[1].trim();
+                    if (phoneNumber.isEmpty || email.isEmpty || name.isEmpty || password.isEmpty || !name.contains(',')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please fill all the corresponding fields following the requested instructions.')),
+                      );
+                      return;
+                    }
 
-                  var validation = await _authService.signupWorker(int.parse(dni), username, name, surname, email, phoneNumber, password);
+                    List<String> parts = name.split(',');
+                    name = parts[0].trim();
+                    String surname = parts[1].trim();
 
-                  if (validation) {
-                    String? ownersId = await _getIdentity();
-                    var isNotificationCreated = await _notificationService.createNotification(Notifications(
-                      1,
-                      int.parse(ownersId!),
-                      0,
-                      int.parse(dni),
-                      'Welcome to SweetManager!',
-                      'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!',
-                    ));
+                    username = '${name}_${surname}_${dni[0]}${dni[1]}${dni[2]}'.toLowerCase();
 
-                    if (isNotificationCreated) {
-                      // Now DateTime
-                      String now = DateTime.now().toString().split(' ')[0];
-                      // 4 month in future DateTime
+                    var validation = await _authService.signupWorker(int.parse(dni), username, name, surname, email, phoneNumber, password);
 
-                      String dueDate = DateTime(DateTime.now().year, DateTime.now().month + 1, DateTime.now().day).toString();
+                    if (validation) {
+                      String? ownersId = await _getIdentity();
+                      var isNotificationCreated = await _notificationService.createNotification(Notifications(
+                        1,
+                        int.parse(ownersId!),
+                        0,
+                        int.parse(dni),
+                        'Welcome to SweetManager!',
+                        'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!',
+                      ));
 
-                      dueDate = dueDate.split(' ')[0];
+                      if (isNotificationCreated) {
+                        // Now DateTime
+                        String now = DateTime.now().toString().split(' ')[0];
+                        // 4 month in future DateTime
 
-                      var isAreaCreated = await _commerceService.registerAssignmentWorker(_selectedWorkAreaId!, int.parse(dni), widget.adminId, now, dueDate);
+                        String dueDate = DateTime(DateTime.now().year, DateTime.now().month + 1, DateTime.now().day).toString();
 
-                      if(isAreaCreated)
-                      {
-                        Navigator.pushNamed(context, '/dashboard');
-                      }
-                      else
-                      {
+                        dueDate = dueDate.split(' ')[0];
+
+                        var isAreaCreated = await _commerceService.registerAssignmentWorker(_selectedWorkAreaId!, int.parse(dni), widget.adminId, now, dueDate);
+
+                        if(isAreaCreated)
+                        {
+                          // MODAL
+                          _showSuccessDialog();
+
+                          Navigator.pushNamed(context, '/dashboard');
+                        }
+                        else
+                        {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please check the area registration')),
+                          );
+                          return;
+                        }
+                      } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please check the area registration')),
+                          const SnackBar(content: Text('Please check the notification registration')),
                         );
                         return;
                       }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please check the notification registration')),
+                        const SnackBar(content: Text('Couldn’t create admin.')),
                       );
                       return;
                     }
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Couldn’t create admin.')),
-                    );
-                    return;
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
+                  child: const Text("Invite"),
                 ),
-                child: const Text("Invite"),
-              ),
-            ],
-          ),
+              ],
+            ),
+            )
           ),
         ),
       ),
