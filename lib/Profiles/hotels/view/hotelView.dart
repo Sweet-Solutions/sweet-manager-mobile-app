@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Commerce/views/room_types_setup.dart';
 import 'package:sweetmanager/Profiles/hotels/models/hotel.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
@@ -43,7 +44,7 @@ class HotelDetailScreen extends StatelessWidget {
 
           return BaseLayout(
             role: role!,
-            childScreen: _buildHotelDetailPage(),
+            childScreen: _buildHotelDetailPage(context),
           );
         }
 
@@ -52,7 +53,7 @@ class HotelDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHotelDetailPage() {
+  Widget _buildHotelDetailPage(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -75,8 +76,8 @@ class HotelDetailScreen extends StatelessWidget {
                   top: 16,
                   left: 16,
                   child: Text(
-                    hotel.name, // Usar el nombre del hotel
-                    style: TextStyle(
+                    hotel.name!, // Usar el nombre del hotel
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -88,11 +89,11 @@ class HotelDetailScreen extends StatelessWidget {
                   right: 16,
                   child: Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.white),
-                      SizedBox(width: 8),
+                      const Icon(Icons.location_on, color: Colors.white),
+                      const SizedBox(width: 8),
                       Text(
-                        hotel.address, // Usar la dirección del hotel
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        hotel.address!, // Usar la dirección del hotel
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ],
                   ),
@@ -104,32 +105,34 @@ class HotelDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'HOTEL INFO',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  SizedBox(height: 8),
-                  _buildHotelInfoRow('Name', hotel.name),
-                  _buildHotelInfoRow('Address', hotel.address),
-                  _buildHotelInfoRow('Phone Number', hotel.phoneNumber),
-                  _buildHotelInfoRow('Email', hotel.email),
+                  const SizedBox(height: 8),
+                  _buildHotelInfoRow('Name', hotel.name!),
+                  _buildHotelInfoRow('Address', hotel.address!),
+                  _buildHotelInfoRow('Phone Number', hotel.phoneNumber!.toString()),
+                  _buildHotelInfoRow('Email', hotel.email!),
                   _buildHotelInfoRow('Owner ID', hotel.ownerId.toString()),
-                  SizedBox(height: 16),
-                  Text(
+                  const SizedBox(height: 16),
+                  const Text(
                     'Description',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    hotel.description, // Usar la descripción del hotel
+                    hotel.description!, // Usar la descripción del hotel
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
                         // Acción de guardar
+
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const RoomTypesSetup()));
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF1C4257),
