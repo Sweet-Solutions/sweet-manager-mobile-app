@@ -116,7 +116,7 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage('assets/images/back_login.png'), // Replace with your background image URL
+                image: AssetImage('assets/images/back_login.png'), // Replace with your background image URL
                 fit: BoxFit.cover,
               ),
             ),
@@ -126,7 +126,9 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
             color: Colors.black.withOpacity(0.3),
           ),
           // Checkout Card
-          Center(
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: Center(
             child: Container(
               width: 350,
               padding: const EdgeInsets.all(24),
@@ -196,15 +198,6 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () async {
@@ -214,10 +207,9 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
                       print('Card number: ${_cardNumberController.text}');
                       print('Expiry date: ${_expiryDateController.text}');
                       print('Security code: ${_securityCodeController.text}');
-                      print('Email: ${_emailController.text}');
 
                       if(_cardOwnerController.text.isEmpty || _cardNumberController.text.isEmpty || _expiryDateController.text.isEmpty 
-                        || _securityCodeController.text.isEmpty || _emailController.text.isEmpty)
+                        || _securityCodeController.text.isEmpty)
                         {
                           ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Please fill all the corresponding fields.'))
@@ -279,6 +271,7 @@ class CheckoutSubscriptionState extends State<CheckoutSubscription> {
               ),
             ),
           ),
+          )
         ],
       ),
     );
