@@ -5,7 +5,7 @@ import 'package:sweetmanager/Monitoring/components/detailbooking.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 import '../components/editbookingdialog.dart';
-import '../components/addbookingdialog.dart';
+import '../components/addbookingform.dart';
 import '../models/booking.dart';
 import '../services/bookingservice.dart';
 
@@ -101,11 +101,9 @@ class _TableBooking extends State<TableBooking> {
                 if (isWorker)
                   ElevatedButton(
                     onPressed: () async {
-                      final result = await showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return const AddBookingDialog();
-                        },
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddBookingForm()),
                       );
 
                       if (result == true) {
