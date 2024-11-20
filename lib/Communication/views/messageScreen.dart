@@ -1,6 +1,7 @@
 // messageScreen.dart
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Communication/services/NotificationService.dart';
+import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 import '../models/notification.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -13,18 +14,26 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen> {
   List<Notifications> _messages = []; // Lista de mensajes
+  
   List<Notifications> _filteredMessages = [];
+  
   String _searchQuery = '';
+  
   final Set<int> _selectedMessageIndices = {};
+
   bool isLoading = true;
+
   late NotificationService notificationService;
+
   final storage = const FlutterSecureStorage();
+
   int? hotelId; // Define hotelId
 
   @override
   void initState() {
     super.initState();
     notificationService = NotificationService();
+
     _loadHotelId();
   }
 
@@ -98,116 +107,220 @@ class _MessagesScreenState extends State<MessagesScreen> {
     });
   }
 
+  Future<String?> _getRole() async
+  {
+    // Retrieve token from local storage
+
+    String? token = await storage.read(key: 'token');
+
+    Map<String,dynamic> decodedToken = JwtDecoder.decode(token!);
+
+    // Get Role in Claims token
+
+    return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Messages',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              onChanged: _filterMessages,
-              decoration: InputDecoration(
-                hintText: 'Search message',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-                filled: true,
-                fillColor: const Color(0xFF4A4E69),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Expanded(
-              child: ListView.builder(
-                itemCount: _filteredMessages.length,
-                itemBuilder: (context, index) {
-                  final notification = _filteredMessages[index];
-                  return Dismissible(
-                    key: Key(notification.title!),
-                    onDismissed: (direction) {
-                      setState(() {
-                        _filteredMessages.removeAt(index);
-                        _selectedMessageIndices.remove(index);
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Mensaje eliminado')),
-                      );
-                    },
-                    background: Container(color: Colors.red),
-                    child: MessageTile(
-                      title: notification.title!,
-                      recipient: notification.description!,
-                      date: notification.typesNotificationsId.toString(),
-                      isSelected: _selectedMessageIndices.contains(index),
-                      onSelect: () => _selectMessage(index),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    final result = await Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => WriteMessage()),
-                    );
-                    if (result == true) {
-                      fetchMessages(); // Reload messages if a new message was created
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2C5282),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Create message',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _selectedMessageIndices.isNotEmpty
-                      ? _deleteSelectedMessages
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Delete selected',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return FutureBuilder(
+      future: _getRole(),
+      builder: (context, snapshot) {
+        
+        if(snapshot.hasData)
+        {
+          String? role = snapshot.data;
+
+          return BaseLayout(
+            role: role,
+            childScreen: getContentView(role!)
+          );
+        }
+
+        return const Center(child: Text('Unable to get information', textAlign: TextAlign.center,));
+      }
     );
   }
+
+
+  Widget getContentView(String role) {
+    if(role == 'ROLE_WORKER')
+    {
+      _filteredMessages = _filteredMessages.where((n)=> n.ownersId != 0 && n.workersId == null && n.adminsId != 0).toList();
+
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Messages',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                onChanged: _filterMessages,
+                decoration: InputDecoration(
+                  hintText: 'Search message',
+                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  filled: true,
+                  fillColor: const Color(0xFF4A4E69),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Expanded(
+                child: ListView.builder(
+                  itemCount: _filteredMessages.length,
+                  itemBuilder: (context, index) {
+                    final notification = _filteredMessages[index];
+                    return Dismissible(
+                      key: Key(notification.title!),
+                      onDismissed: (direction) {
+                        setState(() {
+                          _filteredMessages.removeAt(index);
+                          _selectedMessageIndices.remove(index);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Mensaje eliminado')),
+                        );
+                      },
+                      background: Container(color: Colors.red),
+                      child: MessageTile(
+                        title: notification.title!,
+                        recipient: notification.description!,
+                        date: notification.typesNotificationsId.toString(),
+                        isSelected: _selectedMessageIndices.contains(index),
+                        onSelect: () => _selectMessage(index),
+                      ),
+                    );
+                  },
+                ),
+              ),
+         ],
+      ),
+    );
+    }
+    else
+    {
+      _filteredMessages= _filteredMessages.where((n)=> n.ownersId != 0 && n.workersId == null && n.adminsId == null).toList();
+
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Messages',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                onChanged: _filterMessages,
+                decoration: InputDecoration(
+                  hintText: 'Search message',
+                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  filled: true,
+                  fillColor: const Color(0xFF4A4E69),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Expanded(
+                child: ListView.builder(
+                  itemCount: _filteredMessages.length,
+                  itemBuilder: (context, index) {
+                    final notification = _filteredMessages[index];
+                    return Dismissible(
+                      key: Key(notification.title!),
+                      onDismissed: (direction) {
+                        setState(() {
+                          _filteredMessages.removeAt(index);
+                          _selectedMessageIndices.remove(index);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Mensaje eliminado')),
+                        );
+                      },
+                      background: Container(color: Colors.red),
+                      child: MessageTile(
+                        title: notification.title!,
+                        recipient: notification.description!,
+                        date: notification.typesNotificationsId.toString(),
+                        isSelected: _selectedMessageIndices.contains(index),
+                        onSelect: () => _selectMessage(index),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      final result = await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => WriteMessage()),
+                      );
+                      if (result == true) {
+                        fetchMessages(); // Reload messages if a new message was created
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2C5282),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Create message',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: _selectedMessageIndices.isNotEmpty
+                        ? _deleteSelectedMessages
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Delete selected',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+      );
+    }
+  }
+
 }
 
 // Suponiendo que este es el widget MessageTile utilizado en el constructor
