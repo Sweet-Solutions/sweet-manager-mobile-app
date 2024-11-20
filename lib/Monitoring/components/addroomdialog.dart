@@ -24,12 +24,21 @@ class _AddRoomDialogState extends State<AddRoomDialog> {
   bool isLoading = true;
   late TextEditingController roomState;
 
+  late Future<String?> fHotelId;
+  late String? hotelId;
+
   @override
   void initState() {
     super.initState();
     roomState = TextEditingController();
 
     fetchTypeRooms();
+
+    _getHotelId().then((hotelIdValue) {
+      setState(() {
+        hotelId = hotelIdValue;
+      });
+    });
   }
 
   Future<void> fetchTypeRooms() async {
@@ -101,7 +110,7 @@ class _AddRoomDialogState extends State<AddRoomDialog> {
           onPressed: () async {
 
             final int newTypeRoomId = int.parse(selectedTypeRoomId!);
-            final int newHotelId = (await _getHotelId()) as int;
+            final int newHotelId = int.tryParse(hotelId ?? '') ?? 0;
             final String newRoomState = roomState.text;
 
             await roomService.createRoom(
