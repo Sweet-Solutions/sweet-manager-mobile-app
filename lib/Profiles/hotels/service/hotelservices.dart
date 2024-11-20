@@ -8,6 +8,32 @@ class HotelService {
 
   final storage = const FlutterSecureStorage();
 
+
+  Future<List<Hotel>> fetchHotels() async 
+  {
+    try {
+      final token = await storage.read(key: 'token');
+
+      final response = await http.get(Uri.parse('$baseUrl/all'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json'
+      });
+
+      if(response.statusCode == 200)
+      {
+        final List<dynamic> jsonList =  jsonDecode(response.body);
+
+        return jsonList.map((json) => Hotel.fromJson(json)).toList();
+      }
+      else{
+        return [];
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // Add a new hotel
   Future<Hotel?> registerHotel(Hotel hotel) async {
     try {
@@ -31,6 +57,7 @@ class HotelService {
 
       if (response.statusCode == 200) {
         return Hotel(
+            id: 0,
             name: hotel.name,
             address: hotel.address,
             phoneNumber: hotel.phoneNumber,
