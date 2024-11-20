@@ -16,21 +16,36 @@ class AddRoomDialog extends StatefulWidget {
 
 class _AddRoomDialogState extends State<AddRoomDialog> {
 
+  // Services
+
   final storage = const FlutterSecureStorage();
+
   late RoomService roomService = RoomService();
+  
   late TypeRoomService typeRoomService = TypeRoomService();
+  
+  // Attributes basic
+
+  final List<dynamic> roomStates = [
+    {'id': 1, 'name': 'OCUPADO'},
+    {'id': 2, 'name': 'LIBRE'}
+  ];
+
   String? selectedTypeRoomId;
+  
   List<TypeRoom> typeRooms = [];
+  
   bool isLoading = true;
-  late TextEditingController roomState;
+
+  String? selectedStatusId = 1.toString();
 
   late Future<String?> fHotelId;
+  
   late String? hotelId;
 
   @override
   void initState() {
     super.initState();
-    roomState = TextEditingController();
 
     fetchTypeRooms();
 
@@ -41,26 +56,9 @@ class _AddRoomDialogState extends State<AddRoomDialog> {
     });
   }
 
-  Future<void> fetchTypeRooms() async {
-    try {
-      final rooms = await typeRoomService
-          .getTypesRooms(await _getHotelId() as String);
-      setState(() {
-        typeRooms = rooms;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      print('Error al cargar los tipos de habitaciones: $e');
-    }
-  }
-
-  Future<String?> _getHotelId() async {
-    String? token = await storage.read(key: 'token');
-    Map<String, dynamic> decodedToken = JwtDecoder.decode(token!);
-    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -89,10 +87,21 @@ class _AddRoomDialogState extends State<AddRoomDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: roomState,
+          DropdownButtonFormField<String>(
+            value: selectedStatusId,
+            onChanged: (value) {
+              setState(() {
+                selectedStatusId = value;
+              });
+            },
+            items: roomStates.map((room) {
+              return DropdownMenuItem<String>(
+                value: room['id'].toString(),
+                child: Text(room['name']),
+              );
+            }).toList(),
             decoration: const InputDecoration(
-              labelText: 'Room State',
+              labelText: 'Type Room ID',
               border: OutlineInputBorder(),
             ),
           ),
@@ -110,15 +119,15 @@ class _AddRoomDialogState extends State<AddRoomDialog> {
           onPressed: () async {
 
             final int newTypeRoomId = int.parse(selectedTypeRoomId!);
+
             final int newHotelId = int.tryParse(hotelId ?? '') ?? 0;
-            final String newRoomState = roomState.text;
 
             await roomService.createRoom(
               Room(
                 id: 0,
                 typeRoomId: newTypeRoomId,
                 hotelId: newHotelId,
-                roomState: newRoomState,
+                roomState: int.parse(selectedStatusId!) == 1? 'OCUPADO': 'LIBRE',
               ),
             );
 
@@ -129,9 +138,26 @@ class _AddRoomDialogState extends State<AddRoomDialog> {
     );
   }
 
-  @override
-  void dispose() {
-    roomState.dispose();
-    super.dispose();
+  Future<void> fetchTypeRooms() async {
+    try {
+      final rooms = await typeRoomService
+          .getTypesRooms(await _getHotelId() as String);
+      setState(() {
+        typeRooms = rooms;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error al cargar los tipos de habitaciones: $e');
+    }
   }
+
+  Future<String?> _getHotelId() async {
+    String? token = await storage.read(key: 'token');
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token!);
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
+  }
+
 }
