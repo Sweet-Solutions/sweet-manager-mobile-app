@@ -208,7 +208,7 @@ class BarChartSample2State extends State<BarChartTest> {
                   elevation: 4,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(11),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
@@ -218,7 +218,7 @@ class BarChartSample2State extends State<BarChartTest> {
                             makeTransactionsIcon(),
                             const SizedBox(width: 38),
                             const Text(
-                              'Comparison: Incomes vs Expenses (Weekly)',
+                              'Comparison: Incomes vs Expenses',
                               style: TextStyle(color: Color(0xff77839a), fontSize: 16),
                             ),
                           ],
@@ -343,7 +343,7 @@ class BarChartSample2State extends State<BarChartTest> {
                   elevation: 4,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(11),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
@@ -353,7 +353,7 @@ class BarChartSample2State extends State<BarChartTest> {
                             makeTransactionsIcon(),
                             const SizedBox(width: 38),
                             const Text(
-                              'Comparison: Incomes vs Expenses (Weekly)',
+                              'Comparison: Incomes vs Expenses',
                               style: TextStyle(color: Color(0xff77839a), fontSize: 16),
                             ),
                           ],
@@ -478,7 +478,7 @@ class BarChartSample2State extends State<BarChartTest> {
                   elevation: 4,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(11),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
@@ -488,7 +488,7 @@ class BarChartSample2State extends State<BarChartTest> {
                             makeTransactionsIcon(),
                             const SizedBox(width: 38),
                             const Text(
-                              'Comparison: Incomes vs Expenses (Weekly)',
+                              'Comparison: Incomes vs Expenses',
                               style: TextStyle(color: Color(0xff77839a), fontSize: 16),
                             ),
                           ],
