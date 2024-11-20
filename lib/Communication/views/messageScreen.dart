@@ -17,6 +17,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   
   List<Notifications> _filteredMessages = [];
   
+  // ignore: unused_field
   String _searchQuery = '';
   
   final Set<int> _selectedMessageIndices = {};

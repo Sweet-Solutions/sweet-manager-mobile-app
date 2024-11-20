@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Communication/services/NotificationService.dart';
-import 'package:sweetmanager/IAM/services/auth_service.dart'; // Import AuthService for token management
 import 'package:sweetmanager/Profiles/hotels/models/hotel.dart';
 import 'package:sweetmanager/Profiles/hotels/service/hotelservices.dart';
 import '../models/notification.dart';
@@ -62,8 +61,6 @@ class _ComposeMessageState extends State<ComposeMessage> {
   @override
   void initState() {
     super.initState();
-    
-    final authService = AuthService(); // Instantiate AuthService
     
     notificationService = NotificationService();
   }
