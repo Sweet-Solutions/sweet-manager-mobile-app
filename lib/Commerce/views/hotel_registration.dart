@@ -108,106 +108,109 @@ class _HotelRegistrationState extends State<HotelRegistration> {
     return Scaffold(
       body: Stack(
         children: [
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                TextField(
-                  controller: _hotelNameController, 
-                  decoration: const InputDecoration(
-                    labelText: 'Hotel Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 60,),
-                TextField(
-                  controller: _hotelAddressController,
-                  decoration: const InputDecoration(
-                    labelText: 'Hotel Address',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 60,),
-                TextField(
-                  controller: _contactController,
-                  decoration: const InputDecoration(
-                    labelText: 'Contact Information',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 60,),
-                TextField(
-                  controller: _hotelDescriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Hotel Description',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 60,),
-                TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 60,),
-                ElevatedButton(
-                    onPressed: () async {
-                      // Access cardIdentifier here
-                      print('${_hotelNameController.text}');
-                      print('${_hotelAddressController.text}');
-                      print('${_contactController.text}');
-                      print('${_hotelDescriptionController.text}');
-                      print('${_emailController.text}');
-                      
-                      if(_hotelNameController.text.isEmpty || _hotelAddressController.text.isEmpty || _contactController.text.isEmpty || 
-                          _hotelDescriptionController.text.isEmpty || _emailController.text.isEmpty)
-                          {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please fill all the corresponding fields.'))
-                                );
-                            return;
-                          }
-
-                      var hotel = Hotel(name: _hotelNameController.text, address: _hotelAddressController.text, phoneNumber: _contactController.text, 
-                          email: _emailController.text, description: _hotelDescriptionController.text, ownerId: int.parse(identity));
-
-                      var validation = await _hotelService.registerHotel(hotel);
-
-                      if(validation != null)
-                      {
-                        await _authService.login(credentials.email, credentials.password, 1);
-
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => HotelDetailScreen(hotel: validation)));
-                      }
-                      else
-                      {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Couldnt create hotel'))
-                                );
-                        return;
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.indigo[800],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 80, vertical: 16),
-                    ),
-                    child: const Text(
-                      'SAVE',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child:  Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    controller: _hotelNameController, 
+                    decoration: const InputDecoration(
+                      labelText: 'Hotel Name',
+                      border: OutlineInputBorder(),
                     ),
                   ),
-              ],
-            ),
+                  const SizedBox(height: 60,),
+                  TextField(
+                    controller: _hotelAddressController,
+                    decoration: const InputDecoration(
+                      labelText: 'Hotel Address',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 60,),
+                  TextField(
+                    controller: _contactController,
+                    decoration: const InputDecoration(
+                      labelText: 'Contact Information',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 60,),
+                  TextField(
+                    controller: _hotelDescriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Hotel Description',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 60,),
+                  TextField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 60,),
+                  ElevatedButton(
+                      onPressed: () async {
+                        // Access cardIdentifier here
+                        print('${_hotelNameController.text}');
+                        print('${_hotelAddressController.text}');
+                        print('${_contactController.text}');
+                        print('${_hotelDescriptionController.text}');
+                        print('${_emailController.text}');
+                        
+                        if(_hotelNameController.text.isEmpty || _hotelAddressController.text.isEmpty || _contactController.text.isEmpty || 
+                            _hotelDescriptionController.text.isEmpty || _emailController.text.isEmpty)
+                            {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Please fill all the corresponding fields.'))
+                                  );
+                              return;
+                            }
+
+                        var hotel = Hotel(id: 0, name: _hotelNameController.text, address: _hotelAddressController.text, phoneNumber: int.parse(_contactController.text), 
+                            email: _emailController.text, description: _hotelDescriptionController.text, ownerId: int.parse(identity));
+
+                        var validation = await _hotelService.registerHotel(hotel);
+
+                        if(validation != null)
+                        {
+                          await _authService.login(credentials.email, credentials.password, 1);
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => HotelDetailScreen(hotel: validation)));
+                        }
+                        else
+                        {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Couldnt create hotel'))
+                                  );
+                          return;
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo[800],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 80, vertical: 16),
+                      ),
+                      child: const Text(
+                        'SAVE',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            )
           )
         ],
       ),
