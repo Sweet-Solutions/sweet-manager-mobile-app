@@ -207,6 +207,27 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   },
                 ),
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _selectedMessageIndices.isNotEmpty
+                        ? _deleteSelectedMessages
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Delete selected',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
          ],
       ),
     );
