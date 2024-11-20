@@ -70,13 +70,25 @@ class BarChartSample2State extends State<BarChartTest> {
     _operation = operation();
   }
 
-  int getCurrentWeekNumber() {
-    final now = DateTime.now();
-    final firstDayOfYear = DateTime(now.year, 1, 1);
-    final daysSinceYearStart = now.difference(firstDayOfYear).inDays;
-    
-    // Dividimos el total de días entre 7 y sumamos 1 para obtener la semana actual.
-    return (daysSinceYearStart / 7).ceil();
+  int getCurrentWeekOfMonth() {
+
+    // Fecha actual
+    DateTime now = DateTime.now();
+
+    // Total de días del mes actual
+    int daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+
+    // Día actual del mes
+    int dayOfMonth = now.day;
+
+    // Tamaño exacto de cada "semana" (división en tres partes iguales)
+    double weekSize = daysInMonth / 3;
+
+    // Determinar a cuál de las tres "semanas" pertenece el día actual
+    int currentWeek = ((dayOfMonth - 1) / weekSize).floor() + 1;
+
+    // Garantizar que el resultado sea 1, 2 o 3
+    return currentWeek.clamp(1, 3);
   }
 
   Future<void> fetchChartData() async
@@ -89,14 +101,14 @@ class BarChartSample2State extends State<BarChartTest> {
 
     print(chartData);
 
-    int week = getCurrentWeekNumber() - 2;
+    int week = getCurrentWeekOfMonth();
 
     print(week); 
 
     setState(() {
       showingBarGroups = chartData.map((data){
         return makeGroupData(
-          data.weekNumber - week,
+          week,
           data.totalIncome.toDouble() / 50,
           data.totalExpense / 50
         );
