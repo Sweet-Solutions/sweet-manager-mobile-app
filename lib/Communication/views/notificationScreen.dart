@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sweetmanager/Communication/services/NotificationService.dart';
+import 'package:sweetmanager/Communication/views/writeMessage.dart';
 import '../models/notification.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart';
 import '../components/notificationCard.dart';
@@ -146,7 +147,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
+    return FutureBuilder(
       future: _getRole(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -169,17 +170,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 20.0, bottom: 12.0),
-                    child: Text(
-                      'Notifications',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(top: 20.0, bottom: 12.0),
+                        child: Text(
+                          'Notifications',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
                       ),
-                    ),
+                      
+                      ElevatedButton(onPressed: (){
+                        
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => WriteMessage()));
+
+                      },child: const Text('NEW'))
+                    ],
                   ),
+                  
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.all(8),
