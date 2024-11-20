@@ -10,12 +10,12 @@ class TypeRoomService {
 
   final storage = const FlutterSecureStorage();
 
-  Future<List<TypeRoom>> getRooms(String hotelId) async {
+  Future<List<TypeRoom>> getTypesRooms(String hotelId) async {
 
     final token = await storage.read(key: 'token');
 
     final response = await http.get(
-        Uri.parse('${baseUrl}get-all-types-rooms?hotelId=$hotelId'),
+        Uri.parse('${baseUrl}get-all-type-rooms?hotelId=$hotelId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -26,10 +26,22 @@ class TypeRoomService {
 
       List<dynamic> data = json.decode(response.body);
 
-      return data.map((roomJson) => TypeRoom(
-          id: roomJson['id'],
-          name: roomJson['name']
+      // Convertimos los datos en una lista de TypeRoom
+      List<TypeRoom> typeRooms = data.map((roomJson) => TypeRoom(
+        id: roomJson['id'],
+        name: roomJson['description'],
       )).toList();
+
+      List<TypeRoom> newList = [];
+
+      for (int i = 0; i < typeRooms.length; ++i) {
+
+        if (i + 1 < typeRooms.length && typeRooms[i].id != typeRooms[i+1].id){
+          newList.add(typeRooms[i]);
+        }
+      }
+
+      return newList;
 
     } else {
       throw Exception('Error ${response.statusCode}: ${response.body}');
