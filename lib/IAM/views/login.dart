@@ -81,7 +81,8 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
 
   @override
   Widget build(BuildContext context) { // Implements design for login view.
-    return BaseLayout(role: '', childScreen: getContentView(context));
+    return BaseLayout(role: '', childScreen: getContentView(context)
+    );
   }
 
   Widget getContentView(BuildContext context)
@@ -90,6 +91,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
       body: Stack(
         children: [
           // Background Image
+          
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -98,12 +100,15 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
               ),
             ),
           ),
+          
           // Transparent overlay
           Container(
             color: Colors.black.withOpacity(0.3),
           ),
           // Centered Card
-          Center(
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Center(
             child: Container(
               width: 350,
               padding: const EdgeInsets.all(24),
@@ -127,22 +132,13 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Center(
-                          child: Text('Welcome to Sweet Manager',
+                          child: Text('Welcome!',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
                             ),
                             textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'To use the application, please log in or register an organization',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -206,8 +202,6 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
 
                               String dni = _dniController.text;
 
-                              String username = _usernameController.text;
-
                               String phoneNumber = _phoneController.text;
 
                               String email = _emailRegistrationController.text;
@@ -216,7 +210,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
 
                               String password = _passwordRegistrationControler.text;
 
-                              if(username.isEmpty || phoneNumber.isEmpty || email.isEmpty || name.isEmpty || password.isEmpty || !name.contains(','))
+                              if(phoneNumber.isEmpty || email.isEmpty || name.isEmpty || password.isEmpty || !name.contains(','))
                               {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Please fill all the corresponding fields following the requested instructions.')));
@@ -226,9 +220,15 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
 
                               List<String> parts = name.split(',');
 
+                              // Create a username
+
+                              String username = '';
+
                               name = parts[0].trim();
 
                               String surname = parts[1].trim();
+
+                              username = '${name}_${surname}_${dni[0]}${dni[1]}${dni[2]}'.toLowerCase();
 
                               bool response = await _authService.signup(int.parse(dni), username, name, surname, email, phoneNumber, password);
 
@@ -298,176 +298,169 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
               ),
             ),
           ),
+          )
+          
         ],
-      ),
+      )
+      
     );
   }
 
   Widget buildLoginTab() {
     return Column(
-      children: [
-        TextField(
-          controller: _emailController,
-          decoration: InputDecoration(
-            labelText: 'Email',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+        children: [
+          TextField(
+            controller: _emailController,
+            decoration: InputDecoration(
+              labelText: 'Email',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _passwordController,
-          obscureText: true,
-          decoration: InputDecoration(
-            labelText: 'Password',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: InputDecoration(
+              labelText: 'Password',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          value: _roleSelected,
-          items: const [
-            DropdownMenuItem(value: '1' ,child: Text('OWNER')),
-            DropdownMenuItem(value: '2',child: Text('ADMIN')),
-            DropdownMenuItem(value: '3',child: Text('WORKER')),
-          ],
-          onChanged: (value){
-            setState(() {
-              _roleSelected = value;
-            });
-          },
-          decoration: InputDecoration(
-            labelText: 'Role',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10)
-            )
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Checkbox(
-              value: _isRememberMe,
-              onChanged: (value) {
-                setState(() {
-                  _isRememberMe = value!;
-                });
-              },
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _roleSelected,
+            items: const [
+              DropdownMenuItem(value: '1' ,child: Text('OWNER')),
+              DropdownMenuItem(value: '2',child: Text('ADMIN')),
+              DropdownMenuItem(value: '3',child: Text('WORKER')),
+            ],
+            onChanged: (value){
+              setState(() {
+                _roleSelected = value;
+              });
+            },
+            decoration: InputDecoration(
+              labelText: 'Role',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10)
+              )
             ),
-            const Text('Remember me'),
-          ],
-        ),
-      ],
-    );
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Checkbox(
+                value: _isRememberMe,
+                onChanged: (value) {
+                  setState(() {
+                    _isRememberMe = value!;
+                  });
+                },
+              ),
+              const Text('Remember me'),
+            ],
+          ),
+        ],
+      );
   }
 
   Widget buildRegisterTab() {
     return Column(
-      children: [
-        TextField(
-          controller: _dniController,
-          decoration: InputDecoration(
-            labelText: "Owner's DNI",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12,),
-        TextField(
-          controller: _usernameController,
-          decoration: InputDecoration(
-            labelText: 'Owner’s username',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _phoneController,
-          decoration: InputDecoration(
-            labelText: 'Owner’s phone number',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _emailRegistrationController,
-          decoration: InputDecoration(
-            labelText: 'Owner’s email',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _nameController,
-          decoration: InputDecoration(
-            labelText: 'Owner’s complete name',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _passwordRegistrationControler,
-          obscureText: !_isPasswordVisible,
-          decoration: InputDecoration(
-            labelText: 'Owner’s password',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-              ),
-              onPressed: () {
-                setState(() {
-                  _isPasswordVisible = !_isPasswordVisible;
-                });
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        /* const Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            '• At least one character in uppercase and lowercase\n'
-            '• At least a number\n'
-            '• At least a special character\n'
-            '• At least 8 characters',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-        ),
-        const SizedBox(height: 12), */
-        Row(
-          children: [
-            Checkbox(
-              value: _isTermsAccepted,
-              onChanged: (value) {
-                setState(() {
-                  _isTermsAccepted = value!;
-                });
-              },
-            ),
-            const Expanded(
-              child: Text(
-                'I’ve read and accept the Terms and Conditions and Privacy policy',
-                style: TextStyle(fontSize: 12),
+        children: [
+          TextField(
+            controller: _dniController,
+            decoration: InputDecoration(
+              labelText: "Owner's DNI",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
-          ],
-        ),
-      ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _phoneController,
+            decoration: InputDecoration(
+              labelText: 'Owner’s phone number',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _emailRegistrationController,
+            decoration: InputDecoration(
+              labelText: 'Owner’s email',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: 'Owner’s complete name',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _passwordRegistrationControler,
+            obscureText: !_isPasswordVisible,
+            decoration: InputDecoration(
+              labelText: 'Owner’s password',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          /* const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '• At least one character in uppercase and lowercase\n'
+              '• At least a number\n'
+              '• At least a special character\n'
+              '• At least 8 characters',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 12), */
+          Row(
+            children: [
+              Checkbox(
+                value: _isTermsAccepted,
+                onChanged: (value) {
+                  setState(() {
+                    _isTermsAccepted = value!;
+                  });
+                },
+              ),
+              const Expanded(
+                child: Text(
+                  'I’ve read and accept the Terms and Conditions and Privacy policy',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ],
     );
   }
 
