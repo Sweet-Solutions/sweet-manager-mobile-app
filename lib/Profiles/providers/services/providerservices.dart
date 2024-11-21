@@ -84,12 +84,33 @@ class ProviderService {
     
       List<Provider> newList = [];
 
+      List<int> ids = [];
+
+      var validation = false;
+
       for(int i = 0; i < providers.length; i++)
       {
         if (i + 1 < providers.length && providers[i].id != providers[i + 1].id)
         {
+          ids.add(providers[i].id!);
+
           newList.add(providers[i]);
         }
+        if(i + 1 == providers.length)
+        {
+          for(int j = 0; j < ids.length; j++)
+          {
+            if(providers[i].id == ids[j])
+            {
+              validation = true;
+            }
+          }
+        }
+      }
+
+      if(!validation)
+      {
+        newList.add(providers[providers.length - 1]);
       }
 
       return newList;
