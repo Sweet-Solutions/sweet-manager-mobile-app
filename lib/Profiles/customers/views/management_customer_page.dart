@@ -63,9 +63,9 @@ class _CustomersManagementState extends State<CustomersManagement> {
     if (hotelId == null) return;
 
     try {
-      List<dynamic> fetchedCustomers = await _customerService.getCustomerByHotelId(hotelId!);
+      List<Customer> fetchedCustomers = await _customerService.getCustomerByHotelId(hotelId!);
       setState(() {
-        customers = fetchedCustomers.map((data) => Customer.fromJson(data)).toList();
+        customers = fetchedCustomers;
         isLoading = false;
       });
     } catch (e) {
