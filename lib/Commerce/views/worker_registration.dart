@@ -108,15 +108,18 @@ class _WorkerRegistrationState extends State<WorkerRegistration> {
   Widget getContentView()
   {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/back_login.png'), // Replace with your background image path
-            fit: BoxFit.cover,
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/back_login.png'), // Replace with your background image path
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-        ),
-        child: SingleChildScrollView( 
-          child: Center(
+          Center( 
+          child: SingleChildScrollView(
             child: Container(
               padding: const EdgeInsets.all(20),
               margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -307,7 +310,8 @@ class _WorkerRegistrationState extends State<WorkerRegistration> {
             )
           ),
         ),
-      ),
+        ],
+      ), 
     );
   }
 }
