@@ -203,8 +203,75 @@ class _AdminRegistrationState extends State<AdminRegistration> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     // Acción del botón
+                    String dni = _dniController.text;
+                    String username = _usernameController.text;
+                    String phoneNumber = _phoneNumberController.text;
+                    String email = _emailController.text;
+                    String name = _fullNameController.text;
+                    String password = _passwordController.text;
+
+                    if (phoneNumber.isEmpty || email.isEmpty || name.isEmpty || password.isEmpty || !name.contains(',')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please fill all the corresponding fields following the requested instructions.')),
+                      );
+                      return;
+                    }
+
+                    List<String> parts = name.split(',');
+                    name = parts[0].trim();
+                    String surname = parts[1].trim();
+
+                    username = '${name}_${surname}_${dni[0]}${dni[1]}${dni[2]}'.toLowerCase();
+
+                    var validation = await _authService.signupAdmin(int.parse(dni), username, name, surname, email, phoneNumber, password);
+
+                    if (validation) {
+                      String? ownersId = await _getIdentity();
+                      var isNotificationCreated = await _notificationService.createNotification(Notifications(
+                        1,
+                        int.parse(ownersId!),
+                        int.parse(dni),
+                        0,
+                        'Welcome to SweetManager!',
+                        'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!',
+                      ));
+
+                      if (isNotificationCreated) {
+                        // Now DateTime
+                        String now = DateTime.now().toString().split(' ')[0];
+                        // 4 month in future DateTime
+
+                        String dueDate = DateTime(DateTime.now().year, DateTime.now().month + 1, DateTime.now().day).toString();
+
+                        dueDate = dueDate.split(' ')[0];
+
+                        var isAreaCreated = await _commerceService.registerAssignmentWorker(_selectedWorkAreaId!, 0, int.parse(dni), now, dueDate);
+
+                        if(isAreaCreated)
+                        {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => WorkerRegistration(workAreas: widget.workAreas, adminId: int.parse(dni))));
+                        }
+                        else
+                        {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please check the area registration')),
+                          );
+                          return;
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please check the notification registration')),
+                        );
+                        return;
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Couldn’t create admin.')),
+                      );
+                      return;
+                    }
                   },
                   child: const Text("Invite"),
                 ),
