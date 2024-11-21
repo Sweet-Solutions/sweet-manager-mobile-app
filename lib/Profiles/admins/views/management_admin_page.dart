@@ -85,10 +85,11 @@ class _AdminManagementState extends State<AdminManagement> {
 
     try {
       print('Fetching admins for hotelId: $hotelId');
-      List<dynamic> fetchedAdmins = await _adminService.getAdminsByHotelId(hotelId!);
+      List<Admin> fetchedAdmins = await _adminService.getAdminsByHotelId(hotelId!);
       print('Fetched admins: $fetchedAdmins');
       setState(() {
-        admins = fetchedAdmins.map((data) => Admin.fromJson(data)).toList();
+        admins = fetchedAdmins;
+
         isLoading = false;
       });
     } catch (e) {
