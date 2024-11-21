@@ -225,7 +225,7 @@ class _WorkerRegistrationState extends State<WorkerRegistration> {
                 // Invite Button
                 ElevatedButton(
                   onPressed: () async {
-                    // Implement your invite logic here
+                    
                     String dni = _dniController.text;
                     String username = _usernameController.text;
                     String phoneNumber = _phoneNumberController.text;
