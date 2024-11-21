@@ -77,10 +77,11 @@
         if (role == 'ROLE_OWNER') {
           return {
             'role': role,
-            'name': 'John Doe', // Nombre ficticio
-            'username': 'johndoe', // Nombre de usuario ficticio
-            'email': 'johndoe@example.com', // Correo electrónico ficticio
-            'phone': '(123) 456-7890', // Teléfono ficticio
+            'name': 'MAURI', // Nombre actualizado
+            'surname': 'WIWI', // Apellido actualizado
+            'username': 'mauri_wiwi_777', // Usuario actualizado
+            'email': 'mau@gmail.com', // Correo actualizado
+            'phone': '941691025', // Teléfono actualizado
           };
         }
 
@@ -200,15 +201,15 @@
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Owner Name: John Doe',
+                            'Owner Name: MAURI WIWI',
                             style: TextStyle(
-                              fontSize: 24,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Owner Email: johndoe@example.com',
+                            'Owner Email: mau@gmail.com',
                             style: TextStyle(fontSize: 16),
                           ),
                         ],
