@@ -65,9 +65,9 @@ class _ProvidersManagement extends State<ProvidersManagement> {
     if (hotelId == null) return;
 
     try {
-      List<dynamic> fetchedProviders = await _providerService.getProvidersByHotelId(hotelId!);
+      List<Provider> fetchedProviders = await _providerService.getProvidersByHotelId(hotelId!);
       setState(() {
-        providers = fetchedProviders.map((data) => Provider.fromJson(data)).toList();
+        providers = fetchedProviders;
         isLoading = false;
       });
     } catch (e) {

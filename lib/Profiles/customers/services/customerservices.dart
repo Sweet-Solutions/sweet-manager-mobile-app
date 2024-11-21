@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Profiles/customers/models/customer_model.dart';
 
 class Customerservice{
   final String baseUrl = 'https://sweetmanager-api.ryzeon.me';
@@ -62,18 +63,52 @@ class Customerservice{
   }
 
   // GET /api/customer/get-all/{hotelId}
-  Future<List<dynamic>> getCustomerByHotelId(int hotelId) async {
+  Future<List<Customer>> getCustomerByHotelId(int hotelId) async {
     final headers = await _getHeaders();
+
     final response = await http.get(
       Uri.parse('$baseUrl/api/customer/get-all-customers/$hotelId'),
       headers: headers,
     );
 
-    print('GET /api/customer/get-all-customers/$hotelId response status: ${response.statusCode}');
-    print('GET /api/customer/get-all-customers/$hotelId response body: ${response.body}');
-
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      
+      List<dynamic> jsonData = jsonDecode(response.body);
+
+      List<Customer> customers = jsonData.map((element) => Customer.fromJson(element)).toList();
+
+      List<Customer> newList = [];
+
+      List<int> ids = [];
+
+      var validation = false;
+
+      for(int i = 0; i < customers.length; i++)
+      {
+        if (i + 1 < customers.length && customers[i].id != customers[i + 1].id)
+        {
+          ids.add(customers[i].id);
+
+          newList.add(customers[i]);
+        }
+        if(i + 1 == customers.length)
+        {
+          for(int j = 0; j < ids.length; j++)
+          {
+            if(customers[i].id == ids[j])
+            {
+              validation = true;
+            }
+          }
+        }
+      }
+
+      if(!validation)
+      {
+        newList.add(customers[customers.length - 1]);
+      }
+
+      return newList;
     } else {
       throw Exception('Failed to load customers by Hotel Id: ${response.statusCode} - ${response.body}');
     }

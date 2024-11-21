@@ -85,10 +85,10 @@ class _WorkerManagementState extends State<WorkerManagement> {
 
     try {
       print('Fetching workers for hotelId: $hotelId');
-      List<dynamic> fetchedWorkers = await _workerService.getWorkersByHotelId(hotelId!);
+      List<Worker> fetchedWorkers = await _workerService.getWorkersByHotelId(hotelId!);
       print('Fetched workers: $fetchedWorkers');
       setState(() {
-        workers = fetchedWorkers.map((data) => Worker.fromJson(data)).toList();
+        workers = fetchedWorkers;;
         isLoading = false;
       });
     } catch (e) {
