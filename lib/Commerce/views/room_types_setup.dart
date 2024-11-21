@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Commerce/services/commerce_service.dart';
+import 'package:sweetmanager/Monitoring/models/room.dart';
+import 'package:sweetmanager/Monitoring/services/roomservice.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class RoomTypesSetup extends StatefulWidget {
@@ -15,6 +17,8 @@ class RoomTypesSetup extends StatefulWidget {
 class _RoomTypesSetupState extends State<RoomTypesSetup> {
 
   final _commerceService = CommerceService();
+
+  final _monitoringService = RoomService();
 
   final storage = const FlutterSecureStorage();
 
@@ -88,6 +92,10 @@ class _RoomTypesSetupState extends State<RoomTypesSetup> {
 
     var clicked = false;
 
+    int i = 1;
+
+    String? hotelId = await _getLocality();
+
     for (var room in roomTypes.where((room) => room["selected"])) {
       double? enteredPrice = double.tryParse(room["controller"].text);
       if (enteredPrice != null &&
@@ -95,6 +103,10 @@ class _RoomTypesSetupState extends State<RoomTypesSetup> {
           enteredPrice <= room["priceRange"][1]) {
         clicked = true;
         await _commerceService.registerRoomTypes(room["name"], enteredPrice);
+
+        await _monitoringService.createRoom(Room(id: 0, typeRoomId: i, hotelId: int.parse(hotelId!), roomState: 'LIBRE'));
+
+        i += 1;
       } else {
         clicked = true;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -109,6 +121,19 @@ class _RoomTypesSetupState extends State<RoomTypesSetup> {
     {
       Navigator.pushNamed(context, '/worker-areas-selection');
     }
+  }
+
+  Future<String?> _getLocality() async
+  {
+    // Retrieve token from local storage
+
+    String? token = await storage.read(key: 'token');
+
+    Map<String,dynamic> decodedToken = JwtDecoder.decode(token!);
+
+    // Get Role in Claims token
+
+    return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']?.toString();
   }
 
   Future<String?> _getRole() async
