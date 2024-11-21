@@ -27,28 +27,36 @@ class BaseLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Sweet Manager'),
         backgroundColor: Colors.blue,
       ),
       drawer: Drawer(
-        child: FutureBuilder<List<Widget>>(
-          future: _getSidebarOptions(context), // Updated to FutureBuilder
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return const Center(child: Text('Error loading sidebar options'));
-            } else {
-              return ListView(
-                padding: EdgeInsets.zero,
-                children: snapshot.data!,
-              );
-            }
-          },
+        child: SafeArea(
+          child: FutureBuilder<List<Widget>>(
+            future: _getSidebarOptions(context), // Updated to FutureBuilder
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return const Center(child: Text('Error loading sidebar options'));
+              } else {
+                return ListView(
+                  padding: EdgeInsets.zero,
+                  children: snapshot.data!,
+                );
+              }
+            },
+          ),
         ),
       ),
-      body: childScreen,
+      body: childScreen
+
+      /* SingleChildScrollView(
+        reverse: true,
+        child: childScreen,
+      ) */
     );
   }
 
@@ -276,6 +284,13 @@ class BaseLayout extends StatelessWidget {
             title: const Text('Messages'),
             onTap: () {
               Navigator.pushNamed(context, '/messages');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.report),
+            title: const Text('Reports'),
+            onTap: () {
+              Navigator.pushNamed(context, '/reports');
             },
           ),
           ListTile(
