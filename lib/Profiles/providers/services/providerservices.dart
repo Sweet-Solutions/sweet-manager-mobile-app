@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:http/http.dart' as http;
+import 'package:sweetmanager/Profiles/providers/models/provider_model.dart';
 
 class ProviderService {
   final String baseUrl = 'https://sweetmanager-api.ryzeon.me';
@@ -68,18 +69,30 @@ class ProviderService {
 
   // Retrieves all providers for a specific hotel
   // Endpoint: GET /api/provider/get-all/{hotelId}
-  Future<List<dynamic>> getProvidersByHotelId(int hotelId) async {
+  Future<List<Provider>> getProvidersByHotelId(int hotelId) async {
     final headers = await _getHeaders();
     final response = await http.get(
       Uri.parse('$baseUrl/api/provider/get-all/$hotelId'),
       headers: headers,
     );
-
-    print('GET /api/provider/get-all/$hotelId status: ${response.statusCode}');
-    print('GET /api/provider/get-all/$hotelId body: ${response.body}');
-
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+
+
+      List<dynamic> jsonData =  json.decode(response.body);
+    
+      List<Provider> providers = jsonData.map((element)=> Provider.fromJson(element)).toList();
+    
+      List<Provider> newList = [];
+
+      for(int i = 0; i < providers.length; i++)
+      {
+        if (i + 1 < providers.length && providers[i].id != providers[i + 1].id)
+        {
+          newList.add(providers[i]);
+        }
+      }
+
+      return newList;
     } else {
       // Manejo de errores más detallado
       final errorData = response.body.isNotEmpty ? json.decode(response.body) : {};
