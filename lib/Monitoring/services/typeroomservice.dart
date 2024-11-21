@@ -34,15 +34,36 @@ class TypeRoomService {
 
       List<TypeRoom> newList = [];
 
+      List<int>ids = [];
+
+      var validation = false;
+
       for (int i = 0; i < typeRooms.length; ++i) {
 
-        if (i + 1 < typeRooms.length && typeRooms[i].id != typeRooms[i+1].id){
+        if (i + 1 < typeRooms.length && typeRooms[i].id != typeRooms[i+1].id)
+        {
+          ids.add(typeRooms[i].id);
+
           newList.add(typeRooms[i]);
+        }
+        if(i + 1 == typeRooms.length)
+        {
+          for(int j = 0; j < ids.length; j++)
+          {
+            if(typeRooms[i].id == ids[j])
+            {
+              validation = true;
+            }
+          }
         }
       }
 
-      return newList;
+      if(!validation)
+      {
+        newList.add(typeRooms[typeRooms.length -  1]);
+      }
 
+      return newList;
     } else {
       throw Exception('Error ${response.statusCode}: ${response.body}');
     }
