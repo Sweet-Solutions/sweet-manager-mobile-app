@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sweetmanager/Commerce/views/subscription_plans.dart';
 import 'package:sweetmanager/IAM/models/sign_in_entity.dart';
 import 'package:sweetmanager/IAM/services/auth_service.dart';
+import 'package:sweetmanager/IAM/views/terms_and_conditions.dart';
 import 'package:sweetmanager/Shared/widgets/base_layout.dart';
 
 class LogInScreen extends StatefulWidget{
@@ -40,7 +41,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
 
   late TabController _tabController;
 
-  bool _isRememberMe = false;
+  // bool _isRememberMe = false;
 
   bool _isTermsAccepted = false;
 
@@ -199,6 +200,13 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                             }
                             else
                             {
+                              if(!_isTermsAccepted)
+                              {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please accept the Terms and Conditions.'))
+                                );
+                                return;
+                              }
 
                               String dni = _dniController.text;
 
@@ -280,7 +288,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                         ),
                         const SizedBox(height: 12),
                         // Forgot Password Text (only for login)
-                        if (_tabController.index == 0)
+                        /* if (_tabController.index == 0)
                           TextButton(
                             onPressed: () {},
                             child: const Text(
@@ -290,7 +298,7 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                                 color: Colors.blueAccent,
                               ),
                             ),
-                          ),
+                          ), */
                       ],
                     );
                   },
@@ -350,19 +358,6 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Checkbox(
-                value: _isRememberMe,
-                onChanged: (value) {
-                  setState(() {
-                    _isRememberMe = value!;
-                  });
-                },
-              ),
-              const Text('Remember me'),
-            ],
-          ),
         ],
       );
   }
@@ -452,10 +447,23 @@ class LogInScreenState extends State<LogInScreen> with SingleTickerProviderState
                   });
                 },
               ),
-              const Expanded(
-                child: Text(
-                  'I’ve read and accept the Terms and Conditions and Privacy policy',
-                  style: TextStyle(fontSize: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    // Navegar a otra vista
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => TermsAndConditionsPage()),
+                    );
+                  },
+                  child: const Text(
+                    'I’ve read and accept the Terms and Conditions and Privacy policy',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue, // Cambia el color para que parezca un enlace
+                      decoration: TextDecoration.underline, // Subrayar como un enlace
+                    ),
+                  ),
                 ),
               ),
             ],
