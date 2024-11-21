@@ -1,9 +1,18 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sweetmanager/Commerce/models/comparative_incomes.dart';
 import 'package:sweetmanager/Commerce/services/dashboard_service.dart';
+
+
+extension DateTimeExtension on DateTime {
+  // Extensión para calcular el día del año
+  int get dayOfYear {
+    return int.parse(DateFormat("D").format(this));
+  }
+}
 
 class BarChartTest extends StatefulWidget {
   const BarChartTest({super.key, required this.role});
@@ -70,6 +79,23 @@ class BarChartSample2State extends State<BarChartTest> {
     _operation = operation();
   }
 
+  int getSecondWeekOfYear() {
+    // Fecha actual
+    DateTime now = DateTime.now();
+
+    // Día inicial de la segunda semana del mes
+    int daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    int startOfSecondWeek = (daysInMonth / 3).ceil() + 1;
+
+    // Fecha que representa el inicio de la segunda semana del mes
+    DateTime startSecondWeekDate = DateTime(now.year, now.month, startOfSecondWeek);
+
+    // Calcular el número de semana del año
+    int secondWeekOfYear = ((startSecondWeekDate.dayOfYear - 1) / 7).floor() + 1;
+
+    return secondWeekOfYear - 2;
+  }
+
   int getCurrentWeekOfMonth() {
 
     // Fecha actual
@@ -101,14 +127,14 @@ class BarChartSample2State extends State<BarChartTest> {
 
     print(chartData);
 
-    int week = getCurrentWeekOfMonth();
+    int week = getSecondWeekOfYear();
 
     print(week); 
 
     setState(() {
       showingBarGroups = chartData.map((data){
         return makeGroupData(
-          week,
+          data.weekNumber - week,
           data.totalIncome.toDouble() / 50,
           data.totalExpense / 50
         );
