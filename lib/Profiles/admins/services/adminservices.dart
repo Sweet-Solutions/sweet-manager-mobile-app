@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sweetmanager/Profiles/admins/models/admin_model.dart';
 
 class AdminService {
   final String baseUrl = 'https://sweetmanager-api.ryzeon.me';
@@ -42,18 +43,31 @@ class AdminService {
   }
 
   // GET /api/v1/user/get-all-admins con hotelId como parámetro de consulta
-  Future<List<dynamic>> getAdminsByHotelId(int hotelId) async {
+  Future<List<Admin>> getAdminsByHotelId(int hotelId) async {
     final headers = await _getHeaders();
+
     final response = await http.get(
       Uri.parse('$baseUrl/api/v1/user/get-all-admins?hotelId=$hotelId'),
       headers: headers,
     );
 
-    print('GET /api/v1/user/get-all-admins response status: ${response.statusCode}');
-    print('GET /api/v1/user/get-all-admins response body: ${response.body}');
-
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+
+      List<dynamic>data =  json.decode(response.body);
+
+      var admins = data.map((element)=> Admin.fromJson(element)).toList();
+
+      List<Admin> newList = [];
+
+      for(int i = 0; i < admins.length; i++)
+      {
+        if(i + 1 < admins.length && admins[i].id != admins[i + 1].id)
+        {
+          newList.add(admins[i]);
+        }
+      }
+
+      return newList;
     } else {
       throw Exception('Failed to load admins by Hotel ID: ${response.statusCode} - ${response.body}');
     }
