@@ -132,8 +132,9 @@ class _AddReportState extends State<AddReport> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      body: SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 32.0, left: 16.0, right: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -251,6 +252,7 @@ class _AddReportState extends State<AddReport> {
           ],
         ),
       ),
+    )
     );
   }
 }

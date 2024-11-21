@@ -26,30 +26,28 @@ class _ReportListState extends State<ReportList> {
   String? role;
   int? hotelId;
 
-
   @override
   void initState() {
     super.initState();
     reportService = ReportService();
     _loadHotelId();
-   
   }
 
   Future<String?> _getRole() async {
-    String? token = await storage.read(key: 'token');
-    if (token != null) {
-      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      return decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
-    }
-    return null;
+  String? token = await storage.read(key: 'token');
+  if (token != null) {
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    String? decodedRole = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+    print('Decoded role: $decodedRole'); // Verificar el valor del rol
+    return decodedRole;
   }
+  return null;
+}
 
   Future<int?> _getHotelId() async {
     String? token = await storage.read(key: 'token');
-
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-
       if (decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality'] != null) {
         try {
           return int.parse(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/locality']);
@@ -90,7 +88,7 @@ class _ReportListState extends State<ReportList> {
       final List<dynamic> reportData = await reportService.getReports(hotelId!);
       setState(() {
         reports = reportData.map((data) => Report.fromJson(data)).toList();
-        filteredReports = reports; 
+        filteredReports = reports;
         isLoading = false;
       });
     } catch (e) {
@@ -101,135 +99,138 @@ class _ReportListState extends State<ReportList> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-      future: _getRole(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+  
 
-        if (snapshot.hasError) {
-          return const Center(child: Text('Error loading role'));
-        }
+@override
+Widget build(BuildContext context) {
+  return FutureBuilder<String?>(
+    future: _getRole(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-        role = snapshot.data;
+      if (snapshot.hasError) {
+        return const Center(child: Text('Error loading role'));
+      }
 
-        return BaseLayout(
-          role: role,
-          childScreen: Scaffold(
-            body: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Reports',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            isSearching
-                                ? SizedBox(
-                                    width: 200,
-                                    child: TextField(
-                                      controller: searchController,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          searchQuery = value;
-                                          filteredReports = reports.where((report) {
-                                            return report.title.toLowerCase().contains(searchQuery.toLowerCase());
-                                          }).toList();
-                                        });
-                                      },
-                                      decoration: InputDecoration(
-                                        hintText: 'Search reports',
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Container(),
-                            IconButton(
-                              icon: const Icon(Icons.search),
-                              onPressed: () {
-                                setState(() {
-                                  isSearching = !isSearching;
-                                  if (!isSearching) {
-                                    searchController.clear();
-                                    searchQuery = "";
-                                    filteredReports = reports;
-                                  }
-                                });
-                              },
-                            ),
-                            // Inside the IconButton for adding a report in ReportList
-IconButton(
-  icon: const Icon(Icons.add),
-  onPressed: () async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AddReport(),
-      ),
-    );
+      role = snapshot.data;
+      print('Role in build: $role'); // Verificar el valor de `role` en tiempo de construcción
 
-    // If a new report was successfully added, refresh the report list
-    if (result == true) {
-      _loadHotelId();
-    }
-  },
-),
-
-                          ],
-                        ),
-                      ],
-                    ),
+      return BaseLayout(
+        role: role,
+        childScreen: Scaffold(
+          body: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 8),
-                isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ListView.builder(
-                            itemCount: filteredReports.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                child: ReportCard(report: filteredReports[index], index: index),
-                              );
-                            },
-                          ),
+                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Reports',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-              ],
-            ),
+                      Row(
+                        children: [
+                          isSearching
+                              ? SizedBox(
+                                  width: 200,
+                                  child: TextField(
+                                    controller: searchController,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        searchQuery = value;
+                                        filteredReports = reports.where((report) {
+                                          return report.title.toLowerCase().contains(searchQuery.toLowerCase());
+                                        }).toList();
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: 'Search reports',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8.0),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Container(),
+                          IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: () {
+                              setState(() {
+                                isSearching = !isSearching;
+                                if (!isSearching) {
+                                  searchController.clear();
+                                  searchQuery = "";
+                                  filteredReports = reports;
+                                }
+                              });
+                            },
+                          ),
+                          // Mostrar el botón de más solo si el rol es '3'
+                          if (role == "ROLE_WORKER")
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const AddReport(),
+                                  ),
+                                );
+
+                                // Si un nuevo reporte fue agregado exitosamente, recargar la lista de reportes
+                                if (result == true) {
+                                  _loadHotelId();
+                                }
+                              },
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ListView.builder(
+                          itemCount: filteredReports.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: ReportCard(report: filteredReports[index], index: index),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 }

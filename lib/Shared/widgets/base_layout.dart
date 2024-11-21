@@ -287,6 +287,13 @@ class BaseLayout extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.report),
+            title: const Text('Reports'),
+            onTap: () {
+              Navigator.pushNamed(context, '/reports');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.person),
             title: const Text('Profiles'),
             onTap: () {

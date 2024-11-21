@@ -82,123 +82,124 @@ class _SupplyEditScreenState extends State<SupplyEditScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Regresar a la pantalla anterior
-                  },
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Edit Supply',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF474C74),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: SafeArea(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 32.0, left: 16.0, right: 16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Regresar a la pantalla anterior
+                    },
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Center(
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  elevation: 8,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.label),
-                            labelText: 'Name',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _providersIdController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.person_2),
-                            labelText: 'Provider ID',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _stockController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.shopping_cart),
-                            labelText: 'Stock',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _priceController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.attach_money),
-                            labelText: 'Price',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _stateController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.check_circle),
-                            labelText: 'State',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            isLoading
-                                ? const CircularProgressIndicator()
-                                : ElevatedButton(
-                                    onPressed: _updateSupply,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF474C74),
-                                    ),
-                                    child: const Text(
-                                      'Update',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ),
-                          ],
-                        ),
-                      ],
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Edit Supply',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF474C74),
                     ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.label),
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _providersIdController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.person_2),
+                          labelText: 'Provider ID',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _stockController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.shopping_cart),
+                          labelText: 'Stock',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _priceController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.attach_money),
+                          labelText: 'Price',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _stateController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.check_circle),
+                          labelText: 'State',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          isLoading
+                              ? const CircularProgressIndicator()
+                              : ElevatedButton(
+                                  onPressed: _updateSupply,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF474C74),
+                                  ),
+                                  child: const Text(
+                                    'Update',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   void dispose() {
