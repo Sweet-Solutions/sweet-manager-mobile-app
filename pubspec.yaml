@@ -37,6 +37,8 @@ dependencies:
   camera: ^0.11.0+2 # Ensure you're using version 0.6.0 or later
   image_picker: ^0.8.5+3
   firebase_storage: 12.3.3
+  path_provider: ^2.1.5
+
 
 
 

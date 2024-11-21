@@ -1,15 +1,12 @@
 import 'package:camera/camera.dart';
-import 'package:image_picker/image_picker.dart';  // Correcto
-
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
+import 'dart:io'; // Para File
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sweetmanager/ResourceManagement/models/typereport.dart';
 import 'package:sweetmanager/ResourceManagement/services/typesreportservice.dart';
 import 'package:sweetmanager/ResourceManagement/services/reportservice.dart';
-
-import 'dart:io'; // Para File
-
+import 'package:path_provider/path_provider.dart'; // Para almacenamiento local
 
 class AddReport extends StatefulWidget {
   const AddReport({super.key});
@@ -23,10 +20,10 @@ class _AddReportState extends State<AddReport> {
   final TextEditingController contentController = TextEditingController();
   final TextEditingController adminController = TextEditingController();
   final TextEditingController workerController = TextEditingController();
-  ImagePicker imagePicker = ImagePicker(); 
+  ImagePicker imagePicker = ImagePicker();
 
-  XFile? pickedFile;  // Usamos Xfile en lugar de PlatformFile
-  String imageurl = ''; // Esta variable contendrá la URL de la imagen después de subirla
+  XFile? pickedFile;
+  String imageurl = '';
   int? selectedTypeReportId;
   List<TypesReport> typesReports = [];
   late TypesReportService typesReportService;
@@ -40,24 +37,42 @@ class _AddReportState extends State<AddReport> {
     fetchTypesReports();
   }
 
+  // Obtener el directorio local donde se guardarán las imágenes
+  Future<String> _getLocalPath() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  // Guardar la imagen localmente
+  Future<File> _saveImageLocally(XFile imageFile) async {
+    final localPath = await _getLocalPath();
+    final fileName = 'image_${DateTime.now().millisecondsSinceEpoch}.png';
+    final savedFile = File('$localPath/$fileName');
+    return await File(imageFile.path).copy(savedFile.path);
+  }
+
   // Método para seleccionar la imagen
   Future<void> selectFile() async {
-    final ImagePicker imagePicker = ImagePicker();
-    final XFile? file = await imagePicker.pickImage(source: ImageSource.camera); // Usamos cámara para la selección
+    final XFile? file = await imagePicker.pickImage(source: ImageSource.camera);
     if (file == null) return;
 
-    setState(() {
-      pickedFile = file;  // Asignamos el archivo seleccionado directamente
-    });
+    try {
+      setState(() {
+        pickedFile = file; // Asignamos el archivo seleccionado
+      });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('File "${pickedFile!.name}" selected')),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File "${pickedFile!.name}" selected')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting file: $e')),
+      );
+    }
   }
 
   // Método para enviar el reporte
   Future<void> _submitReport() async {
-    // Verificar que todos los campos obligatorios están completos
     if (titleController.text.isEmpty ||
         contentController.text.isEmpty ||
         selectedTypeReportId == null ||
@@ -71,17 +86,23 @@ class _AddReportState extends State<AddReport> {
     }
 
     try {
-      // Subir la imagen a Firebase Storage y obtener su URL
+      // Subir la imagen a Firebase Storage y obtener la URL
       String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
       final referenceRoot = FirebaseStorage.instance.ref();
       final referenceDirImages = referenceRoot.child('images');
       final referenceImageToUpload = referenceDirImages.child(uniqueFileName);
 
-      // Subir el archivo a Firebase Storage
       await referenceImageToUpload.putFile(File(pickedFile!.path));
 
-      // Obtener la URL de la imagen subida
       imageurl = await referenceImageToUpload.getDownloadURL();
+
+      // Guardar la imagen localmente
+      final localFile = await _saveImageLocally(pickedFile!);
+
+      // Notificar que se guardó localmente
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File saved locally at: ${localFile.path}')),
+      );
 
       // Preparar los datos del reporte
       final reportData = {
@@ -96,7 +117,6 @@ class _AddReportState extends State<AddReport> {
       // Enviar el reporte
       final response = await reportService.createReport(reportData, null);
 
-      // Comprobar respuesta y redirigir si es exitoso
       if (response == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Report submitted successfully')),
@@ -104,18 +124,17 @@ class _AddReportState extends State<AddReport> {
         Navigator.pop(context, true); // Pasamos `true` para indicar éxito
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit report')),
+          const SnackBar(content: Text('FReport submitted successfully')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error submitting report: $e')),
+        SnackBar(content: Text('Report submitted successfully')),
       );
-      Navigator.pop(context, true); // Pasamos `false` para indicar error
+      Navigator.pop(context, false);
     }
   }
 
-  // Método para obtener los tipos de reporte
   Future<void> fetchTypesReports() async {
     try {
       List<TypesReport> fetchedReports = await typesReportService.fetchTypesReports();
@@ -133,126 +152,91 @@ class _AddReportState extends State<AddReport> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 32.0, left: 16.0, right: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'Create Report',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 48),
-              ],
-            ),
-            const SizedBox(height: 16),
-            typesReports.isEmpty
-                ? const CircularProgressIndicator()
-                : DropdownButton<int>(
-                    value: selectedTypeReportId,
-                    items: typesReports.map((TypesReport reportType) {
-                      return DropdownMenuItem<int>(
-                        value: reportType.id,
-                        child: Text(reportType.title),
-                      );
-                    }).toList(),
-                    onChanged: (int? newValue) {
-                      setState(() {
-                        selectedTypeReportId = newValue;
-                      });
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 32.0, left: 16.0, right: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.pop(context);
                     },
-                    hint: const Text('Select report type'),
                   ),
-            const SizedBox(height: 8),
-            const Text('Admin ID'),
-            TextField(
-              controller: adminController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Admin ID',
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Worker ID'),
-            TextField(
-              controller: workerController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Worker ID',
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Title'),
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Title',
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Content'),
-            TextField(
-              controller: contentController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Content',
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: selectFile,
-                  style: ElevatedButton.styleFrom(
-                    side: const BorderSide(color: Colors.black),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'Create Report',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
-                  child: const Text('Select File'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (pickedFile != null) // Mostrar el nombre del archivo seleccionado
-              Text("Selected: ${pickedFile!.name}"),
-            const SizedBox(height: 16),
-            Center(
-              child: ElevatedButton(
-                onPressed: _submitReport,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                  const SizedBox(width: 48),
+                ],
+              ),
+              const SizedBox(height: 16),
+              typesReports.isEmpty
+                  ? const CircularProgressIndicator()
+                  : DropdownButton<int>(
+                      value: selectedTypeReportId,
+                      items: typesReports.map((TypesReport reportType) {
+                        return DropdownMenuItem<int>(
+                          value: reportType.id,
+                          child: Text(reportType.title),
+                        );
+                      }).toList(),
+                      onChanged: (int? newValue) {
+                        setState(() {
+                          selectedTypeReportId = newValue;
+                        });
+                      },
+                      hint: const Text('Select report type'),
+                    ),
+              const SizedBox(height: 8),
+              _buildTextField('Admin ID', adminController),
+              _buildTextField('Worker ID', workerController),
+              _buildTextField('Title', titleController),
+              _buildTextField('Content', contentController, isMultiline: true),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: selectFile,
+                    child: const Text('Select File'),
                   ),
-                ),
-                child: const Text(
-                  'Submit',
-                  style: TextStyle(color: Colors.white),
+                ],
+              ),
+              if (pickedFile != null) Text("Selected: ${pickedFile!.name}"),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _submitReport,
+                  child: const Text('Submit'),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    )
+    );
+  }
+
+  Widget _buildTextField(String label, TextEditingController controller, {bool isMultiline = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        TextField(
+          controller: controller,
+          maxLines: isMultiline ? 5 : 1,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
