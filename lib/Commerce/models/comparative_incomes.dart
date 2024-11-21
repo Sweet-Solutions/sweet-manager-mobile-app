@@ -1,23 +1,25 @@
 class ComparativeIncomes {
   int weekNumber;
 
-  int totalIncome;
-
+  double totalIncome;
+  
   double totalExpense;
 
-  double totalProfit;
+  int totalProfit;
 
-  ComparativeIncomes({required this.weekNumber, required this.totalIncome, required this.totalExpense, required this.totalProfit});
+  ComparativeIncomes({
+    required this.weekNumber,
+    required this.totalIncome,
+    required this.totalExpense,
+    required this.totalProfit,
+  });
 
-
-  // Método de fábrica para crear una instancia a partir de JSON
   factory ComparativeIncomes.fromJson(Map<String, dynamic> json) {
     return ComparativeIncomes(
-      weekNumber: json['weekNumbers'],
-      totalIncome: json['totalIncome'],
-      totalExpense: json['totalExpense'],
-      totalProfit: json['totalProfit'],
+      weekNumber: (json['weekNumbers'] as num).toInt(), // Convert to int
+      totalIncome: (json['totalIncome'] as num).toDouble(), // Convert to double
+      totalExpense: (json['totalExpense'] as num).toDouble(), // Convert to double
+      totalProfit: (json['totalProfit'] as num).toInt(), // Convert to int
     );
   }
-
 }
