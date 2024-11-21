@@ -59,12 +59,33 @@ class AdminService {
 
       List<Admin> newList = [];
 
+      List<int> ids = [];
+
+      var validation = false;
+
       for(int i = 0; i < admins.length; i++)
       {
         if(i + 1 < admins.length && admins[i].id != admins[i + 1].id)
         {
+          ids.add(admins[i].id);
+
           newList.add(admins[i]);
         }
+        if(i + 1 == admins.length)
+        {
+          for(int j = 0; j < ids.length; j++)
+          {
+            if(admins[i].id == ids[j])
+            {
+              validation = true;
+            }
+          }
+        }
+      }
+
+      if(!validation)
+      {
+        newList.add(admins[admins.length - 1]);
       }
 
       return newList;
