@@ -79,12 +79,33 @@ class Customerservice{
 
       List<Customer> newList = [];
 
-      for(int i=0; i< customers.length; i++)
+      List<int> ids = [];
+
+      var validation = false;
+
+      for(int i = 0; i < customers.length; i++)
       {
-        if(i + 1 < customers.length && customers[i].id != customers[i + 1].id)
+        if (i + 1 < customers.length && customers[i].id != customers[i + 1].id)
         {
+          ids.add(customers[i].id);
+
           newList.add(customers[i]);
         }
+        if(i + 1 == customers.length)
+        {
+          for(int j = 0; j < ids.length; j++)
+          {
+            if(customers[i].id == ids[j])
+            {
+              validation = true;
+            }
+          }
+        }
+      }
+
+      if(!validation)
+      {
+        newList.add(customers[customers.length - 1]);
       }
 
       return newList;
