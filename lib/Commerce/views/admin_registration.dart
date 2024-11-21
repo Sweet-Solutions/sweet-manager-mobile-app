@@ -78,30 +78,36 @@ class _AdminRegistrationState extends State<AdminRegistration> {
   Widget getContentView()
   {
     return Scaffold(
-      body: Container(
+  body: Stack(
+    children: [
+      // Imagen de fondo
+      Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/back_login.png'), // Replace with your background image path
+            image: AssetImage('assets/images/back_login.png'), // Reemplaza con la ruta de tu imagen
             fit: BoxFit.cover,
           ),
         ),
+      ),
+      // Contenido centrado
+      Center(
         child: SingleChildScrollView(
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
+          padding: const EdgeInsets.all(12),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
@@ -131,7 +137,7 @@ class _AdminRegistrationState extends State<AdminRegistration> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                // Phone Number and DNI Fields (Side by Side)
+                // Phone Number and DNI Fields
                 Row(
                   children: [
                     Expanded(
@@ -191,90 +197,24 @@ class _AdminRegistrationState extends State<AdminRegistration> {
                 const SizedBox(height: 20),
                 // Invite Button
                 ElevatedButton(
-                  onPressed: () async {
-                    // Implement your invite logic here
-                    String dni = _dniController.text;
-                    String username = _usernameController.text;
-                    String phoneNumber = _phoneNumberController.text;
-                    String email = _emailController.text;
-                    String name = _fullNameController.text;
-                    String password = _passwordController.text;
-
-                    if (phoneNumber.isEmpty || email.isEmpty || name.isEmpty || password.isEmpty || !name.contains(',')) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please fill all the corresponding fields following the requested instructions.')),
-                      );
-                      return;
-                    }
-
-                    List<String> parts = name.split(',');
-                    name = parts[0].trim();
-                    String surname = parts[1].trim();
-
-                    username = '${name}_${surname}_${dni[0]}${dni[1]}${dni[2]}'.toLowerCase();
-
-                    var validation = await _authService.signupAdmin(int.parse(dni), username, name, surname, email, phoneNumber, password);
-
-                    if (validation) {
-                      String? ownersId = await _getIdentity();
-                      var isNotificationCreated = await _notificationService.createNotification(Notifications(
-                        1,
-                        int.parse(ownersId!),
-                        int.parse(dni),
-                        0,
-                        'Welcome to SweetManager!',
-                        'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!',
-                      ));
-
-                      if (isNotificationCreated) {
-                        // Now DateTime
-                        String now = DateTime.now().toString().split(' ')[0];
-                        // 4 month in future DateTime
-
-                        String dueDate = DateTime(DateTime.now().year, DateTime.now().month + 1, DateTime.now().day).toString();
-
-                        dueDate = dueDate.split(' ')[0];
-
-                        var isAreaCreated = await _commerceService.registerAssignmentWorker(_selectedWorkAreaId!, 0, int.parse(dni), now, dueDate);
-
-                        if(isAreaCreated)
-                        {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => WorkerRegistration(workAreas: widget.workAreas, adminId: int.parse(dni))));
-                        }
-                        else
-                        {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please check the area registration')),
-                          );
-                          return;
-                        }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please check the notification registration')),
-                        );
-                        return;
-                      }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Couldn’t create admin.')),
-                      );
-                      return;
-                    }
-                  },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  onPressed: () {
+                    // Acción del botón
+                  },
                   child: const Text("Invite"),
                 ),
               ],
             ),
-            ),
           ),
         ),
-      )
-    );
+      ),
+    ],
+  ),
+);
   }
 }
