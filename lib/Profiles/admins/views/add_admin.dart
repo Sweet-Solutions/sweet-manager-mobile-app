@@ -13,7 +13,7 @@ class AdminAddScreen extends StatefulWidget {
 }
 
 class _AdminAddScreenState extends State<AdminAddScreen> {
-  final TextEditingController _idController = TextEditingController();  // Controlador para el ID
+  final TextEditingController _idController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
@@ -59,35 +59,28 @@ class _AdminAddScreenState extends State<AdminAddScreen> {
 
       // Crear la notificación
       var isNotificationCreated = await _notificationService.createNotification(Notifications(
-        1,  // Tipo de notificación
-        int.parse(ownersId!),  // OwnerId
-        adminId,  // AdminId desde el input
-        0,  // workersId (puedes cambiarlo si lo necesitas)
-        'Welcome to SweetManager!',  // Título
-        'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!',  // Descripción
+        1, // Tipo de notificación
+        int.parse(ownersId!), // OwnerId
+        adminId, // AdminId desde el input
+        0, // workersId (puedes cambiarlo si lo necesitas)
+        'Welcome to SweetManager!', // Título
+        'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!', // Descripción
       ));
 
       // Comprobar si la notificación fue creada
       if (isNotificationCreated) {
-        // Mostrar mensaje de éxito
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Admin added and notification sent successfully!')),
         );
       } else {
-        // Mostrar error si la notificación no se pudo crear
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to create notification!')),
         );
       }
 
-      // Mostrar respuesta de la creación del administrador
-      print('Admin added response: $response');
-
       // Regresar a la pantalla anterior
       Navigator.of(context).pop(true);
-
     } catch (e) {
-      // En caso de error, mostrar mensaje de error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to add admin: $e')),
       );
@@ -101,144 +94,145 @@ class _AdminAddScreenState extends State<AdminAddScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Add Admin',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF474C74),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Center(
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Add Admin',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF474C74),
+                    ),
                   ),
-                  elevation: 8,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _idController,  // Campo para ID
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.key),
-                            labelText: 'ID',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _usernameController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.person),
-                            labelText: 'Username',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.badge),
-                            labelText: 'Name',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _surnameController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.badge_outlined),
-                            labelText: 'Surname',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.email),
-                            labelText: 'Email',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _phoneController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.phone),
-                            labelText: 'Phone',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _stateController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.check_circle),
-                            labelText: 'State',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _passwordController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.lock),
-                            labelText: 'Password',
-                            border: OutlineInputBorder(),
-                          ),
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            isLoading
-                                ? const CircularProgressIndicator()
-                                : ElevatedButton(
-                              onPressed: _addAdmin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF474C74),
-                              ),
-                              child: const Text(
-                                'Add Admin',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    elevation: 8,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: _idController,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.key),
+                              labelText: 'ID',
+                              border: OutlineInputBorder(),
                             ),
-                          ],
-                        ),
-                      ],
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _usernameController,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.person),
+                              labelText: 'Username',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.badge),
+                              labelText: 'Name',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _surnameController,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.badge_outlined),
+                              labelText: 'Surname',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.email),
+                              labelText: 'Email',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _phoneController,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.phone),
+                              labelText: 'Phone',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _stateController,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.check_circle),
+                              labelText: 'State',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _passwordController,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.lock),
+                              labelText: 'Password',
+                              border: OutlineInputBorder(),
+                            ),
+                            obscureText: true,
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              isLoading
+                                  ? const CircularProgressIndicator()
+                                  : ElevatedButton(
+                                onPressed: _addAdmin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF474C74),
+                                ),
+                                child: const Text(
+                                  'Add Admin',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -256,13 +250,10 @@ class _AdminAddScreenState extends State<AdminAddScreen> {
     _passwordController.dispose();
     super.dispose();
   }
+
   Future<String?> _getIdentity() async {
-    // Retrieve token from local storage
     String? token = await storage.read(key: 'token');
-
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token!);
-
-    // Get Role in Claims token
     return decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid']?.toString();
   }
 }

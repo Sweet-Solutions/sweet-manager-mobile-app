@@ -65,12 +65,12 @@ class _WorkerAddScreenState extends State<WorkerAddScreen> {
 
       // Crear la notificación
       var isNotificationCreated = await _notificationService.createNotification(Notifications(
-        1,  // Tipo de notificación
-        int.parse(ownersId!),  // OwnerId
-        0,  // AdminId desde el token
-        workerId,  // WorkerId desde el input
-        'Welcome to SweetManager!',  // Título
-        'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!',  // Descripción
+        1, // Tipo de notificación
+        int.parse(ownersId!), // OwnerId
+        0, // AdminId desde el token
+        workerId, // WorkerId desde el input
+        'Welcome to SweetManager!', // Título
+        'Welcome to SweetManager! We’re thrilled to support your hotel management journey with streamlined operations, improved communication, and enhanced guest satisfaction. Let’s succeed together!', // Descripción
       ));
 
       // Comprobar si la notificación fue creada
@@ -86,7 +86,6 @@ class _WorkerAddScreenState extends State<WorkerAddScreen> {
 
       print('Worker added response: $response');
       Navigator.of(context).pop(true);
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to add worker: $e')),
@@ -101,144 +100,143 @@ class _WorkerAddScreenState extends State<WorkerAddScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Add Worker',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF474C74),
+      resizeToAvoidBottomInset: true, // Evita el overflow cuando se muestra el teclado
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Center(
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  elevation: 8,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _idController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.key),
-                            labelText: 'Worker ID',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _usernameController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.person),
-                            labelText: 'Username',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.badge),
-                            labelText: 'Name',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _surnameController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.badge_outlined),
-                            labelText: 'Surname',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.email),
-                            labelText: 'Email',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _phoneController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.phone),
-                            labelText: 'Phone',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _stateController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.check_circle),
-                            labelText: 'State',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: _passwordController,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.lock),
-                            labelText: 'Password',
-                            border: OutlineInputBorder(),
-                          ),
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            isLoading
-                                ? const CircularProgressIndicator()
-                                : ElevatedButton(
-                              onPressed: _addWorker,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF474C74),
-                              ),
-                              child: const Text(
-                                'Add Worker',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Add Worker',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF474C74),
                     ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _idController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.key),
+                          labelText: 'Worker ID',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.person),
+                          labelText: 'Username',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.badge),
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _surnameController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.badge_outlined),
+                          labelText: 'Surname',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.email),
+                          labelText: 'Email',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.phone),
+                          labelText: 'Phone',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _stateController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.check_circle),
+                          labelText: 'State',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.lock),
+                          labelText: 'Password',
+                          border: OutlineInputBorder(),
+                        ),
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          isLoading
+                              ? const CircularProgressIndicator()
+                              : ElevatedButton(
+                            onPressed: _addWorker,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF474C74),
+                            ),
+                            child: const Text(
+                              'Add Worker',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

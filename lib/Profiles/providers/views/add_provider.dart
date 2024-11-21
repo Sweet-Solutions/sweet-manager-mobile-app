@@ -46,7 +46,7 @@ class _ProviderAddScreenState extends State<ProviderAddScreen> {
         name: _nameController.text,
         address: _addressController.text,
         email: _emailController.text,
-        phone: int.parse(_phoneController.text),
+        phone: _phoneController.text.isNotEmpty ? int.tryParse(_phoneController.text) : null,
         state: _stateController.text,
       );
 
@@ -152,7 +152,12 @@ class _ProviderAddScreenState extends State<ProviderAddScreen> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller, String label, IconData icon, TextInputType inputType, bool isRequired) {
+      TextEditingController controller,
+      String label,
+      IconData icon,
+      TextInputType inputType,
+      bool isRequired,
+      ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -171,7 +176,7 @@ class _ProviderAddScreenState extends State<ProviderAddScreen> {
             return 'Enter a valid email';
           }
           if (inputType == TextInputType.number && value != null && int.tryParse(value) == null) {
-            return 'Enter a valid phone number';
+            return 'Enter a valid number';
           }
           return null;
         },
