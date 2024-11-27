@@ -30,7 +30,7 @@ class Customer {
     );
   }
 
-  // Método para convertir una instancia de Customer a JSON
+  // Método para convertir una instancia de Customer a JSON pe
   Map<String, dynamic> toJson() {
     return {
       'id': id,
